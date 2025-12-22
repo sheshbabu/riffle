@@ -4,7 +4,12 @@
       "Bash(make build:*)",
       "Bash(./riffle:*)",
       "Bash(tree:*)",
-      "Bash(exiftool:*)"
+      "Bash(exiftool:*)",
+      "Bash(make dev:*)",
+      "Bash(curl:*)",
+      "Bash(esbuild:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)"
     ]
   }
 }

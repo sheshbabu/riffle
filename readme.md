@@ -36,5 +36,13 @@ By default runs in dry-run mode. To actually move files:
 $ ./riffle --inbox=/path/to/inbox --library=/path/to/library --trash=/path/to/trash --dry-run=false
 ```
 
+# Vendor Dependencies
+
+Download React:
+```bash
+curl -L -o assets/react.production.min.js https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js
+curl -L -o assets/react-dom.production.min.js https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js
+```
+
 ### Thanks
 * [go-exiftool](https://github.com/barasher/go-exiftool)

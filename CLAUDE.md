@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
 ## Project Overview
 
@@ -8,35 +8,17 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 
 ## Technology Stack
 
-- Go (Golang)
-- Minimal external dependencies
-- **go-exiftool** (github.com/barasher/go-exiftool) - EXIF metadata extraction for all media formats including HEIC
-
-## Prerequisites
-
-- **exiftool** binary must be installed:
-  ```bash
-  # macOS
-  brew install exiftool
-
-  # Linux
-  apt-get install libimage-exiftool-perl
-  ```
+- Golang
+- React
+- go-exiftool (github.com/barasher/go-exiftool) - EXIF metadata extraction
 
 ## Development Commands
 
-### Build Commands
 - `make build` - Build production binary
 - `make dev` - Run development server
 - `make watch` - Run with file watching (requires air)
 
-### Dependencies
-For watch mode development, install:
-```bash
-go install github.com/air-verse/air@latest
-```
-
-## Version 1.0 (Implemented)
+## Implemented Features
 
 ### Core Workflow
 1. Recursively scan "inbox" folder for media files (photos and videos)
@@ -77,35 +59,9 @@ When multiple files share the same hash (exact duplicates), select one to keep:
 **Images:** .jpg, .jpeg, .png, .gif, .heic, .heif, .webp, .bmp, .tiff, .tif
 **Videos:** .mp4, .mov, .avi, .mkv, .wmv, .flv, .webm, .m4v, .mpg, .mpeg
 
-### Command-Line Usage
-```bash
-riffle --inbox=<path> --library=<path> --trash=<path> [--dry-run=true]
-```
-
-**Flags:**
-- `--inbox` - Path to inbox folder (required)
-- `--library` - Path to library folder (required)
-- `--trash` - Path to trash folder (required)
-- `--dry-run` - Dry run mode (default: `true`)
-  - `true` - Show what would be done without moving files
-  - `false` - Actually move files
-
-All three folder paths are required. Folders must exist before running.
-
-**Safety:** Dry-run mode is enabled by default. Use `--dry-run=false` to actually move files.
-
 ### Known Limitations
 - **Scanned photos**: When physical photos are scanned, the scan date often gets written to `DateTimeOriginal` instead of the original photo date. These files will be organized by scan date rather than the actual photo date.
 - **Files without date metadata**: Photos downloaded from social media, screenshots, or edited photos may have stripped EXIF data and will go to the `Unknown/` folder.
-
-### Summary Statistics
-After completion, displays:
-- Total files scanned
-- Unique files found
-- Duplicate groups identified
-- Duplicates removed
-- Files moved to library
-- Files moved to trash
 
 ### Folder Structure
 
@@ -135,7 +91,7 @@ Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
 - Same folder structure as library (`YYYY/MM - MonthName/`)
 - Files renamed with same pattern as library
 
-## Version 1.1
+## Future Tasks
 
 ### Near Duplicate Detection
 - Use **dhash** (difference hash) algorithm to find visually similar photos
@@ -154,8 +110,7 @@ Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
 ### Structure
 - **Entry Point**: `main.go` - Command-line interface, directory validation, and orchestrates deduplication
 - **Feature-based Structure**: Each feature has its own directory under `features/`
-  - `dedupe/` - Core deduplication logic (Version 1.0)
-    - `dedupe.go` - All deduplication logic (scanning, hashing, grouping, candidate selection)
+  - `dedupe/` - Core deduplication logic (scanning, hashing, grouping, candidate selection)
 - **Commons**: Shared utilities in `commons/`
   - `exif/` - EXIF data extraction and validation
 
@@ -164,32 +119,78 @@ Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
 - **Feature Structure**: Features are self-contained with models and utilities
 - **Single Binary**: No external runtime dependencies
 
-## Code Style Guidelines
+## Development Conventions
 
-### General
+### Code Style
 - Keep code simple and readable
 - Use descriptive variable names and consistent formatting
 - Avoid complex language features unless necessary
 - Prefer standard libraries over external dependencies
 - Don't add unnecessary comments
 
-### Naming Conventions
-- **Functions**: Use descriptive action names (e.g., `ComputeHash`, `SelectCandidate`, `ScanDirectory`)
-- **Log Messages**: Lowercase with key-value pairs (e.g., `slog.Info("starting deduplication", "inbox", inboxPath)`)
-- **Structs**: Clear, descriptive names (e.g., `PhotoFile` not `Photo`)
-- **Variables**: Use full words, not abbreviations (e.g., `libraryPath` not `libPath`)
+### Go Backend Patterns
 
-### Error Handling
+#### Error Handling
 - Use error wrapping with context: `fmt.Errorf("context: %w", err)`
 - Always log errors with `slog.Error()` before returning
-- Return errors to caller, don't panic except for initialization failures
+- Handle `sql.ErrNoRows` separately using `errors.Is()`
+- Use `panic()` only for critical initialization errors
 
-### Logging
+#### HTTP Handlers
+- Function signature: `func HandleXXX(w http.ResponseWriter, r *http.Request)`
+- Naming: `Handle{Action}{Resource}` (e.g., `HandleGetPhotos`, `HandleUpload`)
+- Structure: Parse/validate → Business logic → Response
+- Set `Content-Type: application/json` for JSON responses
+
+#### Database Patterns
+- Use global DB instance
+- Always use parameterized queries with `?` placeholders
+- Defer `rows.Close()` for multi-row queries
+- Use transactions for multi-step operations with defer rollback pattern
+
+#### Struct Conventions
+- Use descriptive names (e.g., `PhotoFile` not `Photo`)
+- Use JSON tags for API responses: `json:"fieldName"`
+- Use full words, not abbreviations (e.g., `libraryPath` not `libPath`)
+
+#### Logging
 - Use structured logging with `slog` package
 - Log messages are lowercase
 - Include context with key-value pairs: `slog.Info("message", "key", value)`
 - Example: `slog.Error("failed to compute hash", "file", filePath, "error", err)`
 
-## Implementation Philosophy
+### React Frontend Patterns
 
-Keep things simple and focused for Version 1.0.
+#### Component Structure
+- Use function components with hooks
+- Main exported function/component should always be the top function
+- Early returns for conditional rendering
+- Default exports for components, named exports for utilities
+
+#### State Management
+- Use descriptive state names: `[photos, setPhotos]`, `[isLoading, setIsLoading]`
+- Local state with `useState`, prop drilling for shared state
+- Functional updates for state dependent on previous state
+
+#### Function Declarations
+- Use `function` keyword for event handlers, utility functions, and render functions
+- Use arrow functions only for inline callbacks in JSX
+- Examples:
+  ```javascript
+  // Preferred: function declarations
+  function handleSaveClick() { ... }
+  function renderItems() { ... }
+
+  // Acceptable: arrow functions for inline callbacks
+  onClick={() => handleSaveClick()}
+  items.map(item => ...)
+  ```
+
+#### Event Handling
+- Handler naming: `handle{Action}Click` (e.g., `handleSaveClick`)
+- Keyboard shortcuts with `preventDefault()`
+
+#### CSS Classes
+- BEM-like naming: `photo-grid`, `toolbar-button`
+- Conditional classes using template literals
+- Minimal inline styles, prefer CSS classes
