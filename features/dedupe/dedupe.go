@@ -414,6 +414,14 @@ func moveFile(photo PhotoFile, destDir string) error {
 		}
 	}
 
+	// Fallback to file modification time if no EXIF DateTime
+	if !hasDateTime {
+		if fileInfo, err := os.Stat(photo.Path); err == nil {
+			dateTime = fileInfo.ModTime()
+			hasDateTime = true
+		}
+	}
+
 	var destPath string
 	ext := filepath.Ext(photo.Path)
 	hashPrefix := photo.Hash[:16]

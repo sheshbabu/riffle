@@ -59,9 +59,13 @@ When multiple files share the same hash (exact duplicates), select one to keep:
 **Images:** .jpg, .jpeg, .png, .gif, .heic, .heif, .webp, .bmp, .tiff, .tif
 **Videos:** .mp4, .mov, .avi, .mkv, .wmv, .flv, .webm, .m4v, .mpg, .mpeg
 
+### Date Handling
+- **Primary source**: EXIF DateTime fields (DateTimeOriginal, CreateDate, etc.)
+- **Fallback**: File modification time (ModTime) if EXIF DateTime is unavailable
+- Files are organized by date from either source
+
 ### Known Limitations
 - **Scanned photos**: When physical photos are scanned, the scan date often gets written to `DateTimeOriginal` instead of the original photo date. These files will be organized by scan date rather than the actual photo date.
-- **Files without date metadata**: Photos downloaded from social media, screenshots, or edited photos may have stripped EXIF data and will go to the `Unknown/` folder.
 
 ### Folder Structure
 
@@ -79,13 +83,13 @@ library/
     12 - December/
       2024-12-25-180000-abc123def456.jpg
   Unknown/
-    a4b8c16d32e64f12.jpg
+    a4b8c16d32e64f12.jpg  (rare: only if date cannot be determined)
 ```
 
 Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
-- Date/time from EXIF DateTime field only
+- Date/time from EXIF DateTime field (preferred) or file modification time (fallback)
 - Hash is first 16 characters of SHA256 file hash
-- Files without EXIF DateTime go to `Unknown/` folder
+- Files without any date information go to `Unknown/` folder
 
 **Trash** (organized by date):
 - Same folder structure as library (`YYYY/MM - MonthName/`)
