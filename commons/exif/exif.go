@@ -58,6 +58,7 @@ func ExtractExif(filePath string) (map[string]any, error) {
 		"FocalLength":  "FocalLength",
 		"Flash":        "Flash",
 		"ColorSpace":   "ColorSpace",
+		"Duration":     "Duration",
 	}
 
 	for key, exifKey := range fieldMap {

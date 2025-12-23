@@ -4,7 +4,6 @@ import (
 	"embed"
 	"encoding/base64"
 	"fmt"
-	"io"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -93,11 +92,8 @@ func handlePhotoServe(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "public, max-age=3600")
 
-	// Stream file to response
-	_, err = io.Copy(w, file)
-	if err != nil {
-		slog.Error("failed to stream file", "path", filePath, "error", err)
-	}
+	// Serve file using http.ServeContent for range request support
+	http.ServeContent(w, r, filepath.Base(filePath), fileInfo.ModTime(), file)
 }
 
 func getContentType(ext string) string {

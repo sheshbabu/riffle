@@ -10,6 +10,48 @@ function isVideoFile(filePath) {
   return ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg'].includes(ext);
 }
 
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i)) + ' ' + sizes[i];
+}
+
+function formatDuration(durationStr) {
+  if (!durationStr) return null;
+
+  // Duration format is typically "0:00:28" or "00:28"
+  const parts = durationStr.split(':').map(p => parseInt(p, 10));
+
+  if (parts.length === 3) {
+    // Format: H:MM:SS
+    const hours = parts[0];
+    const minutes = parts[1];
+    const seconds = parts[2];
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  } else if (parts.length === 2) {
+    // Format: MM:SS
+    const minutes = parts[0];
+    const seconds = parts[1];
+
+    if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  }
+
+  return durationStr;
+}
+
 function DuplicateFile({ file }) {
   const isVideo = isVideoFile(file.path);
   const photoUrl = getPhotoUrl(file.path);
@@ -45,6 +87,21 @@ function DuplicateFile({ file }) {
     );
   }
 
+  if (file.size) {
+    badgeElements.push(
+      <span key="size" className="badge badge-info">{formatFileSize(file.size)}</span>
+    );
+  }
+
+  if (isVideo && file.exifData && file.exifData.Duration) {
+    const formattedDuration = formatDuration(file.exifData.Duration);
+    if (formattedDuration) {
+      badgeElements.push(
+        <span key="duration" className="badge badge-info">{formattedDuration}</span>
+      );
+    }
+  }
+
   if (badgeElements.length > 0) {
     badges = <div className="badges">{badgeElements}</div>;
   }
@@ -72,7 +129,9 @@ export default function DuplicateGroup({ group, index }) {
       <h4 className="group-header">
         Group {index + 1} (Hash: {group.hash})
       </h4>
-      {fileElements}
+      <div className="group-files">
+        {fileElements}
+      </div>
     </div>
   );
 }

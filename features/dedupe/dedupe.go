@@ -22,6 +22,7 @@ type PhotoFile struct {
 
 type DuplicateFile struct {
 	Path        string         `json:"path"`
+	Size        int64          `json:"size"`
 	HasExif     bool           `json:"hasExif"`
 	IsCandidate bool           `json:"isCandidate"`
 	ExifData    map[string]any `json:"exifData,omitempty"`
@@ -143,6 +144,7 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string) (*DedupeStats, error
 		for _, photo := range duplicates {
 			duplicateFile := DuplicateFile{
 				Path:        photo.Path,
+				Size:        photo.Size,
 				HasExif:     photo.HasExif,
 				IsCandidate: photo.Path == candidate.Path,
 				ExifData:    photo.ExifData,

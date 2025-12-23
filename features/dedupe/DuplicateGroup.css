@@ -13,24 +13,21 @@
   color: var(--neutral-500);
 }
 
+.group-files {
+  display: flex;
+  flex-direction: row;
+}
+
 .duplicate-file {
   padding: var(--spacing-4);
-  border-left: 3px solid var(--neutral-200);
   margin-bottom: var(--spacing-2);
   display: flex;
   gap: var(--spacing-4);
-  align-items: flex-start;
-
-  &.candidate {
-    border-left-color: var(--green-500);
-    background-color: var(--bg-secondary);
-  }
+  flex-direction: column;
 }
 
 .duplicate-file-media {
-  width: 200px;
-  height: 200px;
-  object-fit: cover;
+  width: 100%;
   border-radius: 4px;
   margin-bottom: var(--spacing-2);
 
@@ -63,6 +60,11 @@
 
   &.badge-exif {
     background-color: var(--neutral-200);
+  }
+
+  &.badge-info {
+    background-color: var(--neutral-100);
+    color: var(--neutral-600);
   }
 }
 
