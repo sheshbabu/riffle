@@ -9,11 +9,11 @@ export default function DedupeForm({
   setLibraryPath,
   trashPath,
   setTrashPath,
-  isDryRun,
-  setIsDryRun,
-  isProcessing,
+  isAnalyzing,
   onSubmit
 }) {
+  const buttonText = isAnalyzing ? 'Analyzing...' : 'Analyze Photos';
+
   return (
     <div className="dedupe-form">
       <Input
@@ -46,24 +46,13 @@ export default function DedupeForm({
         hint="Folder for duplicate photos"
       />
 
-      <div className="dry-run-checkbox">
-        <label>
-          <input
-            type="checkbox"
-            checked={isDryRun}
-            onChange={(e) => setIsDryRun(e.target.checked)}
-          />
-          Dry Run (no files will be moved)
-        </label>
-      </div>
-
       <div className="submit-button">
         <Button
           className='primary'
           onClick={onSubmit}
-          disabled={isProcessing}
+          disabled={isAnalyzing}
         >
-          {isProcessing ? 'Processing...' : 'Start Deduplication'}
+          {buttonText}
         </Button>
       </div>
     </div>

@@ -58,12 +58,17 @@ async function dedupe(payload) {
   return await request('POST', '/api/dedupe/', payload);
 }
 
-async function getDedupeResults() {
-  return await request('GET', '/api/dedupe/results/');
+async function getDedupeAnalysis() {
+  return await request('GET', '/api/dedupe/analyze/');
+}
+
+async function executeDeduplication(payload) {
+  return await request('POST', '/api/dedupe/execute/', payload);
 }
 
 export default {
   request,
   dedupe,
-  getDedupeResults
+  getDedupeAnalysis,
+  executeDeduplication
 };

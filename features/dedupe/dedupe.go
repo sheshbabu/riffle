@@ -32,6 +32,12 @@ type DuplicateGroup struct {
 	Files []DuplicateFile `json:"files"`
 }
 
+type FileAction struct {
+	Path     string         `json:"path"`
+	Hash     string         `json:"hash"`
+	ExifData map[string]any `json:"exifData,omitempty"`
+}
+
 type DedupeStats struct {
 	TotalScanned      int              `json:"totalScanned"`
 	UniqueFiles       int              `json:"uniqueFiles"`
@@ -40,10 +46,12 @@ type DedupeStats struct {
 	MovedToLibrary    int              `json:"movedToLibrary"`
 	MovedToTrash      int              `json:"movedToTrash"`
 	Duplicates        []DuplicateGroup `json:"duplicates"`
+	FilesToLibrary    []FileAction     `json:"filesToLibrary"`
+	FilesToTrash      []FileAction     `json:"filesToTrash"`
 }
 
-func ProcessInbox(inboxPath, libraryPath, trashPath string, isDryRun bool) (*DedupeStats, error) {
-	slog.Info("starting deduplication")
+func ProcessInbox(inboxPath, libraryPath, trashPath string) (*DedupeStats, error) {
+	slog.Info("starting deduplication analysis")
 
 	photos, err := ScanDirectory(inboxPath)
 	if err != nil {
@@ -53,7 +61,9 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, isDryRun bool) (*Ded
 	slog.Info("scanned inbox", "count", len(photos))
 
 	stats := &DedupeStats{
-		TotalScanned: len(photos),
+		TotalScanned:   len(photos),
+		FilesToLibrary: make([]FileAction, 0),
+		FilesToTrash:   make([]FileAction, 0),
 	}
 
 	sizeGroups := GroupBySize(photos)
@@ -106,16 +116,12 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, isDryRun bool) (*Ded
 			candidate := duplicates[0]
 			stats.UniqueFiles++
 
-			if isDryRun {
-				slog.Info("would move to library", "file", candidate.Path)
-			} else {
-				if err := moveFile(candidate, libraryPath); err != nil {
-					slog.Error("failed to move file to library", "file", candidate.Path, "error", err)
-					continue
-				}
-				slog.Info("moved to library", "file", candidate.Path)
-				stats.MovedToLibrary++
-			}
+			stats.FilesToLibrary = append(stats.FilesToLibrary, FileAction{
+				Path:     candidate.Path,
+				Hash:     candidate.Hash,
+				ExifData: candidate.ExifData,
+			})
+			slog.Info("unique file will move to library", "file", candidate.Path)
 			continue
 		}
 
@@ -144,44 +150,36 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, isDryRun bool) (*Ded
 			duplicateGroup.Files = append(duplicateGroup.Files, duplicateFile)
 
 			if photo.Path == candidate.Path {
-				if isDryRun {
-					slog.Info("would move candidate to library", "file", photo.Path)
-				} else {
-					if err := moveFile(photo, libraryPath); err != nil {
-						slog.Error("failed to move candidate to library", "file", photo.Path, "error", err)
-					} else {
-						slog.Info("moved candidate to library", "file", photo.Path)
-						stats.MovedToLibrary++
-					}
-				}
+				stats.FilesToLibrary = append(stats.FilesToLibrary, FileAction{
+					Path:     photo.Path,
+					Hash:     photo.Hash,
+					ExifData: photo.ExifData,
+				})
+				slog.Info("candidate will move to library", "file", photo.Path)
 			} else {
 				stats.DuplicatesRemoved++
-				if isDryRun {
-					slog.Info("would move duplicate to trash", "file", photo.Path)
-				} else {
-					if err := moveFile(photo, trashPath); err != nil {
-						slog.Error("failed to move duplicate to trash", "file", photo.Path, "error", err)
-					} else {
-						slog.Info("moved duplicate to trash", "file", photo.Path)
-						stats.MovedToTrash++
-					}
-				}
+				stats.FilesToTrash = append(stats.FilesToTrash, FileAction{
+					Path:     photo.Path,
+					Hash:     photo.Hash,
+					ExifData: photo.ExifData,
+				})
+				slog.Info("duplicate will move to trash", "file", photo.Path)
 			}
 		}
 
 		stats.Duplicates = append(stats.Duplicates, duplicateGroup)
 	}
 
-	slog.Info("deduplication completed")
+	slog.Info("deduplication analysis completed")
 
 	fmt.Println()
-	fmt.Println("=== Summary ===")
+	fmt.Println("=== Analysis Summary ===")
 	fmt.Printf("Total files scanned:      %d\n", stats.TotalScanned)
 	fmt.Printf("Unique files:             %d\n", stats.UniqueFiles)
 	fmt.Printf("Duplicate groups found:   %d\n", stats.DuplicateGroups)
-	fmt.Printf("Duplicates removed:       %d\n", stats.DuplicatesRemoved)
-	fmt.Printf("Files moved to library:   %d\n", stats.MovedToLibrary)
-	fmt.Printf("Files moved to trash:     %d\n", stats.MovedToTrash)
+	fmt.Printf("Duplicates to remove:     %d\n", stats.DuplicatesRemoved)
+	fmt.Printf("Files to move to library: %d\n", len(stats.FilesToLibrary))
+	fmt.Printf("Files to move to trash:   %d\n", len(stats.FilesToTrash))
 	fmt.Println()
 
 	return stats, nil
@@ -274,6 +272,58 @@ func ComputeHash(filePath string) (string, error) {
 	}
 
 	return fmt.Sprintf("%x", hash.Sum(nil)), nil
+}
+
+func ExecuteMoves(libraryPath, trashPath string, stats *DedupeStats) error {
+	slog.Info("starting file moves", "toLibrary", len(stats.FilesToLibrary), "toTrash", len(stats.FilesToTrash))
+
+	movedToLibrary := 0
+	movedToTrash := 0
+
+	for _, action := range stats.FilesToLibrary {
+		photo := PhotoFile{
+			Path:     action.Path,
+			Hash:     action.Hash,
+			ExifData: action.ExifData,
+			HasExif:  len(action.ExifData) > 0,
+		}
+
+		if err := moveFile(photo, libraryPath); err != nil {
+			slog.Error("failed to move file to library", "file", photo.Path, "error", err)
+			continue
+		}
+		slog.Info("moved to library", "file", photo.Path)
+		movedToLibrary++
+	}
+
+	for _, action := range stats.FilesToTrash {
+		photo := PhotoFile{
+			Path:     action.Path,
+			Hash:     action.Hash,
+			ExifData: action.ExifData,
+			HasExif:  len(action.ExifData) > 0,
+		}
+
+		if err := moveFile(photo, trashPath); err != nil {
+			slog.Error("failed to move file to trash", "file", photo.Path, "error", err)
+			continue
+		}
+		slog.Info("moved to trash", "file", photo.Path)
+		movedToTrash++
+	}
+
+	stats.MovedToLibrary = movedToLibrary
+	stats.MovedToTrash = movedToTrash
+
+	slog.Info("file moves completed", "movedToLibrary", movedToLibrary, "movedToTrash", movedToTrash)
+
+	fmt.Println()
+	fmt.Println("=== Execution Summary ===")
+	fmt.Printf("Files moved to library:   %d\n", movedToLibrary)
+	fmt.Printf("Files moved to trash:     %d\n", movedToTrash)
+	fmt.Println()
+
+	return nil
 }
 
 func moveFile(photo PhotoFile, destDir string) error {

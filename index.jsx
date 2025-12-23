@@ -1,6 +1,5 @@
 import './assets/reset.css';
 import './assets/index.css';
-import './index.css';
 import ApiClient from './commons/http/ApiClient.js';
 import DedupeForm from './features/dedupe/DedupeForm.jsx';
 import DedupeStats from './features/dedupe/DedupeStats.jsx';
@@ -12,29 +11,37 @@ function App() {
   const [inboxPath, setInboxPath] = useState('');
   const [libraryPath, setLibraryPath] = useState('');
   const [trashPath, setTrashPath] = useState('');
-  const [isDryRun, setIsDryRun] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isExecuting, setIsExecuting] = useState(false);
   const [message, setMessage] = useState('');
   const [results, setResults] = useState(null);
 
   useEffect(() => {
-    if (!isProcessing) {
+    if (!isAnalyzing && !isExecuting) {
       return;
     }
 
     const pollInterval = setInterval(async () => {
       try {
-        const data = await ApiClient.getDedupeResults();
+        const data = await ApiClient.getDedupeAnalysis();
         setResults(data);
-        setIsProcessing(false);
-        setMessage('Deduplication completed!');
+
+        if (isAnalyzing) {
+          setIsAnalyzing(false);
+          setMessage('Analysis completed!');
+        }
+
+        if (isExecuting) {
+          setIsExecuting(false);
+          setMessage('Execution completed!');
+        }
       } catch (error) {
         // Results not ready yet, keep polling
       }
     }, 2000);
 
     return () => clearInterval(pollInterval);
-  }, [isProcessing]);
+  }, [isAnalyzing, isExecuting]);
 
   async function handleDedupe() {
     if (!inboxPath || !libraryPath || !trashPath) {
@@ -42,22 +49,43 @@ function App() {
       return;
     }
 
-    setIsProcessing(true);
-    setMessage('Starting deduplication...');
+    setIsAnalyzing(true);
+    setMessage('Analyzing photos...');
     setResults(null);
 
     try {
       const response = await ApiClient.dedupe({
         inboxPath,
         libraryPath,
-        trashPath,
-        isDryRun
+        trashPath
       });
 
-      setMessage(response.message || 'Deduplication started successfully');
+      setMessage(response.message || 'Analysis started successfully');
     } catch (error) {
-      setMessage(error.message || 'Failed to start deduplication');
-      setIsProcessing(false);
+      setMessage(error.message || 'Failed to start analysis');
+      setIsAnalyzing(false);
+    }
+  }
+
+  async function handleExecute() {
+    if (!libraryPath || !trashPath) {
+      setMessage('Library and trash paths are required');
+      return;
+    }
+
+    setIsExecuting(true);
+    setMessage('Executing file moves...');
+
+    try {
+      const response = await ApiClient.executeDeduplication({
+        libraryPath,
+        trashPath
+      });
+
+      setMessage(response.message || 'Execution started successfully');
+    } catch (error) {
+      setMessage(error.message || 'Failed to execute');
+      setIsExecuting(false);
     }
   }
 
@@ -86,15 +114,18 @@ function App() {
         setLibraryPath={setLibraryPath}
         trashPath={trashPath}
         setTrashPath={setTrashPath}
-        isDryRun={isDryRun}
-        setIsDryRun={setIsDryRun}
-        isProcessing={isProcessing}
+        isAnalyzing={isAnalyzing}
         onSubmit={handleDedupe}
       />
 
       {messageElement}
       {statsElement}
-      <DuplicateGroups duplicates={results?.duplicates} />
+      <DuplicateGroups
+        duplicates={results?.duplicates}
+        onExecute={handleExecute}
+        isExecuting={isExecuting}
+        hasResults={results != null}
+      />
     </div>
   );
 }

@@ -38,7 +38,8 @@ func newRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /api/dedupe/", dedupe.HandleDedupe)
-	mux.HandleFunc("GET /api/dedupe/results/", dedupe.HandleDedupeResults)
+	mux.HandleFunc("GET /api/dedupe/analyze/", dedupe.HandleDedupeAnalysis)
+	mux.HandleFunc("POST /api/dedupe/execute/", dedupe.HandleExecute)
 	mux.HandleFunc("GET /api/photo/", handlePhotoServe)
 	mux.HandleFunc("GET /assets/", handleStaticAssets)
 	mux.HandleFunc("GET /", handleRoot)
