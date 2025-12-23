@@ -29,6 +29,14 @@ Build from source:
 $ make build
 ```
 
+### Configuration
+
+Create `.env` file in the project root:
+```bash
+cp .env.example .env
+```
+```
+
 ### Usage
 
 Start the server:
@@ -36,7 +44,7 @@ Start the server:
 $ ./riffle
 ```
 
-Open your browser to `http://localhost:8080`:
+Open your browser to `http://localhost:8080`
 
 ### Development
 

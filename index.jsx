@@ -8,9 +8,6 @@ import DuplicateGroups from './features/dedupe/DuplicateGroups.jsx';
 const { useState, useEffect } = React;
 
 function App() {
-  const [inboxPath, setInboxPath] = useState('');
-  const [libraryPath, setLibraryPath] = useState('');
-  const [trashPath, setTrashPath] = useState('');
   const [enableNearDuplicates, setEnableNearDuplicates] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -45,20 +42,12 @@ function App() {
   }, [isAnalyzing, isExecuting]);
 
   async function handleDedupe() {
-    if (!inboxPath || !libraryPath || !trashPath) {
-      setMessage('Please fill in all folder paths');
-      return;
-    }
-
     setIsAnalyzing(true);
     setMessage('Analyzing photos...');
     setResults(null);
 
     try {
       const response = await ApiClient.dedupe({
-        inboxPath,
-        libraryPath,
-        trashPath,
         enableNearDuplicates
       });
 
@@ -70,19 +59,11 @@ function App() {
   }
 
   async function handleExecute() {
-    if (!libraryPath || !trashPath) {
-      setMessage('Library and trash paths are required');
-      return;
-    }
-
     setIsExecuting(true);
     setMessage('Executing file moves...');
 
     try {
-      const response = await ApiClient.executeDeduplication({
-        libraryPath,
-        trashPath
-      });
+      const response = await ApiClient.executeDeduplication({});
 
       setMessage(response.message || 'Execution started successfully');
     } catch (error) {
@@ -110,12 +91,6 @@ function App() {
       <h1>Riffle</h1>
 
       <DedupeForm
-        inboxPath={inboxPath}
-        setInboxPath={setInboxPath}
-        libraryPath={libraryPath}
-        setLibraryPath={setLibraryPath}
-        trashPath={trashPath}
-        setTrashPath={setTrashPath}
         enableNearDuplicates={enableNearDuplicates}
         setEnableNearDuplicates={setEnableNearDuplicates}
         isAnalyzing={isAnalyzing}

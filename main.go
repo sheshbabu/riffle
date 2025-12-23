@@ -12,12 +12,16 @@ import (
 	"riffle/commons/exif"
 	"riffle/features/dedupe"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 //go:embed assets/*
 var assets embed.FS
 
 func main() {
+	loadEnv()
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -30,6 +34,21 @@ func main() {
 	err := http.ListenAndServe(port, newRouter())
 	if err != nil {
 		panic(err)
+	}
+}
+
+func loadEnv() {
+	if err := godotenv.Load(); err != nil {
+		slog.Warn("no .env file found, using env vars only")
+	}
+
+	inboxPath := os.Getenv("INBOX_PATH")
+	libraryPath := os.Getenv("LIBRARY_PATH")
+	trashPath := os.Getenv("TRASH_PATH")
+
+	if inboxPath == "" || libraryPath == "" || trashPath == "" {
+		slog.Error("missing env vars: INBOX_PATH, LIBRARY_PATH, and TRASH_PATH")
+		os.Exit(1)
 	}
 }
 

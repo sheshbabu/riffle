@@ -9,15 +9,7 @@ import (
 )
 
 type DedupeRequest struct {
-	InboxPath            string `json:"inboxPath"`
-	LibraryPath          string `json:"libraryPath"`
-	TrashPath            string `json:"trashPath"`
-	EnableNearDuplicates bool   `json:"enableNearDuplicates"`
-}
-
-type ExecuteRequest struct {
-	LibraryPath string `json:"libraryPath"`
-	TrashPath   string `json:"trashPath"`
+	EnableNearDuplicates bool `json:"enableNearDuplicates"`
 }
 
 type DedupeResponse struct {
@@ -35,12 +27,17 @@ func HandleDedupe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.InboxPath == "" || req.LibraryPath == "" || req.TrashPath == "" {
-		http.Error(w, "all folder paths are required", http.StatusBadRequest)
+	// Get paths from environment variables
+	inboxPath := os.Getenv("INBOX_PATH")
+	libraryPath := os.Getenv("LIBRARY_PATH")
+	trashPath := os.Getenv("TRASH_PATH")
+
+	if inboxPath == "" || libraryPath == "" || trashPath == "" {
+		http.Error(w, "INBOX_PATH, LIBRARY_PATH, and TRASH_PATH environment variables must be set", http.StatusBadRequest)
 		return
 	}
 
-	if err := checkDirectories(req.InboxPath, req.LibraryPath, req.TrashPath); err != nil {
+	if err := checkDirectories(inboxPath, libraryPath, trashPath); err != nil {
 		slog.Error("directory check failed", "error", err)
 		http.Error(w, fmt.Sprintf("directory check failed: %v", err), http.StatusBadRequest)
 		return
@@ -50,7 +47,7 @@ func HandleDedupe(w http.ResponseWriter, r *http.Request) {
 	os.Remove(resultsFilePath)
 
 	go func() {
-		stats, err := ProcessInbox(req.InboxPath, req.LibraryPath, req.TrashPath, req.EnableNearDuplicates)
+		stats, err := ProcessInbox(inboxPath, libraryPath, trashPath, req.EnableNearDuplicates)
 		if err != nil {
 			slog.Error("deduplication analysis failed", "error", err)
 			return
@@ -97,19 +94,16 @@ func HandleDedupeAnalysis(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleExecute(w http.ResponseWriter, r *http.Request) {
-	var req ExecuteRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		slog.Error("failed to decode request", "error", err)
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+	// Get paths from environment variables
+	libraryPath := os.Getenv("LIBRARY_PATH")
+	trashPath := os.Getenv("TRASH_PATH")
+
+	if libraryPath == "" || trashPath == "" {
+		http.Error(w, "LIBRARY_PATH and TRASH_PATH environment variables must be set", http.StatusBadRequest)
 		return
 	}
 
-	if req.LibraryPath == "" || req.TrashPath == "" {
-		http.Error(w, "library and trash paths are required", http.StatusBadRequest)
-		return
-	}
-
-	if err := checkDirectories(req.LibraryPath, req.TrashPath); err != nil {
+	if err := checkDirectories(libraryPath, trashPath); err != nil {
 		slog.Error("directory check failed", "error", err)
 		http.Error(w, fmt.Sprintf("directory check failed: %v", err), http.StatusBadRequest)
 		return
@@ -136,7 +130,7 @@ func HandleExecute(w http.ResponseWriter, r *http.Request) {
 
 	// Execute the moves in a goroutine
 	go func() {
-		if err := ExecuteMoves(req.LibraryPath, req.TrashPath, &stats); err != nil {
+		if err := ExecuteMoves(libraryPath, trashPath, &stats); err != nil {
 			slog.Error("failed to execute moves", "error", err)
 			return
 		}

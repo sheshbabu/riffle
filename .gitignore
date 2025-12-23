@@ -2,6 +2,9 @@
 riffle
 /tmp
 
+# Environment
+.env
+
 # Test folders
 inbox/
 library/
