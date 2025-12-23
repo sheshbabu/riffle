@@ -4,22 +4,24 @@ Photo organizer that deduplicates and organizes photos by date.
 
 ### Features
 * Exact duplicate detection using SHA256 hashing
+* Near duplicate detection using dhash (perceptual hashing) for visually similar images
+* Smart candidate selection based on resolution, EXIF metadata, and file size
 * Organizes photos by date into `YYYY/MM - MonthName/` folders
 * Supports HEIC, MOV, MP4 and other formats
-* Preserves EXIF metadata
-* Dry-run mode (safe preview before moving files)
+* Preserves EXIF metadata (DateTime, GPS, camera settings, video duration)
+* Two-phase workflow: Analyze → Review → Execute
 * Real-time progress with summary statistics
 * Single Go binary with embedded assets
 
 ### Installation
 
-Install exiftool:
+Install system dependencies:
 ```bash
 # macOS
-brew install exiftool
+brew install exiftool libheif
 
 # Linux
-apt-get install libimage-exiftool-perl
+apt-get install libimage-exiftool-perl libheif-dev
 ```
 
 Build from source:
@@ -57,4 +59,6 @@ curl -L -o assets/react-dom.production.min.js https://cdn.jsdelivr.net/npm/react
 ```
 
 ### Thanks
-* [go-exiftool](https://github.com/barasher/go-exiftool)
+* [go-exiftool](https://github.com/barasher/go-exiftool) - EXIF metadata extraction
+* [goimagehash](https://github.com/corona10/goimagehash) - Perceptual image hashing
+* [goheif](https://github.com/adrium/goheif) - HEIC/HEIF format support

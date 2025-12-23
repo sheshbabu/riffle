@@ -9,9 +9,10 @@ import (
 )
 
 type DedupeRequest struct {
-	InboxPath   string `json:"inboxPath"`
-	LibraryPath string `json:"libraryPath"`
-	TrashPath   string `json:"trashPath"`
+	InboxPath            string `json:"inboxPath"`
+	LibraryPath          string `json:"libraryPath"`
+	TrashPath            string `json:"trashPath"`
+	EnableNearDuplicates bool   `json:"enableNearDuplicates"`
 }
 
 type ExecuteRequest struct {
@@ -49,7 +50,7 @@ func HandleDedupe(w http.ResponseWriter, r *http.Request) {
 	os.Remove(resultsFilePath)
 
 	go func() {
-		stats, err := ProcessInbox(req.InboxPath, req.LibraryPath, req.TrashPath)
+		stats, err := ProcessInbox(req.InboxPath, req.LibraryPath, req.TrashPath, req.EnableNearDuplicates)
 		if err != nil {
 			slog.Error("deduplication analysis failed", "error", err)
 			return

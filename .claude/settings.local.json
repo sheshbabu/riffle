@@ -12,7 +12,9 @@
       "Bash(ls:*)",
       "Bash(pkill:*)",
       "Bash(lsof:*)",
-      "Bash(xargs kill:*)"
+      "Bash(xargs kill:*)",
+      "Bash(go get:*)",
+      "Bash(go build:*)"
     ]
   }
 }

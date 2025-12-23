@@ -124,10 +124,15 @@ export default function DuplicateGroup({ group, index }) {
     <DuplicateFile key={fileIndex} file={file} />
   ));
 
+  let groupTypeLabel = null;
+  if (group.isNearMatch) {
+    groupTypeLabel = <span className="badge badge-near-match">Near Duplicate</span>;
+  }
+
   return (
     <div className="duplicate-group">
       <h4 className="group-header">
-        Group {index + 1} (Hash: {group.hash})
+        Group {index + 1} (Hash: {group.hash}) {groupTypeLabel}
       </h4>
       <div className="group-files">
         {fileElements}

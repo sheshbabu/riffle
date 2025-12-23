@@ -11,6 +11,7 @@ function App() {
   const [inboxPath, setInboxPath] = useState('');
   const [libraryPath, setLibraryPath] = useState('');
   const [trashPath, setTrashPath] = useState('');
+  const [enableNearDuplicates, setEnableNearDuplicates] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [message, setMessage] = useState('');
@@ -57,7 +58,8 @@ function App() {
       const response = await ApiClient.dedupe({
         inboxPath,
         libraryPath,
-        trashPath
+        trashPath,
+        enableNearDuplicates
       });
 
       setMessage(response.message || 'Analysis started successfully');
@@ -114,6 +116,8 @@ function App() {
         setLibraryPath={setLibraryPath}
         trashPath={trashPath}
         setTrashPath={setTrashPath}
+        enableNearDuplicates={enableNearDuplicates}
+        setEnableNearDuplicates={setEnableNearDuplicates}
         isAnalyzing={isAnalyzing}
         onSubmit={handleDedupe}
       />

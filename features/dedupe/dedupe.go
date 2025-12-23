@@ -8,7 +8,10 @@ import (
 	"os"
 	"path/filepath"
 	"riffle/commons/exif"
+	"runtime"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -16,6 +19,7 @@ type PhotoFile struct {
 	Path     string
 	Size     int64
 	Hash     string
+	Dhash    uint64
 	HasExif  bool
 	ExifData map[string]any
 }
@@ -29,8 +33,9 @@ type DuplicateFile struct {
 }
 
 type DuplicateGroup struct {
-	Hash  string          `json:"hash"`
-	Files []DuplicateFile `json:"files"`
+	Hash        string          `json:"hash"`
+	Files       []DuplicateFile `json:"files"`
+	IsNearMatch bool            `json:"isNearMatch"`
 }
 
 type FileAction struct {
@@ -51,8 +56,8 @@ type DedupeStats struct {
 	FilesToTrash      []FileAction     `json:"filesToTrash"`
 }
 
-func ProcessInbox(inboxPath, libraryPath, trashPath string) (*DedupeStats, error) {
-	slog.Info("starting deduplication analysis")
+func ProcessInbox(inboxPath, libraryPath, trashPath string, enableNearDuplicates bool) (*DedupeStats, error) {
+	slog.Info("starting deduplication analysis", "enableNearDuplicates", enableNearDuplicates)
 
 	photos, err := ScanDirectory(inboxPath)
 	if err != nil {
@@ -70,44 +75,21 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string) (*DedupeStats, error
 	sizeGroups := GroupBySize(photos)
 	slog.Info("grouped by size", "groups", len(sizeGroups))
 
+	// Use number of CPU cores, capped at reasonable maximum
+	workers := runtime.NumCPU()
+	if workers > 16 {
+		workers = 16 // Cap at 16 to avoid too many goroutines
+	}
+	slog.Info("processing files with parallel workers", "workers", workers, "cpus", runtime.NumCPU())
+	processFilesParallel(photos, workers, enableNearDuplicates)
+
+	// Group by hash
 	hashGroups := make(map[string][]PhotoFile)
-	for size, group := range sizeGroups {
-		if len(group) == 1 {
-			hash, err := ComputeHash(group[0].Path)
-			if err != nil {
-				slog.Error("failed to compute hash", "file", group[0].Path, "error", err)
-				continue
-			}
-			group[0].Hash = hash
-
-			exifData, err := exif.ExtractExif(group[0].Path)
-			if err == nil && len(exifData) > 0 {
-				group[0].HasExif = true
-				group[0].ExifData = exifData
-			}
-
-			hashGroups[hash] = append(hashGroups[hash], group[0])
+	for i := range photos {
+		if photos[i].Hash == "" {
 			continue
 		}
-
-		slog.Info("processing size group", "size", size, "count", len(group))
-
-		for i := range group {
-			hash, err := ComputeHash(group[i].Path)
-			if err != nil {
-				slog.Error("failed to compute hash", "file", group[i].Path, "error", err)
-				continue
-			}
-			group[i].Hash = hash
-
-			exifData, err := exif.ExtractExif(group[i].Path)
-			if err == nil && len(exifData) > 0 {
-				group[i].HasExif = true
-				group[i].ExifData = exifData
-			}
-
-			hashGroups[hash] = append(hashGroups[hash], group[i])
-		}
+		hashGroups[photos[i].Hash] = append(hashGroups[photos[i].Hash], photos[i])
 	}
 
 	slog.Info("computed hashes", "unique", len(hashGroups))
@@ -126,19 +108,13 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string) (*DedupeStats, error
 			continue
 		}
 
-		slog.Info("found duplicates", "hash", hash, "count", len(duplicates))
 		stats.DuplicateGroups++
 		candidate := SelectCandidate(duplicates)
 
-		if candidate.HasExif {
-			slog.Info("selected candidate", "file", candidate.Path, "hasExif", true, "exifData", candidate.ExifData)
-		} else {
-			slog.Info("selected candidate", "file", candidate.Path, "hasExif", false)
-		}
-
 		duplicateGroup := DuplicateGroup{
-			Hash:  hash[:16],
-			Files: make([]DuplicateFile, 0, len(duplicates)),
+			Hash:        hash[:16],
+			Files:       make([]DuplicateFile, 0, len(duplicates)),
+			IsNearMatch: false,
 		}
 
 		for _, photo := range duplicates {
@@ -157,7 +133,6 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string) (*DedupeStats, error
 					Hash:     photo.Hash,
 					ExifData: photo.ExifData,
 				})
-				slog.Info("candidate will move to library", "file", photo.Path)
 			} else {
 				stats.DuplicatesRemoved++
 				stats.FilesToTrash = append(stats.FilesToTrash, FileAction{
@@ -165,11 +140,72 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string) (*DedupeStats, error
 					Hash:     photo.Hash,
 					ExifData: photo.ExifData,
 				})
-				slog.Info("duplicate will move to trash", "file", photo.Path)
 			}
 		}
 
 		stats.Duplicates = append(stats.Duplicates, duplicateGroup)
+	}
+
+	// Find near duplicates among unique files (files with no exact duplicates)
+	if enableNearDuplicates {
+		slog.Info("searching for near duplicates")
+		var uniqueFiles []PhotoFile
+		for _, duplicates := range hashGroups {
+			if len(duplicates) == 1 {
+				uniqueFiles = append(uniqueFiles, duplicates[0])
+			}
+		}
+
+		nearDuplicateGroups := FindNearDuplicates(uniqueFiles, 3)
+		slog.Info("found near duplicate groups", "count", len(nearDuplicateGroups))
+
+		for groupKey, nearDupes := range nearDuplicateGroups {
+			slog.Info("processing near duplicate group", "key", groupKey, "count", len(nearDupes))
+			stats.DuplicateGroups++
+			candidate := SelectBestCandidate(nearDupes)
+
+			duplicateGroup := DuplicateGroup{
+				Hash:        groupKey,
+				Files:       make([]DuplicateFile, 0, len(nearDupes)),
+				IsNearMatch: true,
+			}
+
+			for _, photo := range nearDupes {
+				duplicateFile := DuplicateFile{
+					Path:        photo.Path,
+					Size:        photo.Size,
+					HasExif:     photo.HasExif,
+					IsCandidate: photo.Path == candidate.Path,
+					ExifData:    photo.ExifData,
+				}
+				duplicateGroup.Files = append(duplicateGroup.Files, duplicateFile)
+
+				// Update file actions: remove from library, add appropriate ones
+				if photo.Path == candidate.Path {
+					// Candidate stays in library (already added in unique file processing)
+					slog.Info("near duplicate candidate will stay in library", "file", photo.Path)
+				} else {
+					stats.DuplicatesRemoved++
+					// Remove from library list
+					for i, action := range stats.FilesToLibrary {
+						if action.Path == photo.Path {
+							stats.FilesToLibrary = append(stats.FilesToLibrary[:i], stats.FilesToLibrary[i+1:]...)
+							break
+						}
+					}
+					stats.UniqueFiles--
+					// Add to trash list
+					stats.FilesToTrash = append(stats.FilesToTrash, FileAction{
+						Path:     photo.Path,
+						Hash:     photo.Hash,
+						ExifData: photo.ExifData,
+					})
+					slog.Info("near duplicate will move to trash", "file", photo.Path)
+				}
+			}
+
+			stats.Duplicates = append(stats.Duplicates, duplicateGroup)
+		}
 	}
 
 	slog.Info("deduplication analysis completed")
@@ -274,6 +310,60 @@ func ComputeHash(filePath string) (string, error) {
 	}
 
 	return fmt.Sprintf("%x", hash.Sum(nil)), nil
+}
+
+func processFile(photo *PhotoFile, enableNearDuplicates bool) {
+	hash, err := ComputeHash(photo.Path)
+	if err != nil {
+		slog.Error("failed to compute hash", "file", photo.Path, "error", err)
+		return
+	}
+	photo.Hash = hash
+
+	if enableNearDuplicates && isImageFile(photo.Path) {
+		dhash, err := ComputeDhash(photo.Path)
+		if err != nil {
+			slog.Error("failed to compute dhash", "file", photo.Path, "error", err)
+		} else {
+			photo.Dhash = dhash
+		}
+	}
+
+	exifData, err := exif.ExtractExif(photo.Path)
+	if err == nil && len(exifData) > 0 {
+		photo.HasExif = true
+		photo.ExifData = exifData
+	}
+}
+
+func processFilesParallel(files []PhotoFile, workerCount int, enableNearDuplicates bool) []PhotoFile {
+	var wg sync.WaitGroup
+	var processed atomic.Int64
+	fileChan := make(chan int, len(files))
+	total := int64(len(files))
+
+	for w := 0; w < workerCount; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := range fileChan {
+				processFile(&files[i], enableNearDuplicates)
+
+				count := processed.Add(1)
+				if count%1000 == 0 || count == total {
+					slog.Info("processing progress", "completed", count, "total", total, "percent", int(float64(count)/float64(total)*100))
+				}
+			}
+		}()
+	}
+
+	for i := range files {
+		fileChan <- i
+	}
+	close(fileChan)
+
+	wg.Wait()
+	return files
 }
 
 func ExecuteMoves(libraryPath, trashPath string, stats *DedupeStats) error {

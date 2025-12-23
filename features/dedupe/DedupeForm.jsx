@@ -9,6 +9,8 @@ export default function DedupeForm({
   setLibraryPath,
   trashPath,
   setTrashPath,
+  enableNearDuplicates,
+  setEnableNearDuplicates,
   isAnalyzing,
   onSubmit
 }) {
@@ -45,6 +47,20 @@ export default function DedupeForm({
         placeholder="/path/to/trash"
         hint="Folder for duplicate photos"
       />
+
+      <div className="checkbox-field">
+        <label>
+          <input
+            type="checkbox"
+            checked={enableNearDuplicates}
+            onChange={(e) => setEnableNearDuplicates(e.target.checked)}
+          />
+          <span className="checkbox-label">Enable near-duplicate detection (experimental)</span>
+        </label>
+        <div className="checkbox-hint">
+          Finds visually similar images using perceptual hashing. May produce false positives.
+        </div>
+      </div>
 
       <div className="submit-button">
         <Button

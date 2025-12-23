@@ -9,7 +9,7 @@
 .group-header {
   margin-top: 0;
   margin-bottom: var(--spacing-4);
-  font-size: 0.875rem;
+  font: var(--sm);
   color: var(--neutral-500);
 }
 
@@ -51,7 +51,7 @@
 .badge {
   padding: 2px 6px;
   border-radius: 3px;
-  font-size: 0.75rem;
+  font: var(--sm);
 
   &.badge-kept {
     background-color: var(--green-500);
@@ -66,10 +66,16 @@
     background-color: var(--neutral-100);
     color: var(--neutral-600);
   }
+
+  &.badge-near-match {
+    background-color: var(--yellow-100);
+    color: var(--neutral-700);
+    margin-left: var(--spacing-2);
+  }
 }
 
 .file-path {
-  font-size: 0.75rem;
+  font: var(--sm);
   word-break: break-all;
   color: var(--neutral-600);
 }
