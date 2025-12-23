@@ -101,6 +101,7 @@ function App() {
       {statsElement}
       <DuplicateGroups
         duplicates={results?.duplicates}
+        inboxPath={results?.inboxPath}
         onExecute={handleExecute}
         isExecuting={isExecuting}
         hasResults={results != null}

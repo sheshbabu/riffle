@@ -45,6 +45,7 @@ type FileAction struct {
 }
 
 type DedupeStats struct {
+	InboxPath         string           `json:"inboxPath"`
 	TotalScanned      int              `json:"totalScanned"`
 	UniqueFiles       int              `json:"uniqueFiles"`
 	DuplicateGroups   int              `json:"duplicateGroups"`
@@ -67,6 +68,7 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, enableNearDuplicates
 	slog.Info("scanned inbox", "count", len(photos))
 
 	stats := &DedupeStats{
+		InboxPath:      inboxPath,
 		TotalScanned:   len(photos),
 		FilesToLibrary: make([]FileAction, 0),
 		FilesToTrash:   make([]FileAction, 0),

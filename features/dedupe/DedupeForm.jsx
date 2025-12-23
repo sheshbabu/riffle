@@ -1,12 +1,7 @@
 import Button from '../../commons/components/Button.jsx';
 import './DedupeForm.css';
 
-export default function DedupeForm({
-  enableNearDuplicates,
-  setEnableNearDuplicates,
-  isAnalyzing,
-  onSubmit
-}) {
+export default function DedupeForm({ enableNearDuplicates, setEnableNearDuplicates, isAnalyzing, onSubmit }) {
   const buttonText = isAnalyzing ? 'Analyzing...' : 'Analyze Photos';
 
   return (
@@ -26,11 +21,7 @@ export default function DedupeForm({
       </div>
 
       <div className="submit-button">
-        <Button
-          className='primary'
-          onClick={onSubmit}
-          disabled={isAnalyzing}
-        >
+        <Button className='primary' onClick={onSubmit} disabled={isAnalyzing}>
           {buttonText}
         </Button>
       </div>

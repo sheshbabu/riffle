@@ -2,7 +2,7 @@ import Button from '../../commons/components/Button.jsx';
 import DuplicateGroup from './DuplicateGroup.jsx';
 import './DuplicateGroups.css';
 
-export default function DuplicateGroups({ duplicates, onExecute, isExecuting, hasResults }) {
+export default function DuplicateGroups({ duplicates, inboxPath, onExecute, isExecuting, hasResults }) {
   if (!hasResults) {
     return null;
   }
@@ -12,7 +12,7 @@ export default function DuplicateGroups({ duplicates, onExecute, isExecuting, ha
   let duplicateGroupsElement = null;
   if (hasDuplicates) {
     const groupElements = duplicates.map((group, index) => (
-      <DuplicateGroup key={index} group={group} index={index} />
+      <DuplicateGroup key={index} group={group} index={index} inboxPath={inboxPath} />
     ));
 
     duplicateGroupsElement = (
@@ -29,11 +29,7 @@ export default function DuplicateGroups({ duplicates, onExecute, isExecuting, ha
     <div className="duplicate-groups">
       <div className="execute-section">
         <p>Review the analysis above. Click "Execute Move" to move candidates to library and duplicates to trash.</p>
-        <Button
-          className='primary'
-          onClick={onExecute}
-          disabled={isExecuting}
-        >
+        <Button className='primary' onClick={onExecute} disabled={isExecuting} >
           {buttonText}
         </Button>
       </div>

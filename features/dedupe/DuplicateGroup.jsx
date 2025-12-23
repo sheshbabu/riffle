@@ -1,58 +1,6 @@
 import './DuplicateGroup.css';
 
-function getPhotoUrl(filePath) {
-  const encoded = btoa(filePath);
-  return `/api/photo/?path=${encoded}`;
-}
-
-function isVideoFile(filePath) {
-  const ext = filePath.toLowerCase().split('.').pop();
-  return ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg'].includes(ext);
-}
-
-function formatFileSize(bytes) {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round(bytes / Math.pow(k, i)) + ' ' + sizes[i];
-}
-
-function formatDuration(durationStr) {
-  if (!durationStr) return null;
-
-  // Duration format is typically "0:00:28" or "00:28"
-  const parts = durationStr.split(':').map(p => parseInt(p, 10));
-
-  if (parts.length === 3) {
-    // Format: H:MM:SS
-    const hours = parts[0];
-    const minutes = parts[1];
-    const seconds = parts[2];
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    } else if (minutes > 0) {
-      return `${minutes}m ${seconds}s`;
-    } else {
-      return `${seconds}s`;
-    }
-  } else if (parts.length === 2) {
-    // Format: MM:SS
-    const minutes = parts[0];
-    const seconds = parts[1];
-
-    if (minutes > 0) {
-      return `${minutes}m ${seconds}s`;
-    } else {
-      return `${seconds}s`;
-    }
-  }
-
-  return durationStr;
-}
-
-function DuplicateFile({ file }) {
+function DuplicateFile({ file, inboxPath }) {
   const isVideo = isVideoFile(file.path);
   const photoUrl = getPhotoUrl(file.path);
 
@@ -107,21 +55,22 @@ function DuplicateFile({ file }) {
   }
 
   const fileClassName = file.isCandidate ? 'duplicate-file candidate' : 'duplicate-file';
+  const displayPath = truncatePath(file.path, inboxPath);
 
   return (
     <div className={fileClassName}>
       {mediaElement}
       <div className="file-info">
         {badges}
-        <code className="file-path">{file.path}</code>
+        <code className="file-path" title={file.path}>{displayPath}</code>
       </div>
     </div>
   );
 }
 
-export default function DuplicateGroup({ group, index }) {
+export default function DuplicateGroup({ group, index, inboxPath }) {
   const fileElements = group.files.map((file, fileIndex) => (
-    <DuplicateFile key={fileIndex} file={file} />
+    <DuplicateFile key={fileIndex} file={file} inboxPath={inboxPath} />
   ));
 
   let groupTypeLabel = null;
@@ -139,4 +88,72 @@ export default function DuplicateGroup({ group, index }) {
       </div>
     </div>
   );
+}
+
+function getPhotoUrl(filePath) {
+  const encoded = btoa(filePath);
+  return `/api/photo/?path=${encoded}`;
+}
+
+function isVideoFile(filePath) {
+  const ext = filePath.toLowerCase().split('.').pop();
+  return ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg'].includes(ext);
+}
+
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i)) + ' ' + sizes[i];
+}
+
+function formatDuration(durationStr) {
+  if (!durationStr) return null;
+
+  // Duration format is typically "0:00:28" or "00:28"
+  const parts = durationStr.split(':').map(p => parseInt(p, 10));
+
+  if (parts.length === 3) {
+    // Format: H:MM:SS
+    const hours = parts[0];
+    const minutes = parts[1];
+    const seconds = parts[2];
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  } else if (parts.length === 2) {
+    // Format: MM:SS
+    const minutes = parts[0];
+    const seconds = parts[1];
+
+    if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  }
+
+  return durationStr;
+}
+
+function truncatePath(fullPath, inboxPath) {
+  if (!inboxPath) {
+    return fullPath;
+  }
+
+  // Ensure inbox path ends with a slash for proper prefix matching
+  const normalizedInboxPath = inboxPath.endsWith('/') ? inboxPath : inboxPath + '/';
+
+  if (fullPath.startsWith(normalizedInboxPath)) {
+    const relativePath = fullPath.substring(normalizedInboxPath.length);
+    return '.../' + relativePath;
+  }
+
+  return fullPath;
 }

@@ -13,8 +13,9 @@ type DedupeRequest struct {
 }
 
 type DedupeResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
+	Success   bool   `json:"success"`
+	Message   string `json:"message"`
+	InboxPath string `json:"inboxPath,omitempty"`
 }
 
 const resultsFilePath = "/tmp/riffle-dedupe-results.json"
@@ -27,7 +28,6 @@ func HandleDedupe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get paths from environment variables
 	inboxPath := os.Getenv("INBOX_PATH")
 	libraryPath := os.Getenv("LIBRARY_PATH")
 	trashPath := os.Getenv("TRASH_PATH")
