@@ -1,0 +1,18 @@
+.dedupe-form {
+  margin-bottom: var(--spacing-6);
+}
+
+.dry-run-checkbox {
+  margin-top: var(--spacing-6);
+}
+
+.dry-run-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  cursor: pointer;
+}
+
+.submit-button {
+  margin-top: var(--spacing-6);
+}

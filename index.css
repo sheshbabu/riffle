@@ -1,0 +1,13 @@
+.app-container {
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.message-box {
+  margin-top: var(--spacing-6);
+  padding: var(--spacing-4);
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  border: 1px solid var(--neutral-200);
+}

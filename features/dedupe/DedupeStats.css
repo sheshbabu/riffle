@@ -1,0 +1,36 @@
+.dedupe-stats {
+  margin-top: var(--spacing-6);
+  padding: var(--spacing-4);
+  background-color: var(--bg-primary);
+  border-radius: 4px;
+  border: 1px solid var(--neutral-200);
+
+  h3 {
+    margin-top: 0;
+  }
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  tr {
+    border-bottom: 1px solid var(--neutral-200);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  td {
+    padding: var(--spacing-2);
+
+    &:first-child {
+      font-weight: 600;
+    }
+
+    &:last-child {
+      text-align: right;
+    }
+  }
+}

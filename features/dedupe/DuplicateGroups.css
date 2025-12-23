@@ -1,0 +1,7 @@
+.duplicate-groups {
+  margin-top: var(--spacing-6);
+
+  h3 {
+    margin-bottom: var(--spacing-4);
+  }
+}
