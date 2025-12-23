@@ -107,17 +107,35 @@ Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
 
 ## Architecture Overview
 
-### Structure
-- **Entry Point**: `main.go` - Command-line interface, directory validation, and orchestrates deduplication
+### Backend (Go)
+- **Entry Point**: `main.go` - HTTP server, routes, and API handlers
+- **Server Mode**: Web-based UI with API endpoints
 - **Feature-based Structure**: Each feature has its own directory under `features/`
   - `dedupe/` - Core deduplication logic (scanning, hashing, grouping, candidate selection)
 - **Commons**: Shared utilities in `commons/`
   - `exif/` - EXIF data extraction and validation
+  - `http/` - API client for frontend communication
+
+### Frontend (React)
+- **Entry Point**: `index.jsx` - Main app initialization
+- **Component Structure**: JSX components using React
+- **Build System**: esbuild bundles JSX to `assets/bundle.js`
+- **State Management**: Local component state with hooks
+- **Styling**: Plain CSS with CSS custom properties for theming
+- **API Communication**: Centralized ApiClient with polling for async operations
 
 ### Key Patterns
-- **CLI-based**: Command-line flags for folder paths (`--inbox`, `--library`, `--trash`)
+- **Server-based**: Web UI for folder selection and deduplication control
+- **API Routes**: RESTful endpoints prefixed with `/api/`
+- **Background Processing**: Deduplication runs in goroutine, results written to temp file
+- **Polling**: Frontend polls for results every 2 seconds until completion
 - **Feature Structure**: Features are self-contained with models and utilities
-- **Single Binary**: No external runtime dependencies
+- **Single Binary**: Assets embedded in binary for production, file system for development
+- **Asset Handling**: Static assets embedded in binary (`go:embed`), dev mode serves from disk
+
+### Environment Variables
+- `DEV_MODE=true` - Development mode with file system assets
+- `PORT` - Server port (default: 8080)
 
 ## Development Conventions
 
@@ -166,11 +184,46 @@ Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
 - Main exported function/component should always be the top function
 - Early returns for conditional rendering
 - Default exports for components, named exports for utilities
+- Extract logic from components into separate if-else conditions
+- Extract map loops to variables outside JSX
+- For conditional rendering, use if-else conditions outside JSX to build arrays/variables, not ternary operators or logical AND inside JSX
+- Ternary operators in JSX are only acceptable for simple inline styles or class names
+- Examples:
+  ```javascript
+  // Bad: logic mixed in JSX
+  return (
+    <div>
+      {isProcessing ? 'Processing...' : 'Start'}
+      {message && <div>{message}</div>}
+    </div>
+  );
+
+  // Good: logic extracted before JSX
+  const buttonText = isProcessing ? 'Processing...' : 'Start';
+
+  let messageElement = null;
+  if (message) {
+    messageElement = <div>{message}</div>;
+  }
+
+  return (
+    <div>
+      {buttonText}
+      {messageElement}
+    </div>
+  );
+  ```
 
 #### State Management
 - Use descriptive state names: `[photos, setPhotos]`, `[isLoading, setIsLoading]`
 - Local state with `useState`, prop drilling for shared state
 - Functional updates for state dependent on previous state
+
+#### API Calls
+- Use centralized `ApiClient` from `commons/http/ApiClient.js`
+- Use specific named methods (e.g., `ApiClient.dedupe()`, `ApiClient.getDedupeResults()`)
+- Async/await pattern for cleaner error handling
+- Consistent error handling with user-facing messages
 
 #### Function Declarations
 - Use `function` keyword for event handlers, utility functions, and render functions
@@ -187,10 +240,11 @@ Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
   ```
 
 #### Event Handling
-- Handler naming: `handle{Action}Click` (e.g., `handleSaveClick`)
+- Handler naming: `handle{Action}Click` or `handle{Action}` (e.g., `handleSaveClick`, `handleDedupe`)
 - Keyboard shortcuts with `preventDefault()`
 
 #### CSS Classes
 - BEM-like naming: `photo-grid`, `toolbar-button`
 - Conditional classes using template literals
 - Minimal inline styles, prefer CSS classes
+- Use CSS variables from `assets/index.css` for theming (`var(--spacing-6)`, `var(--neutral-200)`)

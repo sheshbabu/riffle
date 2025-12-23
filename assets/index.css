@@ -107,10 +107,7 @@
 html {
     /* 1rem */
     font-size: 16px;
-    height: 100%;
-    overflow: hidden;
     margin: 0;
-    position: fixed;
     top: 0;
     left: 0;
     right: 0;
@@ -124,8 +121,6 @@ body {
     /* https://uxmovement.com/content/why-you-should-never-use-pure-black-for-text-or-backgrounds/ */
     color: var(--text-primary);
     background-color: var(--bg-primary);
-    height: 100%;
-    overflow: hidden;
     margin: 0;
 }
 

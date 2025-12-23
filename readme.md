@@ -8,7 +8,8 @@ Photo organizer that deduplicates and organizes photos by date.
 * Supports HEIC, MOV, MP4 and other formats
 * Preserves EXIF metadata
 * Dry-run mode (safe preview before moving files)
-* Single Go binary with minimal dependencies
+* Real-time progress with summary statistics
+* Single Go binary with embedded assets
 
 ### Installation
 
@@ -27,13 +28,24 @@ $ make build
 ```
 
 ### Usage
+
+Start the server:
 ```bash
-$ ./riffle --inbox=/path/to/inbox --library=/path/to/library --trash=/path/to/trash
+$ ./riffle
 ```
 
-By default runs in dry-run mode. To actually move files:
+Open your browser to `http://localhost:8080`:
+
+### Development
+
+Run development server with auto-reload:
 ```bash
-$ ./riffle --inbox=/path/to/inbox --library=/path/to/library --trash=/path/to/trash --dry-run=false
+$ make watch
+```
+
+Or run once:
+```bash
+$ make dev
 ```
 
 # Vendor Dependencies

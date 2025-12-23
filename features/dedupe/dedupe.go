@@ -20,24 +20,39 @@ type PhotoFile struct {
 	ExifData map[string]any
 }
 
-func ProcessInbox(inboxPath, libraryPath, trashPath string, isDryRun bool) error {
+type DuplicateFile struct {
+	Path        string         `json:"path"`
+	HasExif     bool           `json:"hasExif"`
+	IsCandidate bool           `json:"isCandidate"`
+	ExifData    map[string]any `json:"exifData,omitempty"`
+}
+
+type DuplicateGroup struct {
+	Hash  string          `json:"hash"`
+	Files []DuplicateFile `json:"files"`
+}
+
+type DedupeStats struct {
+	TotalScanned      int              `json:"totalScanned"`
+	UniqueFiles       int              `json:"uniqueFiles"`
+	DuplicateGroups   int              `json:"duplicateGroups"`
+	DuplicatesRemoved int              `json:"duplicatesRemoved"`
+	MovedToLibrary    int              `json:"movedToLibrary"`
+	MovedToTrash      int              `json:"movedToTrash"`
+	Duplicates        []DuplicateGroup `json:"duplicates"`
+}
+
+func ProcessInbox(inboxPath, libraryPath, trashPath string, isDryRun bool) (*DedupeStats, error) {
 	slog.Info("starting deduplication")
 
 	photos, err := ScanDirectory(inboxPath)
 	if err != nil {
-		return fmt.Errorf("failed to scan inbox: %w", err)
+		return nil, fmt.Errorf("failed to scan inbox: %w", err)
 	}
 
 	slog.Info("scanned inbox", "count", len(photos))
 
-	stats := struct {
-		TotalScanned      int
-		UniqueFiles       int
-		DuplicateGroups   int
-		DuplicatesRemoved int
-		MovedToLibrary    int
-		MovedToTrash      int
-	}{
+	stats := &DedupeStats{
 		TotalScanned: len(photos),
 	}
 
@@ -114,7 +129,20 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, isDryRun bool) error
 			slog.Info("selected candidate", "file", candidate.Path, "hasExif", false)
 		}
 
+		duplicateGroup := DuplicateGroup{
+			Hash:  hash[:16],
+			Files: make([]DuplicateFile, 0, len(duplicates)),
+		}
+
 		for _, photo := range duplicates {
+			duplicateFile := DuplicateFile{
+				Path:        photo.Path,
+				HasExif:     photo.HasExif,
+				IsCandidate: photo.Path == candidate.Path,
+				ExifData:    photo.ExifData,
+			}
+			duplicateGroup.Files = append(duplicateGroup.Files, duplicateFile)
+
 			if photo.Path == candidate.Path {
 				if isDryRun {
 					slog.Info("would move candidate to library", "file", photo.Path)
@@ -140,6 +168,8 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, isDryRun bool) error
 				}
 			}
 		}
+
+		stats.Duplicates = append(stats.Duplicates, duplicateGroup)
 	}
 
 	slog.Info("deduplication completed")
@@ -154,7 +184,7 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, isDryRun bool) error
 	fmt.Printf("Files moved to trash:     %d\n", stats.MovedToTrash)
 	fmt.Println()
 
-	return nil
+	return stats, nil
 }
 
 func ScanDirectory(path string) ([]PhotoFile, error) {
