@@ -104,7 +104,6 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, enableNearDuplicates
 				Hash:     candidate.Hash,
 				ExifData: candidate.ExifData,
 			})
-			slog.Info("unique file will move to library", "file", candidate.Path)
 			continue
 		}
 
@@ -179,29 +178,6 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, enableNearDuplicates
 					ExifData:    photo.ExifData,
 				}
 				duplicateGroup.Files = append(duplicateGroup.Files, duplicateFile)
-
-				// Update file actions: remove from library, add appropriate ones
-				if photo.Path == candidate.Path {
-					// Candidate stays in library (already added in unique file processing)
-					slog.Info("near duplicate candidate will stay in library", "file", photo.Path)
-				} else {
-					stats.DuplicatesRemoved++
-					// Remove from library list
-					for i, action := range stats.FilesToLibrary {
-						if action.Path == photo.Path {
-							stats.FilesToLibrary = append(stats.FilesToLibrary[:i], stats.FilesToLibrary[i+1:]...)
-							break
-						}
-					}
-					stats.UniqueFiles--
-					// Add to trash list
-					stats.FilesToTrash = append(stats.FilesToTrash, FileAction{
-						Path:     photo.Path,
-						Hash:     photo.Hash,
-						ExifData: photo.ExifData,
-					})
-					slog.Info("near duplicate will move to trash", "file", photo.Path)
-				}
 			}
 
 			stats.Duplicates = append(stats.Duplicates, duplicateGroup)
@@ -384,7 +360,6 @@ func ExecuteMoves(libraryPath, trashPath string, stats *DedupeStats) error {
 			slog.Error("failed to move file to library", "file", photo.Path, "error", err)
 			continue
 		}
-		slog.Info("moved to library", "file", photo.Path)
 		movedToLibrary++
 	}
 
@@ -400,7 +375,6 @@ func ExecuteMoves(libraryPath, trashPath string, stats *DedupeStats) error {
 			slog.Error("failed to move file to trash", "file", photo.Path, "error", err)
 			continue
 		}
-		slog.Info("moved to trash", "file", photo.Path)
 		movedToTrash++
 	}
 
