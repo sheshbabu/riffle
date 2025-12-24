@@ -16,12 +16,15 @@ import (
 )
 
 type PhotoFile struct {
-	Path     string
-	Size     int64
-	Hash     string
-	Dhash    uint64
-	HasExif  bool
-	ExifData map[string]any
+	Path       string
+	Size       int64
+	Hash       string
+	Dhash      uint64
+	HasExif    bool
+	ExifData   map[string]any
+	FileFormat string
+	MimeType   string
+	IsVideo    bool
 }
 
 type DuplicateFile struct {
@@ -41,6 +44,7 @@ type DuplicateGroup struct {
 type FileAction struct {
 	Path     string         `json:"path"`
 	Hash     string         `json:"hash"`
+	Dhash    uint64         `json:"dhash,omitempty"`
 	ExifData map[string]any `json:"exifData,omitempty"`
 }
 
@@ -104,6 +108,7 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, enableNearDuplicates
 			stats.FilesToLibrary = append(stats.FilesToLibrary, FileAction{
 				Path:     candidate.Path,
 				Hash:     candidate.Hash,
+				Dhash:    candidate.Dhash,
 				ExifData: candidate.ExifData,
 			})
 			continue
@@ -132,6 +137,7 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, enableNearDuplicates
 				stats.FilesToLibrary = append(stats.FilesToLibrary, FileAction{
 					Path:     photo.Path,
 					Hash:     photo.Hash,
+					Dhash:    photo.Dhash,
 					ExifData: photo.ExifData,
 				})
 			} else {
@@ -139,6 +145,7 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, enableNearDuplicates
 				stats.FilesToTrash = append(stats.FilesToTrash, FileAction{
 					Path:     photo.Path,
 					Hash:     photo.Hash,
+					Dhash:    photo.Dhash,
 					ExifData: photo.ExifData,
 				})
 			}
@@ -298,7 +305,7 @@ func processFile(photo *PhotoFile, enableNearDuplicates bool) {
 	}
 	photo.Hash = hash
 
-	if enableNearDuplicates && isImageFile(photo.Path) {
+	if isImageFile(photo.Path) {
 		dhash, err := ComputeDhash(photo.Path)
 		if err != nil {
 			slog.Error("failed to compute dhash", "file", photo.Path, "error", err)
@@ -354,14 +361,30 @@ func ExecuteMoves(libraryPath, trashPath string, stats *DedupeStats) error {
 		photo := PhotoFile{
 			Path:     action.Path,
 			Hash:     action.Hash,
+			Dhash:    action.Dhash,
 			ExifData: action.ExifData,
 			HasExif:  len(action.ExifData) > 0,
+			Size:     0,
 		}
 
-		if err := moveFile(photo, libraryPath); err != nil {
+		if fileInfo, err := os.Stat(photo.Path); err == nil {
+			photo.Size = fileInfo.Size()
+		}
+
+		newPath, err := moveFile(photo, libraryPath)
+		if err != nil {
 			slog.Error("failed to move file to library", "file", photo.Path, "error", err)
 			continue
 		}
+
+		photo.Path = newPath
+		photo.FileFormat, photo.MimeType = getFileMetadata(newPath)
+		photo.IsVideo = isVideoFile(newPath)
+
+		if err := CreatePhoto(photo); err != nil {
+			slog.Error("failed to insert photo to database", "file", photo.Path, "error", err)
+		}
+
 		movedToLibrary++
 	}
 
@@ -373,7 +396,8 @@ func ExecuteMoves(libraryPath, trashPath string, stats *DedupeStats) error {
 			HasExif:  len(action.ExifData) > 0,
 		}
 
-		if err := moveFile(photo, trashPath); err != nil {
+		_, err := moveFile(photo, trashPath)
+		if err != nil {
 			slog.Error("failed to move file to trash", "file", photo.Path, "error", err)
 			continue
 		}
@@ -394,7 +418,7 @@ func ExecuteMoves(libraryPath, trashPath string, stats *DedupeStats) error {
 	return nil
 }
 
-func moveFile(photo PhotoFile, destDir string) error {
+func moveFile(photo PhotoFile, destDir string) (string, error) {
 	var dateTime time.Time
 	var hasDateTime bool
 
@@ -434,7 +458,7 @@ func moveFile(photo PhotoFile, destDir string) error {
 
 		destFolder := filepath.Join(destDir, year, folderName)
 		if err := os.MkdirAll(destFolder, 0755); err != nil {
-			return fmt.Errorf("failed to create destination folder: %w", err)
+			return "", fmt.Errorf("failed to create destination folder: %w", err)
 		}
 
 		filename := fmt.Sprintf("%s-%s%s", dateTime.Format("2006-01-02-150405"), hashPrefix, ext)
@@ -442,7 +466,7 @@ func moveFile(photo PhotoFile, destDir string) error {
 	} else {
 		destFolder := filepath.Join(destDir, "Unknown")
 		if err := os.MkdirAll(destFolder, 0755); err != nil {
-			return fmt.Errorf("failed to create Unknown folder: %w", err)
+			return "", fmt.Errorf("failed to create Unknown folder: %w", err)
 		}
 
 		filename := fmt.Sprintf("%s%s", hashPrefix, ext)
@@ -463,10 +487,10 @@ func moveFile(photo PhotoFile, destDir string) error {
 	}
 
 	if err := os.Rename(photo.Path, destPath); err != nil {
-		return fmt.Errorf("failed to move file: %w", err)
+		return "", fmt.Errorf("failed to move file: %w", err)
 	}
 
-	return nil
+	return destPath, nil
 }
 
 // Priority:
@@ -488,4 +512,51 @@ func SelectCandidate(duplicates []PhotoFile) PhotoFile {
 	}
 
 	return best
+}
+
+func getFileMetadata(filePath string) (string, string) {
+	ext := strings.ToLower(filepath.Ext(filePath))
+	fileFormat := strings.TrimPrefix(ext, ".")
+
+	var mimeType string
+	switch ext {
+	case ".jpg", ".jpeg":
+		mimeType = "image/jpeg"
+	case ".png":
+		mimeType = "image/png"
+	case ".gif":
+		mimeType = "image/gif"
+	case ".heic":
+		mimeType = "image/heic"
+	case ".heif":
+		mimeType = "image/heif"
+	case ".webp":
+		mimeType = "image/webp"
+	case ".bmp":
+		mimeType = "image/bmp"
+	case ".tiff", ".tif":
+		mimeType = "image/tiff"
+	case ".mp4":
+		mimeType = "video/mp4"
+	case ".mov":
+		mimeType = "video/quicktime"
+	case ".avi":
+		mimeType = "video/x-msvideo"
+	case ".mkv":
+		mimeType = "video/x-matroska"
+	case ".wmv":
+		mimeType = "video/x-ms-wmv"
+	case ".flv":
+		mimeType = "video/x-flv"
+	case ".webm":
+		mimeType = "video/webm"
+	case ".m4v":
+		mimeType = "video/x-m4v"
+	case ".mpg", ".mpeg":
+		mimeType = "video/mpeg"
+	default:
+		mimeType = "application/octet-stream"
+	}
+
+	return fileFormat, mimeType
 }

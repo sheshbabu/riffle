@@ -5,6 +5,11 @@ riffle
 # Environment
 .env
 
+# Database
+riffle.db
+riffle.db-shm
+riffle.db-wal
+
 # Test folders
 inbox/
 library/

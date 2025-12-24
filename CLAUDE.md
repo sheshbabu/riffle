@@ -10,6 +10,7 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 
 - Golang
 - React
+- SQLite (github.com/mattn/go-sqlite3) - Photo metadata storage
 - go-exiftool (github.com/barasher/go-exiftool) - EXIF metadata extraction
 
 ## Development Commands
@@ -95,6 +96,19 @@ Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
 - Same folder structure as library (`YYYY/MM - MonthName/`)
 - Files renamed with same pattern as library
 
+### Photo Database
+
+Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging, albums, and curation.
+
+**Tables:** photos, tags, photo_tags, albums, album_photos
+
+**Key Features:**
+- Tag photos (screenshot, needs-rotation, portraits, etc.)
+- Organize into albums
+- Track sha256_hash and dhash (for duplicate/near-duplicate detection)
+- Mark curated status, quality scores, add notes
+- Search by date, camera, location, format
+
 ## Future Tasks
 
 ### Near Duplicate Detection
@@ -165,10 +179,13 @@ Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
 - Set `Content-Type: application/json` for JSON responses
 
 #### Database Patterns
-- Use global DB instance
+- Use global `sqlite.DB` instance
 - Always use parameterized queries with `?` placeholders
 - Defer `rows.Close()` for multi-row queries
 - Use transactions for multi-step operations with defer rollback pattern
+- Model files (`*_model.go`) contain only database operations (Create*, Get*, Delete*)
+- Keep utility/helper functions in feature files, not in model files
+- Error pattern: `fmt.Errorf("error message: %w", err)` + `slog.Error(err.Error())`
 
 #### Struct Conventions
 - Use descriptive names (e.g., `PhotoFile` not `Photo`)

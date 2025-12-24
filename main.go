@@ -8,10 +8,13 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"riffle/commons/exif"
+	"riffle/commons/sqlite"
 	"riffle/features/dedupe"
 	"strings"
+	"syscall"
 
 	"github.com/joho/godotenv"
 )
@@ -19,8 +22,35 @@ import (
 //go:embed assets/*
 var assets embed.FS
 
+//go:embed migrations/*.sql
+var migrations embed.FS
+
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Error("killing server", "error", r)
+			os.Exit(1)
+		}
+	}()
+
 	loadEnv()
+
+	sqlite.NewDB()
+	defer sqlite.DB.Close()
+
+	osSignalChan := make(chan os.Signal, 1)
+	signal.Notify(osSignalChan, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-osSignalChan
+		slog.Info("received shutdown signal, closing database connection...")
+		if err := sqlite.DB.Close(); err != nil {
+			slog.Error("error closing database", "error", err)
+		}
+		slog.Info("database connection closed. Exiting.")
+		os.Exit(0)
+	}()
+
+	sqlite.Migrate(migrations)
 
 	port := os.Getenv("PORT")
 	if port == "" {
