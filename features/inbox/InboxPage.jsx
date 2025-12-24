@@ -1,5 +1,3 @@
-import '../../assets/reset.css';
-import '../../assets/index.css';
 import ApiClient from '../../commons/http/ApiClient.js';
 import InboxForm from './InboxForm.jsx';
 import InboxAnalysisStats from './InboxAnalysisStats.jsx';

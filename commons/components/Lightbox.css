@@ -1,0 +1,95 @@
+.lightbox {
+  max-width: 95vw;
+  max-height: 95vh;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  animation-duration: 0.1s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  .lightbox-image-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+
+    .lightbox-image {
+      max-width: 95vw;
+      max-height: calc(95vh - 48px);
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 4px;
+
+      &.zoomable {
+        cursor: zoom-in;
+      }
+    }
+
+    .lightbox-controls {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity var(--transition-normal);
+      z-index: 1;
+
+      .lightbox-close-button {
+        padding: 8px;
+        cursor: pointer;
+        border-radius: 4px;
+        background-color: rgba(0, 0, 0, 0.5);
+        transition: background-color var(--transition-normal);
+
+        svg {
+          width: 20px;
+          height: 20px;
+
+          line,
+          circle,
+          rect,
+          path {
+            stroke: white;
+          }
+        }
+
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.7);
+        }
+      }
+    }
+
+    &:hover .lightbox-controls {
+      opacity: 1;
+    }
+  }
+
+  &.zoomed {
+    max-width: 80vw;
+    max-height: 95vh;
+
+    .lightbox-image-container {
+      align-items: flex-start;
+      justify-content: center;
+
+      .lightbox-image {
+        width: 80vw;
+        max-width: 80vw;
+        max-height: none;
+        height: auto;
+        object-fit: contain;
+
+        &.zoomable {
+          cursor: zoom-out;
+        }
+      }
+    }
+  }
+}

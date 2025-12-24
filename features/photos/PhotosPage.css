@@ -1,0 +1,12 @@
+.message-box {
+  padding: var(--spacing-6);
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  text-align: center;
+  color: var(--text-secondary);
+
+  &.error {
+    background-color: var(--red-50);
+    color: var(--red-700);
+  }
+}

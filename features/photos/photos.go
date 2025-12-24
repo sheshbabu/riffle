@@ -2,11 +2,13 @@ package photos
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
 	"riffle/commons/media"
+	"strconv"
 	"strings"
 )
 
@@ -54,4 +56,48 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "public, max-age=3600")
 
 	http.ServeContent(w, r, filepath.Base(filePath), fileInfo.ModTime(), file)
+}
+
+type PhotosResponse struct {
+	Photos           []Photo `json:"photos"`
+	PageStartRecord  int     `json:"pageStartRecord"`
+	PageEndRecord    int     `json:"pageEndRecord"`
+	TotalRecords     int     `json:"totalRecords"`
+	CurrentOffset    int     `json:"currentOffset"`
+	Limit            int     `json:"limit"`
+}
+
+func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
+	offsetStr := r.URL.Query().Get("offset")
+	offset := 0
+	if offsetStr != "" {
+		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
+			offset = o
+		}
+	}
+
+	limit := 100
+
+	photos, err := GetPhotos(limit, offset)
+	if err != nil {
+		slog.Error("failed to get photos", "error", err)
+		http.Error(w, "failed to fetch photos", http.StatusInternalServerError)
+		return
+	}
+
+	response := PhotosResponse{
+		Photos:        photos,
+		CurrentOffset: offset,
+		Limit:         limit,
+	}
+
+	if len(photos) > 0 {
+		response.TotalRecords = photos[0].TotalRecords
+		response.PageStartRecord = offset + 1
+		response.PageEndRecord = offset + len(photos)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }

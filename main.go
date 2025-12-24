@@ -86,6 +86,7 @@ func newRouter() *http.ServeMux {
 	mux.HandleFunc("POST /api/inbox/analyze/", inbox.HandleAnalyze)
 	mux.HandleFunc("GET /api/inbox/analysis/", inbox.HandleGetAnalysis)
 	mux.HandleFunc("POST /api/inbox/import/", inbox.HandleImport)
+	mux.HandleFunc("GET /api/photos/", photos.HandleGetPhotos)
 	mux.HandleFunc("GET /api/photo/", photos.HandleServePhoto)
 	mux.HandleFunc("GET /assets/", handleStaticAssets)
 	mux.HandleFunc("GET /", handleRoot)

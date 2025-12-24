@@ -4,6 +4,7 @@ import Router from './commons/components/Router.jsx';
 import Route from './commons/components/Route.jsx';
 import Sidebar from './commons/components/Sidebar.jsx';
 import InboxPage from './features/inbox/InboxPage.jsx';
+import PhotosPage from './features/photos/PhotosPage.jsx';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Router>
           <Route path="/" component={InboxPage} />
           <Route path="/inbox" component={InboxPage} />
+          <Route path="/photos" component={PhotosPage} />
         </Router>
       </div>
     </div>
