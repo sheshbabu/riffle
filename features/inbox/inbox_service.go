@@ -8,10 +8,6 @@ import (
 	"os"
 )
 
-type AnalyzeRequest struct {
-	EnableNearDuplicates bool `json:"enableNearDuplicates"`
-}
-
 type InboxResponse struct {
 	Success   bool   `json:"success"`
 	Message   string `json:"message"`
@@ -21,13 +17,6 @@ type InboxResponse struct {
 const resultsFilePath = "/tmp/riffle-inbox-results.json"
 
 func HandleAnalyze(w http.ResponseWriter, r *http.Request) {
-	var req AnalyzeRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		slog.Error("failed to decode request", "error", err)
-		http.Error(w, "invalid request body", http.StatusBadRequest)
-		return
-	}
-
 	inboxPath := os.Getenv("INBOX_PATH")
 	libraryPath := os.Getenv("LIBRARY_PATH")
 	trashPath := os.Getenv("TRASH_PATH")
@@ -46,7 +35,7 @@ func HandleAnalyze(w http.ResponseWriter, r *http.Request) {
 	os.Remove(resultsFilePath)
 
 	go func() {
-		stats, err := ProcessInbox(inboxPath, libraryPath, trashPath, req.EnableNearDuplicates)
+		stats, err := ProcessInbox(inboxPath, libraryPath, trashPath)
 		if err != nil {
 			slog.Error("import analysis failed", "error", err)
 			return

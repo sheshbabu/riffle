@@ -64,12 +64,6 @@
     background-color: var(--neutral-100);
     color: var(--neutral-600);
   }
-
-  &.badge-near-match {
-    background-color: var(--yellow-100);
-    color: var(--neutral-700);
-    margin-left: var(--spacing-2);
-  }
 }
 
 .file-path {

@@ -1,13 +1,12 @@
 package inbox
 
 import (
-	"crypto/sha256"
 	"fmt"
-	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"riffle/commons/exif"
+	"riffle/commons/hash"
 	"riffle/commons/media"
 	"runtime"
 	"strings"
@@ -37,9 +36,8 @@ type DuplicateFile struct {
 }
 
 type DuplicateGroup struct {
-	Hash        string          `json:"hash"`
-	Files       []DuplicateFile `json:"files"`
-	IsNearMatch bool            `json:"isNearMatch"`
+	Hash  string          `json:"hash"`
+	Files []DuplicateFile `json:"files"`
 }
 
 type FileAction struct {
@@ -62,7 +60,7 @@ type AnalysisStats struct {
 	FilesToTrash      []FileAction     `json:"filesToTrash"`
 }
 
-func ProcessInbox(inboxPath, libraryPath, trashPath string, enableNearDuplicates bool) (*AnalysisStats, error) {
+func ProcessInbox(inboxPath, libraryPath, trashPath string) (*AnalysisStats, error) {
 	slog.Info("starting import analysis")
 
 	photos, err := ScanDirectory(inboxPath)
@@ -117,9 +115,8 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string, enableNearDuplicates
 		candidate := SelectCandidate(duplicates)
 
 		duplicateGroup := DuplicateGroup{
-			Hash:        hash[:16],
-			Files:       make([]DuplicateFile, 0, len(duplicates)),
-			IsNearMatch: false,
+			Hash:  hash[:16],
+			Files: make([]DuplicateFile, 0, len(duplicates)),
 		}
 
 		for _, photo := range duplicates {
@@ -214,31 +211,16 @@ func GroupBySize(photos []PhotoFile) map[int64][]PhotoFile {
 	return groups
 }
 
-func ComputeHash(filePath string) (string, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to open file: %w", err)
-	}
-	defer file.Close()
-
-	hash := sha256.New()
-	if _, err := io.Copy(hash, file); err != nil {
-		return "", fmt.Errorf("failed to compute hash: %w", err)
-	}
-
-	return fmt.Sprintf("%x", hash.Sum(nil)), nil
-}
-
 func processFile(photo *PhotoFile) {
-	hash, err := ComputeHash(photo.Path)
+	sha256Hash, err := hash.ComputeSHA256(photo.Path)
 	if err != nil {
 		slog.Error("failed to compute hash", "file", photo.Path, "error", err)
 		return
 	}
-	photo.Hash = hash
+	photo.Hash = sha256Hash
 
 	if media.IsImageFile(photo.Path) {
-		dhash, err := ComputeDhash(photo.Path)
+		dhash, err := hash.ComputeDhash(photo.Path)
 		if err != nil {
 			slog.Error("failed to compute dhash", "file", photo.Path, "error", err)
 		} else {

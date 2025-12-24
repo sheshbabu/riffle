@@ -1,35 +1,6 @@
 .inbox-form {
   margin-bottom: var(--spacing-6);
 
-  .checkbox-field {
-    margin-top: var(--spacing-6);
-
-    label {
-      display: flex;
-      align-items: center;
-      gap: var(--spacing-2);
-      cursor: pointer;
-
-      .checkbox-label {
-        font: var(--sm);
-        color: var(--text-primary);
-      }
-    }
-
-    .checkbox-hint {
-      margin-top: var(--spacing-1);
-      margin-left: calc(16px + var(--spacing-2));
-      font: var(--sm);
-      color: var(--text-secondary);
-    }
-
-    input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
-  }
-
   .submit-button {
     margin-top: var(--spacing-6);
   }
