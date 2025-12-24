@@ -1,0 +1,60 @@
+.sidebar-container {
+  min-width: var(--sidebar-width);
+  background-color: var(--bg-secondary);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-fixed {
+  flex-shrink: 0;
+}
+
+.sidebar-header {
+  padding: 16px 16px 8px;
+}
+
+.sidebar-header h2 {
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.sidebar-button {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0 8px;
+  text-decoration: none;
+  color: var(--neutral-500);
+  transition: color var(--transition-normal), stroke var(--transition-normal);
+}
+
+.sidebar-button:hover,
+.sidebar-button.is-active {
+  color: var(--neutral-900);
+}
+
+.sidebar-button:hover svg.lucide,
+.sidebar-button.is-active svg.lucide {
+  stroke: var(--neutral-900);
+}
+
+.sidebar-button:hover svg.lucide circle,
+.sidebar-button:hover svg.lucide rect,
+.sidebar-button:hover svg.lucide path,
+.sidebar-button:hover svg.lucide line,
+.sidebar-button.is-active svg.lucide circle,
+.sidebar-button.is-active svg.lucide rect,
+.sidebar-button.is-active svg.lucide path,
+.sidebar-button.is-active svg.lucide line {
+  stroke: var(--neutral-900);
+}
+
+.sidebar-button:active {
+  transform: scale(0.98);
+  transition: transform var(--transition-fast) ease-out;
+}
+
+.sidebar-button svg.lucide {
+  padding: 8px;
+}

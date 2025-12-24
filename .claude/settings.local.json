@@ -14,7 +14,9 @@
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
       "Bash(go get:*)",
-      "Bash(go build:*)"
+      "Bash(go build:*)",
+      "Bash(mkdir:*)",
+      "Bash(find:*)"
     ]
   }
 }

@@ -2,18 +2,16 @@ package main
 
 import (
 	"embed"
-	"encoding/base64"
 	"fmt"
 	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"riffle/commons/exif"
 	"riffle/commons/sqlite"
-	"riffle/features/dedupe"
-	"strings"
+	"riffle/features/inbox"
+	"riffle/features/photos"
 	"syscall"
 
 	"github.com/joho/godotenv"
@@ -85,105 +83,14 @@ func loadEnv() {
 func newRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /api/dedupe/", dedupe.HandleDedupe)
-	mux.HandleFunc("GET /api/dedupe/analyze/", dedupe.HandleDedupeAnalysis)
-	mux.HandleFunc("POST /api/dedupe/execute/", dedupe.HandleExecute)
-	mux.HandleFunc("GET /api/photo/", handlePhotoServe)
+	mux.HandleFunc("POST /api/inbox/analyze/", inbox.HandleAnalyze)
+	mux.HandleFunc("GET /api/inbox/analysis/", inbox.HandleGetAnalysis)
+	mux.HandleFunc("POST /api/inbox/import/", inbox.HandleImport)
+	mux.HandleFunc("GET /api/photo/", photos.HandleServePhoto)
 	mux.HandleFunc("GET /assets/", handleStaticAssets)
 	mux.HandleFunc("GET /", handleRoot)
 
 	return mux
-}
-
-func handlePhotoServe(w http.ResponseWriter, r *http.Request) {
-	encodedPath := r.URL.Query().Get("path")
-	if encodedPath == "" {
-		http.Error(w, "path parameter required", http.StatusBadRequest)
-		return
-	}
-
-	decodedPath, err := base64.URLEncoding.DecodeString(encodedPath)
-	if err != nil {
-		http.Error(w, "invalid path encoding", http.StatusBadRequest)
-		return
-	}
-
-	filePath := string(decodedPath)
-
-	// Security check: ensure file exists and is readable
-	fileInfo, err := os.Stat(filePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			http.Error(w, "file not found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, "cannot access file", http.StatusForbidden)
-		return
-	}
-
-	if fileInfo.IsDir() {
-		http.Error(w, "path is a directory", http.StatusBadRequest)
-		return
-	}
-
-	// Open file
-	file, err := os.Open(filePath)
-	if err != nil {
-		slog.Error("failed to open file", "path", filePath, "error", err)
-		http.Error(w, "failed to read file", http.StatusInternalServerError)
-		return
-	}
-	defer file.Close()
-
-	// Determine content type based on extension
-	ext := strings.ToLower(filepath.Ext(filePath))
-	contentType := getContentType(ext)
-	w.Header().Set("Content-Type", contentType)
-	w.Header().Set("Cache-Control", "public, max-age=3600")
-
-	// Serve file using http.ServeContent for range request support
-	http.ServeContent(w, r, filepath.Base(filePath), fileInfo.ModTime(), file)
-}
-
-func getContentType(ext string) string {
-	switch ext {
-	case ".jpg", ".jpeg":
-		return "image/jpeg"
-	case ".png":
-		return "image/png"
-	case ".gif":
-		return "image/gif"
-	case ".heic":
-		return "image/heic"
-	case ".heif":
-		return "image/heif"
-	case ".webp":
-		return "image/webp"
-	case ".bmp":
-		return "image/bmp"
-	case ".tiff", ".tif":
-		return "image/tiff"
-	case ".mp4":
-		return "video/mp4"
-	case ".mov":
-		return "video/quicktime"
-	case ".avi":
-		return "video/x-msvideo"
-	case ".mkv":
-		return "video/x-matroska"
-	case ".wmv":
-		return "video/x-ms-wmv"
-	case ".flv":
-		return "video/x-flv"
-	case ".webm":
-		return "video/webm"
-	case ".m4v":
-		return "video/x-m4v"
-	case ".mpg", ".mpeg":
-		return "video/mpeg"
-	default:
-		return "application/octet-stream"
-	}
 }
 
 func handleRoot(w http.ResponseWriter, r *http.Request) {

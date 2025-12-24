@@ -54,21 +54,21 @@ async function request(method, url, payload) {
   }
 }
 
-async function dedupe(payload) {
-  return await request('POST', '/api/dedupe/', payload);
+async function analyzeInbox(payload) {
+  return await request('POST', '/api/inbox/analyze/', payload);
 }
 
-async function getDedupeAnalysis() {
-  return await request('GET', '/api/dedupe/analyze/');
+async function getInboxAnalysis() {
+  return await request('GET', '/api/inbox/analysis/');
 }
 
-async function executeDeduplication(payload) {
-  return await request('POST', '/api/dedupe/execute/', payload);
+async function importInbox(payload) {
+  return await request('POST', '/api/inbox/import/', payload);
 }
 
 export default {
   request,
-  dedupe,
-  getDedupeAnalysis,
-  executeDeduplication
+  analyzeInbox,
+  getInboxAnalysis,
+  importInbox
 };
