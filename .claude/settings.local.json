@@ -19,7 +19,8 @@
       "Bash(find:*)",
       "Bash(grep:*)",
       "Bash(wc:*)",
-      "Bash(go mod graph:*)"
+      "Bash(go mod graph:*)",
+      "Bash(mv:*)"
     ]
   }
 }

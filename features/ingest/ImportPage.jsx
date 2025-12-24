@@ -1,11 +1,11 @@
 import ApiClient from '../../commons/http/ApiClient.js';
-import InboxForm from './InboxForm.jsx';
-import InboxAnalysisStats from './InboxAnalysisStats.jsx';
+import ImportForm from './ImportForm.jsx';
+import ImportAnalysisStats from './ImportAnalysisStats.jsx';
 import DuplicateGroups from './DuplicateGroups.jsx';
 
 const { useState, useEffect } = React;
 
-export default function InboxPage() {
+export default function ImportPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [message, setMessage] = useState('');
@@ -18,7 +18,7 @@ export default function InboxPage() {
 
     const pollInterval = setInterval(async () => {
       try {
-        const data = await ApiClient.getInboxAnalysis();
+        const data = await ApiClient.getImportAnalysis();
         setResults(data);
 
         if (isAnalyzing) {
@@ -44,7 +44,7 @@ export default function InboxPage() {
     setResults(null);
 
     try {
-      const response = await ApiClient.analyzeInbox({});
+      const response = await ApiClient.analyzeImport({});
 
       setMessage(response.message || 'Analysis started');
     } catch (error) {
@@ -58,7 +58,7 @@ export default function InboxPage() {
     setMessage('Importing photos...');
 
     try {
-      const response = await ApiClient.importInbox({});
+      const response = await ApiClient.importToLibrary({});
 
       setMessage(response.message || 'Import started');
     } catch (error) {
@@ -78,7 +78,7 @@ export default function InboxPage() {
 
   let statsElement = null;
   if (results) {
-    statsElement = <InboxAnalysisStats stats={results} />;
+    statsElement = <ImportAnalysisStats stats={results} />;
   }
 
   const analyzeButtonText = isAnalyzing ? 'Analyzing...' : 'Analyze Import Folder';
@@ -88,7 +88,7 @@ export default function InboxPage() {
     <div className="page-container">
       <h2>Import</h2>
 
-      <InboxForm
+      <ImportForm
         isAnalyzing={isAnalyzing}
         analyzeButtonText={analyzeButtonText}
         onAnalyze={handleAnalyze}
@@ -98,7 +98,7 @@ export default function InboxPage() {
       {statsElement}
       <DuplicateGroups
         duplicates={results?.duplicates}
-        inboxPath={results?.inboxPath}
+        importPath={results?.importPath}
         onImport={handleImport}
         isImporting={isImporting}
         importButtonText={importButtonText}

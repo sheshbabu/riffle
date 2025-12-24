@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS photos (
     exposure_time  TEXT,
     focal_length   TEXT,
     is_curated     BOOLEAN DEFAULT 0,
-    quality_score  INTEGER,
+    is_trashed     BOOLEAN DEFAULT 0,
+    rating         INTEGER DEFAULT 0,
     notes          TEXT,
     file_created_at  TIMESTAMP,
     file_modified_at TIMESTAMP,
@@ -66,6 +67,8 @@ CREATE INDEX IF NOT EXISTS idx_photos_dhash ON photos(dhash);
 CREATE INDEX IF NOT EXISTS idx_photos_date_time ON photos(date_time);
 CREATE INDEX IF NOT EXISTS idx_photos_imported_at ON photos(imported_at);
 CREATE INDEX IF NOT EXISTS idx_photos_is_curated ON photos(is_curated);
+CREATE INDEX IF NOT EXISTS idx_photos_is_trashed ON photos(is_trashed);
+CREATE INDEX IF NOT EXISTS idx_photos_rating ON photos(rating);
 CREATE INDEX IF NOT EXISTS idx_photos_is_video ON photos(is_video);
 CREATE INDEX IF NOT EXISTS idx_photos_camera ON photos(camera_make, camera_model);
 CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);

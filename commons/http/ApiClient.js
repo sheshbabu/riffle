@@ -54,21 +54,21 @@ async function request(method, url, payload) {
   }
 }
 
-async function analyzeInbox(payload) {
-  return await request('POST', '/api/inbox/analyze/', payload);
+async function analyzeImport(payload) {
+  return await request('POST', '/api/import/analyze/', payload);
 }
 
-async function getInboxAnalysis() {
-  return await request('GET', '/api/inbox/analysis/');
+async function getImportAnalysis() {
+  return await request('GET', '/api/import/analysis/');
 }
 
-async function importInbox(payload) {
-  return await request('POST', '/api/inbox/import/', payload);
+async function importToLibrary(payload) {
+  return await request('POST', '/api/import/import/', payload);
 }
 
 export default {
   request,
-  analyzeInbox,
-  getInboxAnalysis,
-  importInbox
+  analyzeImport,
+  getImportAnalysis,
+  importToLibrary
 };

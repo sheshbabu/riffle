@@ -3,7 +3,7 @@ import './assets/index.css';
 import Router from './commons/components/Router.jsx';
 import Route from './commons/components/Route.jsx';
 import Sidebar from './commons/components/Sidebar.jsx';
-import InboxPage from './features/inbox/InboxPage.jsx';
+import ImportPage from './features/ingest/ImportPage.jsx';
 import PhotosPage from './features/photos/PhotosPage.jsx';
 
 function App() {
@@ -12,8 +12,8 @@ function App() {
       <Sidebar />
       <div className="main-content">
         <Router>
-          <Route path="/" component={InboxPage} />
-          <Route path="/import" component={InboxPage} />
+          <Route path="/" component={ImportPage} />
+          <Route path="/import" component={ImportPage} />
           <Route path="/library" component={PhotosPage} />
         </Router>
       </div>

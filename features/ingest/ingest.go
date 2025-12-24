@@ -1,4 +1,4 @@
-package inbox
+package ingest
 
 import (
 	"fmt"
@@ -17,17 +17,17 @@ import (
 )
 
 type PhotoFile struct {
-	Path            string
-	Size            int64
-	Hash            string
-	Dhash           uint64
-	HasExif         bool
-	ExifData        map[string]any
-	FileFormat      string
-	MimeType        string
-	IsVideo         bool
-	FileCreatedAt   time.Time
-	FileModifiedAt  time.Time
+	Path           string
+	Size           int64
+	Hash           string
+	Dhash          uint64
+	HasExif        bool
+	ExifData       map[string]any
+	FileFormat     string
+	MimeType       string
+	IsVideo        bool
+	FileCreatedAt  time.Time
+	FileModifiedAt time.Time
 }
 
 type DuplicateFile struct {
@@ -44,16 +44,16 @@ type DuplicateGroup struct {
 }
 
 type FileAction struct {
-	Path            string         `json:"path"`
-	Hash            string         `json:"hash"`
-	Dhash           uint64         `json:"dhash,omitempty"`
-	ExifData        map[string]any `json:"exifData,omitempty"`
-	FileCreatedAt   time.Time      `json:"fileCreatedAt,omitempty"`
-	FileModifiedAt  time.Time      `json:"fileModifiedAt,omitempty"`
+	Path           string         `json:"path"`
+	Hash           string         `json:"hash"`
+	Dhash          uint64         `json:"dhash,omitempty"`
+	ExifData       map[string]any `json:"exifData,omitempty"`
+	FileCreatedAt  time.Time      `json:"fileCreatedAt,omitempty"`
+	FileModifiedAt time.Time      `json:"fileModifiedAt,omitempty"`
 }
 
 type AnalysisStats struct {
-	InboxPath         string           `json:"inboxPath"`
+	importPath        string           `json:"importPath"`
 	TotalScanned      int              `json:"totalScanned"`
 	UniqueFiles       int              `json:"uniqueFiles"`
 	DuplicateGroups   int              `json:"duplicateGroups"`
@@ -65,18 +65,18 @@ type AnalysisStats struct {
 	FilesToTrash      []FileAction     `json:"filesToTrash"`
 }
 
-func ProcessInbox(inboxPath, libraryPath, trashPath string) (*AnalysisStats, error) {
+func ProcessIngest(importPath, libraryPath, trashPath string) (*AnalysisStats, error) {
 	slog.Info("starting import analysis")
 
-	photos, err := ScanDirectory(inboxPath)
+	photos, err := ScanDirectory(importPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to scan inbox: %w", err)
+		return nil, fmt.Errorf("failed to scan ingest folder: %w", err)
 	}
 
-	slog.Info("scanned inbox", "count", len(photos))
+	slog.Info("scanned ingest folder", "count", len(photos))
 
 	stats := &AnalysisStats{
-		InboxPath:      inboxPath,
+		importPath:     importPath,
 		TotalScanned:   len(photos),
 		FilesToLibrary: make([]FileAction, 0),
 		FilesToTrash:   make([]FileAction, 0),
@@ -108,12 +108,12 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string) (*AnalysisStats, err
 			stats.UniqueFiles++
 
 			stats.FilesToLibrary = append(stats.FilesToLibrary, FileAction{
-				Path:            candidate.Path,
-				Hash:            candidate.Hash,
-				Dhash:           candidate.Dhash,
-				ExifData:        candidate.ExifData,
-				FileCreatedAt:   candidate.FileCreatedAt,
-				FileModifiedAt:  candidate.FileModifiedAt,
+				Path:           candidate.Path,
+				Hash:           candidate.Hash,
+				Dhash:          candidate.Dhash,
+				ExifData:       candidate.ExifData,
+				FileCreatedAt:  candidate.FileCreatedAt,
+				FileModifiedAt: candidate.FileModifiedAt,
 			})
 			continue
 		}
@@ -138,22 +138,22 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string) (*AnalysisStats, err
 
 			if photo.Path == candidate.Path {
 				stats.FilesToLibrary = append(stats.FilesToLibrary, FileAction{
-					Path:            photo.Path,
-					Hash:            photo.Hash,
-					Dhash:           photo.Dhash,
-					ExifData:        photo.ExifData,
-					FileCreatedAt:   photo.FileCreatedAt,
-					FileModifiedAt:  photo.FileModifiedAt,
+					Path:           photo.Path,
+					Hash:           photo.Hash,
+					Dhash:          photo.Dhash,
+					ExifData:       photo.ExifData,
+					FileCreatedAt:  photo.FileCreatedAt,
+					FileModifiedAt: photo.FileModifiedAt,
 				})
 			} else {
 				stats.DuplicatesRemoved++
 				stats.FilesToTrash = append(stats.FilesToTrash, FileAction{
-					Path:            photo.Path,
-					Hash:            photo.Hash,
-					Dhash:           photo.Dhash,
-					ExifData:        photo.ExifData,
-					FileCreatedAt:   photo.FileCreatedAt,
-					FileModifiedAt:  photo.FileModifiedAt,
+					Path:           photo.Path,
+					Hash:           photo.Hash,
+					Dhash:          photo.Dhash,
+					ExifData:       photo.ExifData,
+					FileCreatedAt:  photo.FileCreatedAt,
+					FileModifiedAt: photo.FileModifiedAt,
 				})
 			}
 		}
@@ -292,14 +292,14 @@ func ExecuteMoves(libraryPath, trashPath string, stats *AnalysisStats) error {
 
 	for _, action := range stats.FilesToLibrary {
 		photo := PhotoFile{
-			Path:            action.Path,
-			Hash:            action.Hash,
-			Dhash:           action.Dhash,
-			ExifData:        action.ExifData,
-			HasExif:         len(action.ExifData) > 0,
-			Size:            0,
-			FileCreatedAt:   action.FileCreatedAt,
-			FileModifiedAt:  action.FileModifiedAt,
+			Path:           action.Path,
+			Hash:           action.Hash,
+			Dhash:          action.Dhash,
+			ExifData:       action.ExifData,
+			HasExif:        len(action.ExifData) > 0,
+			Size:           0,
+			FileCreatedAt:  action.FileCreatedAt,
+			FileModifiedAt: action.FileModifiedAt,
 		}
 
 		if fileInfo, err := os.Stat(photo.Path); err == nil {

@@ -1,6 +1,6 @@
 import './DuplicateGroup.css';
 
-function DuplicateFile({ file, inboxPath }) {
+function DuplicateFile({ file, importPath }) {
   const isVideo = isVideoFile(file.path);
   const photoUrl = getPhotoUrl(file.path);
 
@@ -55,7 +55,7 @@ function DuplicateFile({ file, inboxPath }) {
   }
 
   const fileClassName = file.isCandidate ? 'duplicate-file candidate' : 'duplicate-file';
-  const displayPath = truncatePath(file.path, inboxPath);
+  const displayPath = truncatePath(file.path, importPath);
 
   return (
     <div className={fileClassName}>
@@ -68,9 +68,9 @@ function DuplicateFile({ file, inboxPath }) {
   );
 }
 
-export default function DuplicateGroup({ group, index, inboxPath }) {
+export default function DuplicateGroup({ group, index, importPath }) {
   const fileElements = group.files.map((file, fileIndex) => (
-    <DuplicateFile key={fileIndex} file={file} inboxPath={inboxPath} />
+    <DuplicateFile key={fileIndex} file={file} importPath={importPath} />
   ));
 
   return (
@@ -137,16 +137,16 @@ function formatDuration(durationStr) {
   return durationStr;
 }
 
-function truncatePath(fullPath, inboxPath) {
-  if (!inboxPath) {
+function truncatePath(fullPath, importPath) {
+  if (!importPath) {
     return fullPath;
   }
 
-  // Ensure inbox path ends with a slash for proper prefix matching
-  const normalizedInboxPath = inboxPath.endsWith('/') ? inboxPath : inboxPath + '/';
+  // Ensure ingest path ends with a slash for proper prefix matching
+  const normalizedimportPath = importPath.endsWith('/') ? importPath : importPath + '/';
 
-  if (fullPath.startsWith(normalizedInboxPath)) {
-    const relativePath = fullPath.substring(normalizedInboxPath.length);
+  if (fullPath.startsWith(normalizedimportPath)) {
+    const relativePath = fullPath.substring(normalizedimportPath.length);
     return '.../' + relativePath;
   }
 

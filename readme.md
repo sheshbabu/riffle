@@ -1,17 +1,42 @@
 # Riffle
 
-Photo organizer that deduplicates and organizes photos by date.
+A photo organizer designed for photographers who need to efficiently manage and curate large photo collections.
 
-### Features
+## Workflow: Import → Curate → Library → Export
+
+
+**Import**
 * Exact duplicate detection using SHA256 hashing
-* Near duplicate detection using dhash (perceptual hashing) for visually similar images
-* Smart candidate selection based on resolution, EXIF metadata, and file size
+* Smart candidate selection based on EXIF metadata
 * Organizes photos by date into `YYYY/MM - MonthName/` folders
-* Supports HEIC, MOV, MP4 and other formats
 * Preserves EXIF metadata (DateTime, GPS, camera settings, video duration)
-* Two-phase workflow: Analyze → Review → Execute
-* Real-time progress with summary statistics
-* Single Go binary with embedded assets
+* Supports HEIC, HEIF, MOV, MP4, and common image formats
+* Single Go binary with embedded web frontend
+
+**Library**
+* Browse organized photos in chronological grid
+* Photo metadata display (camera, settings, GPS)
+* Image lightbox with full-screen view
+* Video playback support
+* On-the-fly image resizing and video thumbnails
+
+**Curate** (Photo Culling Interface)
+* Fast keyboard-driven review (P/X/1-5)
+* Accept, reject, or rate photos quickly
+* Visual progress tracking
+* Undo with fade-out animations
+
+**Trash** (Virtual Safety Net)
+* Review rejected photos before final deletion
+* No immediate file deletion
+* Easy recovery of mistakenly rejected photos
+
+### Planned Features
+
+* **Session Grouping**: Automatic photo grouping by time/location
+* **Near-Duplicate Detection**: Find visually similar photos using perceptual hashing
+* **Burst Stacking**: Collapse photo bursts into single thumbnails
+* **Export**: Filter and export curated collections to cloud storage
 
 ### Installation
 
@@ -35,6 +60,12 @@ Create `.env` file in the project root:
 ```bash
 cp .env.example .env
 ```
+
+Edit `.env` and set your folder paths:
+```
+IMPORT_PATH=/path/to/import/folder
+LIBRARY_PATH=/path/to/library
+EXPORT_PATH=/path/to/export
 ```
 
 ### Usage

@@ -2,7 +2,7 @@ import Button from '../../commons/components/Button.jsx';
 import DuplicateGroup from './DuplicateGroup.jsx';
 import './DuplicateGroups.css';
 
-export default function DuplicateGroups({ duplicates, inboxPath, onImport, isImporting, importButtonText, hasResults }) {
+export default function DuplicateGroups({ duplicates, importPath, onImport, isImporting, importButtonText, hasResults }) {
   if (!hasResults) {
     return null;
   }
@@ -12,7 +12,7 @@ export default function DuplicateGroups({ duplicates, inboxPath, onImport, isImp
   let duplicateGroupsElement = null;
   if (hasDuplicates) {
     const groupElements = duplicates.map((group, index) => (
-      <DuplicateGroup key={index} group={group} index={index} inboxPath={inboxPath} />
+      <DuplicateGroup key={index} group={group} index={index} importPath={importPath} />
     ));
 
     duplicateGroupsElement = (

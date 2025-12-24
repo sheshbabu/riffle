@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"riffle/commons/exif"
 	"riffle/commons/sqlite"
-	"riffle/features/inbox"
+	"riffle/features/ingest"
 	"riffle/features/photos"
 	"syscall"
 
@@ -70,12 +70,12 @@ func loadEnv() {
 		slog.Warn("no .env file found, using env vars only")
 	}
 
-	inboxPath := os.Getenv("INBOX_PATH")
+	importPath := os.Getenv("IMPORT_PATH")
 	libraryPath := os.Getenv("LIBRARY_PATH")
-	trashPath := os.Getenv("TRASH_PATH")
+	exportPath := os.Getenv("EXPORT_PATH")
 
-	if inboxPath == "" || libraryPath == "" || trashPath == "" {
-		slog.Error("missing env vars: INBOX_PATH, LIBRARY_PATH, and TRASH_PATH")
+	if importPath == "" || libraryPath == "" || exportPath == "" {
+		slog.Error("missing env vars: IMPORT_PATH, LIBRARY_PATH, and EXPORT_PATH")
 		os.Exit(1)
 	}
 }
@@ -83,9 +83,9 @@ func loadEnv() {
 func newRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /api/inbox/analyze/", inbox.HandleAnalyze)
-	mux.HandleFunc("GET /api/inbox/analysis/", inbox.HandleGetAnalysis)
-	mux.HandleFunc("POST /api/inbox/import/", inbox.HandleImport)
+	mux.HandleFunc("POST /api/import/analyze/", ingest.HandleAnalyze)
+	mux.HandleFunc("GET /api/import/analysis/", ingest.HandleGetAnalysis)
+	mux.HandleFunc("POST /api/import/import/", ingest.HandleImport)
 	mux.HandleFunc("GET /api/photos/", photos.HandleGetPhotos)
 	mux.HandleFunc("GET /api/photo/", photos.HandleServePhoto)
 	mux.HandleFunc("GET /assets/", handleStaticAssets)

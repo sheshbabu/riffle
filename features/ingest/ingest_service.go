@@ -1,4 +1,4 @@
-package inbox
+package ingest
 
 import (
 	"encoding/json"
@@ -8,25 +8,24 @@ import (
 	"os"
 )
 
-type InboxResponse struct {
-	Success   bool   `json:"success"`
-	Message   string `json:"message"`
-	InboxPath string `json:"inboxPath,omitempty"`
+type IngestResponse struct {
+	Success    bool   `json:"success"`
+	Message    string `json:"message"`
+	importPath string `json:"importPath,omitempty"`
 }
 
-const resultsFilePath = "/tmp/riffle-inbox-results.json"
+const resultsFilePath = "/tmp/riffle-ingest-results.json"
 
 func HandleAnalyze(w http.ResponseWriter, r *http.Request) {
-	inboxPath := os.Getenv("INBOX_PATH")
+	importPath := os.Getenv("IMPORT_PATH")
 	libraryPath := os.Getenv("LIBRARY_PATH")
-	trashPath := os.Getenv("TRASH_PATH")
 
-	if inboxPath == "" || libraryPath == "" || trashPath == "" {
-		http.Error(w, "INBOX_PATH, LIBRARY_PATH, and TRASH_PATH environment variables must be set", http.StatusBadRequest)
+	if importPath == "" || libraryPath == "" {
+		http.Error(w, "IMPORT_PATH and LIBRARY_PATH environment variables must be set", http.StatusBadRequest)
 		return
 	}
 
-	if err := checkDirectories(inboxPath, libraryPath, trashPath); err != nil {
+	if err := checkDirectories(importPath, libraryPath); err != nil {
 		slog.Error("directory check failed", "error", err)
 		http.Error(w, fmt.Sprintf("directory check failed: %v", err), http.StatusBadRequest)
 		return
@@ -35,7 +34,7 @@ func HandleAnalyze(w http.ResponseWriter, r *http.Request) {
 	os.Remove(resultsFilePath)
 
 	go func() {
-		stats, err := ProcessInbox(inboxPath, libraryPath, trashPath)
+		stats, err := ProcessIngest(importPath, libraryPath, libraryPath)
 		if err != nil {
 			slog.Error("import analysis failed", "error", err)
 			return
@@ -57,9 +56,9 @@ func HandleAnalyze(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(InboxResponse{
+	json.NewEncoder(w).Encode(IngestResponse{
 		Success: true,
-		Message: "inbox analysis started",
+		Message: "import analysis started",
 	})
 }
 
@@ -82,14 +81,13 @@ func HandleGetAnalysis(w http.ResponseWriter, r *http.Request) {
 
 func HandleImport(w http.ResponseWriter, r *http.Request) {
 	libraryPath := os.Getenv("LIBRARY_PATH")
-	trashPath := os.Getenv("TRASH_PATH")
 
-	if libraryPath == "" || trashPath == "" {
-		http.Error(w, "LIBRARY_PATH and TRASH_PATH environment variables must be set", http.StatusBadRequest)
+	if libraryPath == "" {
+		http.Error(w, "LIBRARY_PATH environment variable must be set", http.StatusBadRequest)
 		return
 	}
 
-	if err := checkDirectories(libraryPath, trashPath); err != nil {
+	if err := checkDirectories(libraryPath); err != nil {
 		slog.Error("directory check failed", "error", err)
 		http.Error(w, fmt.Sprintf("directory check failed: %v", err), http.StatusBadRequest)
 		return
@@ -114,7 +112,7 @@ func HandleImport(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		if err := ExecuteMoves(libraryPath, trashPath, &stats); err != nil {
+		if err := ExecuteMoves(libraryPath, libraryPath, &stats); err != nil {
 			slog.Error("failed to execute moves", "error", err)
 			return
 		}
@@ -135,7 +133,7 @@ func HandleImport(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(InboxResponse{
+	json.NewEncoder(w).Encode(IngestResponse{
 		Success: true,
 		Message: "import started",
 	})

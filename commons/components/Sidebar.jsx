@@ -1,5 +1,5 @@
 import Link from './Link.jsx';
-import { InboxIcon, ImagesIcon, BrushCleaningIcon } from './Icon.jsx';
+import { ImportIcon, CurateIcon, LibraryIcon, TrashIcon } from './Icon.jsx';
 import './Sidebar.css';
 
 export default function Sidebar() {
@@ -18,16 +18,20 @@ export default function Sidebar() {
         </div>
 
         <Link className="sidebar-button" activeClassName="is-active" to="/import">
-          <InboxIcon />
+          <ImportIcon />
           Import
         </Link>
         <Link className="sidebar-button" activeClassName="is-active" to="/curate">
-          <BrushCleaningIcon />
+          <CurateIcon />
           Curate
         </Link>
         <Link className="sidebar-button" activeClassName="is-active" to="/library">
-          <ImagesIcon />
+          <LibraryIcon />
           Library
+        </Link>
+        <Link className="sidebar-button" activeClassName="is-active" to="/trash">
+          <TrashIcon />
+          Trash
         </Link>
       </div>
     </div>

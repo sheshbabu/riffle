@@ -1,4 +1,4 @@
-package inbox
+package ingest
 
 import (
 	"fmt"

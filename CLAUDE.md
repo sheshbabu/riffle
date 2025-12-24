@@ -22,14 +22,38 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - `make dev` - Run development server
 - `make watch` - Run with file watching (requires air)
 
-## Implemented Features
+## Workflow: Import → Curate → Library → Export
 
-### Core Workflow
-1. Recursively scan "inbox" folder for media files (photos and videos)
-2. Perform exact duplicate detection using SHA256 hashing
-3. Extract EXIF metadata for selection criteria
-4. Select best candidate from duplicates
-5. Display summary statistics
+### 1. Import (File Management)
+- Point app at import folder (source files)
+- Run exact duplicate detection using SHA256 hashing
+- Move unique files and best candidates to Library folder
+- Organize into `Year/Month` structure with renamed files
+- Store metadata in SQLite database
+
+### 2. Curate (The Culling - IN PROGRESS)
+- Dedicated view shows only uncurated photos (`is_curated = false`)
+- Keyboard shortcuts for fast review:
+  - **P (Accept)**: Sets `is_curated=true, rating=0`
+  - **X (Reject)**: Sets `is_curated=true, is_trashed=true`
+  - **1-5 (Rate)**: Sets `is_curated=true, rating=1-5`
+- Photos fade out with undo option after action
+- Clear progress indication
+
+### 3. Library (Organized Archive)
+- Shows only curated, non-trashed photos (`is_curated=true AND is_trashed=false`)
+- Chronological grid view
+- Future: Session grouping, burst stacking, filters
+
+### 4. Trash (Safety Net)
+- Virtual trash (files remain in library folder)
+- Shows photos with `is_trashed=true`
+- "Empty Trash" button (no-op for now)
+- Future: Physical deletion or move to OS trash
+
+### 5. Export (Delivery - PLANNED)
+- Filter by rating, date, session
+- Export to local folder or cloud (S3, Google Drive)
 
 ### Exact Duplicate Detection
 - **File size pre-filter** (performance optimization):
@@ -85,8 +109,10 @@ When multiple files share the same hash (exact duplicates), select one to keep:
 
 ### Folder Structure
 
-**Inbox:**
-- `inbox/` - Source folder (scanned recursively)
+**Ingest** (internally) / **Import** (user-facing):
+- `IMPORT_PATH` - Source folder containing photos to process
+- Scanned recursively for media files
+- Files are moved (not copied) during import
 
 **Library** (organized by date):
 ```
@@ -107,9 +133,13 @@ Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
 - Hash is first 16 characters of SHA256 file hash
 - Files without any date information go to `Unknown/` folder
 
-**Trash** (organized by date):
-- Same folder structure as library (`YYYY/MM - MonthName/`)
-- Files renamed with same pattern as library
+**Trash** (virtual only):
+- No physical trash folder
+- Photos flagged with `is_trashed=true` in database
+- Files remain in library folder until "Empty Trash" is executed
+
+**Export** (future):
+- `EXPORT_PATH` - Destination for filtered/curated exports
 
 ### Photo Database
 
@@ -117,26 +147,19 @@ Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging
 
 **Tables:** photos, tags, photo_tags, albums, album_photos
 
-**Key Features:**
-- Tag photos (screenshot, needs-rotation, portraits, etc.)
+**Key Fields:**
+- `is_curated` (boolean) - Whether user has reviewed the photo
+- `is_trashed` (boolean) - Virtual trash flag
+- `rating` (int 0-5) - User rating (0 = unrated)
+- `sha256_hash` and `dhash` - For duplicate/near-duplicate detection
+- `notes` (text) - User notes
+
+**Features:**
+- Tag photos for organization
 - Organize into albums
-- Track sha256_hash and dhash (for duplicate/near-duplicate detection)
-- Mark curated status, quality scores, add notes
+- Track curation status and ratings
 - Search by date, camera, location, format
 
-## Future Tasks
-
-### Near Duplicate Detection
-- Use **dhash** (difference hash) algorithm to find visually similar photos
-- Present near duplicate groups to the user
-- Interactive selection interface:
-  - Show all near duplicate groups
-  - Display EXIF metadata for each photo (timestamp, camera model, resolution, GPS coordinates)
-  - Allow user to select which photo(s) to keep from each group
-  - Support "select all" option
-  - Auto-suggest candidates based on EXIF completeness and quality metrics
-- Move selected photos to library
-- Move unselected photos to trash
 
 ## Architecture Overview
 
@@ -144,9 +167,11 @@ Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging
 - **Entry Point**: `main.go` - HTTP server, routes, and API handlers
 - **Server Mode**: Web-based UI with API endpoints
 - **Feature-based Structure**: Each feature has its own directory under `features/`
-  - `dedupe/` - Core deduplication logic (scanning, hashing, grouping, candidate selection)
+  - `ingest/` - Import workflow (scanning, deduplication, moving files)
+  - `photos/` - Photo library management and serving
 - **Commons**: Shared utilities in `commons/`
   - `exif/` - EXIF data extraction and validation
+  - `sqlite/` - Database connection and migrations
   - `http/` - API client for frontend communication
 
 ### Frontend (React)
@@ -169,6 +194,9 @@ Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging
 ### Environment Variables
 - `DEV_MODE=true` - Development mode with file system assets
 - `PORT` - Server port (default: 8080)
+- `IMPORT_PATH` - Source folder for importing photos
+- `LIBRARY_PATH` - Organized photo library destination
+- `EXPORT_PATH` - Export destination (future use)
 
 ## Development Conventions
 
