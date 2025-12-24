@@ -16,7 +16,8 @@
       "Bash(go get:*)",
       "Bash(go build:*)",
       "Bash(mkdir:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(grep:*)"
     ]
   }
 }

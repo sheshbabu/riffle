@@ -1,8 +1,8 @@
-import './DedupeStats.css';
+import './InboxAnalysisStats.css';
 
-export default function DedupeStats({ stats }) {
+export default function InboxAnalysisStats({ stats }) {
   return (
-    <div className="dedupe-stats">
+    <div className="inbox-analysis-stats">
       <h3>Summary</h3>
       <table className="stats-table">
         <tbody>

@@ -10,11 +10,6 @@ riffle.db
 riffle.db-shm
 riffle.db-wal
 
-# Test folders
-inbox/
-library/
-trash/
-
 # Go
 *.exe
 *.exe~
