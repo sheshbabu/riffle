@@ -13,8 +13,8 @@ function App() {
       <div className="main-content">
         <Router>
           <Route path="/" component={InboxPage} />
-          <Route path="/inbox" component={InboxPage} />
-          <Route path="/photos" component={PhotosPage} />
+          <Route path="/import" component={InboxPage} />
+          <Route path="/library" component={PhotosPage} />
         </Router>
       </div>
     </div>

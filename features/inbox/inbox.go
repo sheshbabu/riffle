@@ -44,10 +44,12 @@ type DuplicateGroup struct {
 }
 
 type FileAction struct {
-	Path     string         `json:"path"`
-	Hash     string         `json:"hash"`
-	Dhash    uint64         `json:"dhash,omitempty"`
-	ExifData map[string]any `json:"exifData,omitempty"`
+	Path            string         `json:"path"`
+	Hash            string         `json:"hash"`
+	Dhash           uint64         `json:"dhash,omitempty"`
+	ExifData        map[string]any `json:"exifData,omitempty"`
+	FileCreatedAt   time.Time      `json:"fileCreatedAt,omitempty"`
+	FileModifiedAt  time.Time      `json:"fileModifiedAt,omitempty"`
 }
 
 type AnalysisStats struct {
@@ -106,10 +108,12 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string) (*AnalysisStats, err
 			stats.UniqueFiles++
 
 			stats.FilesToLibrary = append(stats.FilesToLibrary, FileAction{
-				Path:     candidate.Path,
-				Hash:     candidate.Hash,
-				Dhash:    candidate.Dhash,
-				ExifData: candidate.ExifData,
+				Path:            candidate.Path,
+				Hash:            candidate.Hash,
+				Dhash:           candidate.Dhash,
+				ExifData:        candidate.ExifData,
+				FileCreatedAt:   candidate.FileCreatedAt,
+				FileModifiedAt:  candidate.FileModifiedAt,
 			})
 			continue
 		}
@@ -134,18 +138,22 @@ func ProcessInbox(inboxPath, libraryPath, trashPath string) (*AnalysisStats, err
 
 			if photo.Path == candidate.Path {
 				stats.FilesToLibrary = append(stats.FilesToLibrary, FileAction{
-					Path:     photo.Path,
-					Hash:     photo.Hash,
-					Dhash:    photo.Dhash,
-					ExifData: photo.ExifData,
+					Path:            photo.Path,
+					Hash:            photo.Hash,
+					Dhash:           photo.Dhash,
+					ExifData:        photo.ExifData,
+					FileCreatedAt:   photo.FileCreatedAt,
+					FileModifiedAt:  photo.FileModifiedAt,
 				})
 			} else {
 				stats.DuplicatesRemoved++
 				stats.FilesToTrash = append(stats.FilesToTrash, FileAction{
-					Path:     photo.Path,
-					Hash:     photo.Hash,
-					Dhash:    photo.Dhash,
-					ExifData: photo.ExifData,
+					Path:            photo.Path,
+					Hash:            photo.Hash,
+					Dhash:           photo.Dhash,
+					ExifData:        photo.ExifData,
+					FileCreatedAt:   photo.FileCreatedAt,
+					FileModifiedAt:  photo.FileModifiedAt,
 				})
 			}
 		}
@@ -284,12 +292,14 @@ func ExecuteMoves(libraryPath, trashPath string, stats *AnalysisStats) error {
 
 	for _, action := range stats.FilesToLibrary {
 		photo := PhotoFile{
-			Path:     action.Path,
-			Hash:     action.Hash,
-			Dhash:    action.Dhash,
-			ExifData: action.ExifData,
-			HasExif:  len(action.ExifData) > 0,
-			Size:     0,
+			Path:            action.Path,
+			Hash:            action.Hash,
+			Dhash:           action.Dhash,
+			ExifData:        action.ExifData,
+			HasExif:         len(action.ExifData) > 0,
+			Size:            0,
+			FileCreatedAt:   action.FileCreatedAt,
+			FileModifiedAt:  action.FileModifiedAt,
 		}
 
 		if fileInfo, err := os.Stat(photo.Path); err == nil {

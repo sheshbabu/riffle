@@ -40,7 +40,7 @@ export default function InboxPage() {
 
   async function handleAnalyze() {
     setIsAnalyzing(true);
-    setMessage('Analyzing inbox...');
+    setMessage('Analyzing import folder...');
     setResults(null);
 
     try {
@@ -81,12 +81,12 @@ export default function InboxPage() {
     statsElement = <InboxAnalysisStats stats={results} />;
   }
 
-  const analyzeButtonText = isAnalyzing ? 'Analyzing...' : 'Analyze Inbox';
+  const analyzeButtonText = isAnalyzing ? 'Analyzing...' : 'Analyze Import Folder';
   const importButtonText = isImporting ? 'Importing...' : 'Import to Library';
 
   return (
     <div className="page-container">
-      <h2>Inbox</h2>
+      <h2>Import</h2>
 
       <InboxForm
         isAnalyzing={isAnalyzing}
