@@ -112,12 +112,13 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 }
 
 type PhotosResponse struct {
-	Photos           []Photo `json:"photos"`
-	PageStartRecord  int     `json:"pageStartRecord"`
-	PageEndRecord    int     `json:"pageEndRecord"`
-	TotalRecords     int     `json:"totalRecords"`
-	CurrentOffset    int     `json:"currentOffset"`
-	Limit            int     `json:"limit"`
+	Photos           []Photo   `json:"photos"`
+	Sessions         []Session `json:"sessions,omitempty"`
+	PageStartRecord  int       `json:"pageStartRecord"`
+	PageEndRecord    int       `json:"pageEndRecord"`
+	TotalRecords     int       `json:"totalRecords"`
+	CurrentOffset    int       `json:"currentOffset"`
+	Limit            int       `json:"limit"`
 }
 
 func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
@@ -129,7 +130,35 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	withSessions := r.URL.Query().Get("sessions") == "true"
 	limit := 100
+
+	if withSessions {
+		photos, sessions, err := GetPhotosWithSessions(limit, offset, true, false)
+		if err != nil {
+			slog.Error("failed to get photos with sessions", "error", err)
+			http.Error(w, "failed to fetch photos", http.StatusInternalServerError)
+			return
+		}
+
+		response := PhotosResponse{
+			Photos:        photos,
+			Sessions:      sessions,
+			CurrentOffset: offset,
+			Limit:         limit,
+		}
+
+		if len(photos) > 0 {
+			response.TotalRecords = photos[0].TotalRecords
+			response.PageStartRecord = offset + 1
+			response.PageEndRecord = offset + len(photos)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
 	photos, err := GetPhotos(limit, offset)
 	if err != nil {
@@ -164,7 +193,35 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	withSessions := r.URL.Query().Get("sessions") == "true"
 	limit := 100
+
+	if withSessions {
+		photos, sessions, err := GetPhotosWithSessions(limit, offset, false, false)
+		if err != nil {
+			slog.Error("failed to get uncurated photos with sessions", "error", err)
+			http.Error(w, "failed to fetch uncurated photos", http.StatusInternalServerError)
+			return
+		}
+
+		response := PhotosResponse{
+			Photos:        photos,
+			Sessions:      sessions,
+			CurrentOffset: offset,
+			Limit:         limit,
+		}
+
+		if len(photos) > 0 {
+			response.TotalRecords = photos[0].TotalRecords
+			response.PageStartRecord = offset + 1
+			response.PageEndRecord = offset + len(photos)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
 	photos, err := GetUncuratedPhotos(limit, offset)
 	if err != nil {

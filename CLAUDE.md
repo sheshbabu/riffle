@@ -55,6 +55,20 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - Filter by rating, date, session
 - Export to local folder or cloud (S3, Google Drive)
 
+### Session Detection Algorithm
+Photos are automatically grouped into sessions using time-gap clustering and location-based analysis.
+
+**A new session starts when ANY of these conditions are met:**
+- **Time gap > 120 minutes** between consecutive photos
+- **Total session duration > 12 hours** (prevents multi-day sessions)
+- **Distance > 1km** from the session's starting location (using Haversine distance)
+
+**Key Features:**
+- Sessions are displayed with date/time range headers in both Library and Curate views
+- Location-aware: Uses GPS coordinates when available to split sessions across different locations
+- Time-aware: Prevents sessions from drifting across multiple days
+- Toggle between grid view and session view using the view toggle button
+
 ### Exact Duplicate Detection
 - **File size pre-filter** (performance optimization):
   - Group files by size first (cheap metadata read)
