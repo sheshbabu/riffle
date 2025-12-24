@@ -34,6 +34,10 @@ export default function PhotosPage() {
         setError(err.message);
       } finally {
         setIsLoading(false);
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+          mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       }
     }
 
@@ -42,26 +46,26 @@ export default function PhotosPage() {
 
   let content = null;
 
-  if (isLoading) {
-    content = (
-      <div className="message-box">
-        Loading photos...
-      </div>
-    );
-  } else if (error) {
+  if (error) {
     content = (
       <div className="message-box error">
         Error: {error}
       </div>
     );
-  } else if (photos.length === 0) {
+  } else if (photos.length === 0 && !isLoading) {
     content = (
       <div className="message-box">
         No photos found. Import photos from the inbox first.
       </div>
     );
-  } else {
+  } else if (photos.length > 0) {
     content = <PhotoGallery photos={photos} />;
+  } else if (isLoading && photos.length === 0) {
+    content = (
+      <div className="message-box">
+        Loading photos...
+      </div>
+    );
   }
 
   function handlePrevPage() {
@@ -95,9 +99,19 @@ export default function PhotosPage() {
     );
   }
 
+  let loadingIndicator = null;
+  if (isLoading && photos.length > 0) {
+    loadingIndicator = (
+      <div className="loading-overlay">
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div className="page-container">
       <h2>Photos</h2>
+      {loadingIndicator}
       {content}
       {paginationElement}
     </div>

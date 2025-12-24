@@ -10,3 +10,16 @@
     color: var(--red-700);
   }
 }
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--neutral-900);
+  color: white;
+  border-bottom-left-radius: 4px;
+  font-size: 14px;
+  z-index: 100;
+  opacity: 0.9;
+}
