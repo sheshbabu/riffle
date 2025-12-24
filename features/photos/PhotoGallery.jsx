@@ -5,9 +5,16 @@ const { useState } = React;
 
 export default function PhotoGallery({ photos }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
-  function getPhotoUrl(filePath) {
+  function getPhotoUrl(filePath, width = null, height = null) {
     const encoded = btoa(filePath);
-    return `/api/photo/?path=${encoded}`;
+    let url = `/api/photo/?path=${encoded}`;
+    if (width) {
+      url += `&width=${width}`;
+    }
+    if (height) {
+      url += `&height=${height}`;
+    }
+    return url;
   }
 
   function isVideoFile(filePath) {
@@ -24,18 +31,24 @@ export default function PhotoGallery({ photos }) {
   }
 
   const photoElements = photos.map((photo, index) => {
-    const photoUrl = getPhotoUrl(photo.filePath);
     const isVideo = photo.isVideo || isVideoFile(photo.filePath);
+    const thumbnailUrl = getPhotoUrl(photo.filePath, 300, 300);
+    const fullUrl = getPhotoUrl(photo.filePath);
 
     let mediaElement = null;
     if (isVideo) {
       mediaElement = (
-        <video src={photoUrl} className="gallery-media" />
+        <img
+          src={thumbnailUrl}
+          alt={photo.filePath}
+          className="gallery-media"
+          loading="lazy"
+        />
       );
     } else {
       mediaElement = (
         <img
-          src={photoUrl}
+          src={thumbnailUrl}
           alt={photo.filePath}
           className="gallery-media"
           loading="lazy"

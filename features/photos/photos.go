@@ -42,6 +42,61 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	widthStr := r.URL.Query().Get("width")
+	heightStr := r.URL.Query().Get("height")
+
+	ext := strings.ToLower(filepath.Ext(filePath))
+	contentType := media.GetContentType(ext)
+
+	shouldResize := (widthStr != "" || heightStr != "") && (media.IsImageFile(filePath) || media.IsVideoFile(filePath))
+
+	if shouldResize {
+		width, _ := strconv.Atoi(widthStr)
+		height, _ := strconv.Atoi(heightStr)
+
+		if width <= 0 {
+			width = 4000
+		}
+		if height <= 0 {
+			height = 4000
+		}
+
+		if media.IsVideoFile(filePath) {
+			thumbnailData, thumbnailContentType, err := media.GenerateVideoThumbnail(filePath, width, height)
+			if err != nil {
+				slog.Error("failed to generate video thumbnail, serving placeholder", "path", filePath, "error", err)
+				http.Error(w, "failed to generate video thumbnail", http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Set("Content-Type", thumbnailContentType)
+			w.Header().Set("Cache-Control", "public, max-age=3600")
+			w.Write(thumbnailData)
+			return
+		}
+
+		fileData, err := os.ReadFile(filePath)
+		if err != nil {
+			slog.Error("failed to read file for resizing", "path", filePath, "error", err)
+			http.Error(w, "failed to read file", http.StatusInternalServerError)
+			return
+		}
+
+		resizedData, resizedContentType, err := media.ResizeImage(fileData, filePath, width, height)
+		if err != nil {
+			slog.Error("failed to resize image, serving original", "path", filePath, "error", err)
+			w.Header().Set("Content-Type", contentType)
+			w.Header().Set("Cache-Control", "public, max-age=3600")
+			w.Write(fileData)
+			return
+		}
+
+		w.Header().Set("Content-Type", resizedContentType)
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+		w.Write(resizedData)
+		return
+	}
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		slog.Error("failed to open file", "path", filePath, "error", err)
@@ -50,8 +105,6 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	ext := strings.ToLower(filepath.Ext(filePath))
-	contentType := media.GetContentType(ext)
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("Cache-Control", "public, max-age=3600")
 

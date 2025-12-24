@@ -18,10 +18,10 @@ Photo organizer that deduplicates and organizes photos by date.
 Install system dependencies:
 ```bash
 # macOS
-brew install exiftool libheif
+brew install exiftool ffmpeg libheif
 
 # Linux
-apt-get install libimage-exiftool-perl libheif-dev
+apt-get install libimage-exiftool-perl ffmpeg libheif-dev
 ```
 
 Build from source:

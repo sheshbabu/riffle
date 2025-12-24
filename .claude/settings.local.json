@@ -18,7 +18,8 @@
       "Bash(mkdir:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(go mod graph:*)"
     ]
   }
 }

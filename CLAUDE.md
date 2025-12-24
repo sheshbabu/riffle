@@ -12,6 +12,9 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - React
 - SQLite (github.com/mattn/go-sqlite3) - Photo metadata storage
 - go-exiftool (github.com/barasher/go-exiftool) - EXIF metadata extraction
+- goheif (github.com/adrium/goheif) - HEIC/HEIF image format support
+- goimagehash (github.com/corona10/goimagehash) - Perceptual image hashing for near-duplicate detection
+- golang.org/x/image - Image processing (resize, webp support)
 
 ## Development Commands
 
