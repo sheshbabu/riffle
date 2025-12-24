@@ -4,7 +4,7 @@ import './Lightbox.css';
 
 const { useState, useEffect } = React;
 
-export default function Lightbox({ photos, selectedIndex, onClose }) {
+export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isCurateMode = false }) {
   const [currentIndex, setCurrentIndex] = useState(selectedIndex);
   const [isZoomed, setIsZoomed] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
@@ -36,11 +36,46 @@ export default function Lightbox({ photos, selectedIndex, onClose }) {
           setShowMetadata(!showMetadata);
           break;
       }
+
+      if (isCurateMode && onCurate && currentPhoto) {
+        switch (e.key) {
+          case 'p':
+          case 'P':
+            e.preventDefault();
+            onCurate(currentPhoto.filePath, true, false, 0);
+            advanceToNext();
+            break;
+          case 'x':
+          case 'X':
+            e.preventDefault();
+            onCurate(currentPhoto.filePath, true, true, 0);
+            advanceToNext();
+            break;
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+            e.preventDefault();
+            onCurate(currentPhoto.filePath, true, false, parseInt(e.key));
+            advanceToNext();
+            break;
+        }
+      }
     }
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, photos.length, onClose, showMetadata]);
+  }, [currentIndex, photos.length, onClose, showMetadata, isCurateMode, onCurate, currentPhoto]);
+
+  function advanceToNext() {
+    if (currentIndex < photos.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setIsZoomed(false);
+    } else {
+      onClose();
+    }
+  }
 
   function handleImageClick() {
     setIsZoomed(!isZoomed);

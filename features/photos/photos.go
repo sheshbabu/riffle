@@ -154,3 +154,109 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
+
+func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
+	offsetStr := r.URL.Query().Get("offset")
+	offset := 0
+	if offsetStr != "" {
+		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
+			offset = o
+		}
+	}
+
+	limit := 100
+
+	photos, err := GetUncuratedPhotos(limit, offset)
+	if err != nil {
+		slog.Error("failed to get uncurated photos", "error", err)
+		http.Error(w, "failed to fetch uncurated photos", http.StatusInternalServerError)
+		return
+	}
+
+	response := PhotosResponse{
+		Photos:        photos,
+		CurrentOffset: offset,
+		Limit:         limit,
+	}
+
+	if len(photos) > 0 {
+		response.TotalRecords = photos[0].TotalRecords
+		response.PageStartRecord = offset + 1
+		response.PageEndRecord = offset + len(photos)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
+	offsetStr := r.URL.Query().Get("offset")
+	offset := 0
+	if offsetStr != "" {
+		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
+			offset = o
+		}
+	}
+
+	limit := 100
+
+	photos, err := GetTrashedPhotos(limit, offset)
+	if err != nil {
+		slog.Error("failed to get trashed photos", "error", err)
+		http.Error(w, "failed to fetch trashed photos", http.StatusInternalServerError)
+		return
+	}
+
+	response := PhotosResponse{
+		Photos:        photos,
+		CurrentOffset: offset,
+		Limit:         limit,
+	}
+
+	if len(photos) > 0 {
+		response.TotalRecords = photos[0].TotalRecords
+		response.PageStartRecord = offset + 1
+		response.PageEndRecord = offset + len(photos)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+type CurateRequest struct {
+	FilePath   string `json:"filePath"`
+	IsCurated  bool   `json:"isCurated"`
+	IsTrashed  bool   `json:"isTrashed"`
+	Rating     int    `json:"rating"`
+}
+
+func HandleCuratePhoto(w http.ResponseWriter, r *http.Request) {
+	var req CurateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.FilePath == "" {
+		http.Error(w, "filePath is required", http.StatusBadRequest)
+		return
+	}
+
+	if req.Rating < 0 || req.Rating > 5 {
+		http.Error(w, "rating must be between 0 and 5", http.StatusBadRequest)
+		return
+	}
+
+	err := UpdatePhotoCuration(req.FilePath, req.IsCurated, req.IsTrashed, req.Rating)
+	if err != nil {
+		slog.Error("failed to curate photo", "error", err)
+		http.Error(w, "failed to curate photo", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+}

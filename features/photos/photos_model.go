@@ -29,6 +29,10 @@ type Photo struct {
 	Duration        *string `json:"duration,omitempty"`
 	FileCreatedAt   *string `json:"fileCreatedAt,omitempty"`
 	FileModifiedAt  *string `json:"fileModifiedAt,omitempty"`
+	IsCurated       bool    `json:"isCurated"`
+	IsTrashed       bool    `json:"isTrashed"`
+	Rating          int     `json:"rating"`
+	Notes           *string `json:"notes,omitempty"`
 	CreatedAt       string  `json:"createdAt"`
 	UpdatedAt       string  `json:"updatedAt"`
 	TotalRecords    int     `json:"totalRecords,omitempty"`
@@ -42,9 +46,11 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
+			is_curated, is_trashed, rating, notes,
 			created_at, updated_at,
 			COUNT(*) OVER() AS total_records
 		FROM photos
+		WHERE is_curated = 1 AND is_trashed = 0
 		ORDER BY
 			COALESCE(date_time, file_modified_at, created_at) DESC,
 			created_at DESC
@@ -68,6 +74,7 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 			&p.FileCreatedAt, &p.FileModifiedAt,
+			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
 			&p.TotalRecords,
 		)
@@ -90,6 +97,7 @@ func GetPhoto(filePath string) (*Photo, error) {
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
+			is_curated, is_trashed, rating, notes,
 			created_at, updated_at
 		FROM photos
 		WHERE file_path = ?
@@ -102,6 +110,7 @@ func GetPhoto(filePath string) (*Photo, error) {
 		&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 		&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 		&p.FileCreatedAt, &p.FileModifiedAt,
+		&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 		&p.CreatedAt, &p.UpdatedAt,
 	)
 
@@ -112,4 +121,122 @@ func GetPhoto(filePath string) (*Photo, error) {
 	}
 
 	return &p, nil
+}
+
+func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
+	query := `
+		SELECT
+			file_path, sha256_hash, dhash, file_size, date_time,
+			camera_make, camera_model, width, height, orientation,
+			latitude, longitude, iso, f_number, exposure_time, focal_length,
+			file_format, mime_type, is_video, duration,
+			file_created_at, file_modified_at,
+			is_curated, is_trashed, rating, notes,
+			created_at, updated_at,
+			COUNT(*) OVER() AS total_records
+		FROM photos
+		WHERE is_curated = 0
+		ORDER BY
+			COALESCE(date_time, file_modified_at, created_at) DESC,
+			created_at DESC
+		LIMIT ? OFFSET ?
+	`
+
+	rows, err := sqlite.DB.Query(query, limit, offset)
+	if err != nil {
+		err = fmt.Errorf("error querying uncurated photos: %w", err)
+		slog.Error(err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var photos []Photo
+	for rows.Next() {
+		var p Photo
+		err := rows.Scan(
+			&p.FilePath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
+			&p.CameraMake, &p.CameraModel, &p.Width, &p.Height, &p.Orientation,
+			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
+			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
+			&p.FileCreatedAt, &p.FileModifiedAt,
+			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
+			&p.CreatedAt, &p.UpdatedAt,
+			&p.TotalRecords,
+		)
+		if err != nil {
+			err = fmt.Errorf("error scanning uncurated photo row: %w", err)
+			slog.Error(err.Error())
+			continue
+		}
+		photos = append(photos, p)
+	}
+
+	return photos, nil
+}
+
+func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
+	query := `
+		SELECT
+			file_path, sha256_hash, dhash, file_size, date_time,
+			camera_make, camera_model, width, height, orientation,
+			latitude, longitude, iso, f_number, exposure_time, focal_length,
+			file_format, mime_type, is_video, duration,
+			file_created_at, file_modified_at,
+			is_curated, is_trashed, rating, notes,
+			created_at, updated_at,
+			COUNT(*) OVER() AS total_records
+		FROM photos
+		WHERE is_trashed = 1
+		ORDER BY
+			updated_at DESC
+		LIMIT ? OFFSET ?
+	`
+
+	rows, err := sqlite.DB.Query(query, limit, offset)
+	if err != nil {
+		err = fmt.Errorf("error querying trashed photos: %w", err)
+		slog.Error(err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var photos []Photo
+	for rows.Next() {
+		var p Photo
+		err := rows.Scan(
+			&p.FilePath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
+			&p.CameraMake, &p.CameraModel, &p.Width, &p.Height, &p.Orientation,
+			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
+			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
+			&p.FileCreatedAt, &p.FileModifiedAt,
+			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
+			&p.CreatedAt, &p.UpdatedAt,
+			&p.TotalRecords,
+		)
+		if err != nil {
+			err = fmt.Errorf("error scanning trashed photo row: %w", err)
+			slog.Error(err.Error())
+			continue
+		}
+		photos = append(photos, p)
+	}
+
+	return photos, nil
+}
+
+func UpdatePhotoCuration(filePath string, isCurated, isTrashed bool, rating int) error {
+	query := `
+		UPDATE photos
+		SET is_curated = ?, is_trashed = ?, rating = ?, updated_at = CURRENT_TIMESTAMP
+		WHERE file_path = ?
+	`
+
+	_, err := sqlite.DB.Exec(query, isCurated, isTrashed, rating, filePath)
+	if err != nil {
+		err = fmt.Errorf("error updating photo curation: %w", err)
+		slog.Error(err.Error())
+		return err
+	}
+
+	return nil
 }
