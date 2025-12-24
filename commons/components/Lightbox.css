@@ -6,8 +6,8 @@
   box-shadow: none;
   animation-duration: 0.1s;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  gap: 16px;
   overflow-y: auto;
   overflow-x: hidden;
 
@@ -41,12 +41,14 @@
       transition: opacity var(--transition-normal);
       z-index: 1;
 
+      .lightbox-info-button,
       .lightbox-close-button {
         padding: 8px;
         cursor: pointer;
         border-radius: 4px;
         background-color: rgba(0, 0, 0, 0.5);
         transition: background-color var(--transition-normal);
+        border: none;
 
         svg {
           width: 20px;
@@ -88,6 +90,85 @@
 
         &.zoomable {
           cursor: zoom-out;
+        }
+      }
+    }
+  }
+
+  .lightbox-metadata {
+    background-color: var(--neutral-800);
+    border-radius: 8px;
+    padding: var(--spacing-4);
+    width: 400px;
+    max-height: calc(95vh - 32px);
+    overflow-y: auto;
+    flex-shrink: 0;
+
+    .metadata-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-4);
+      padding-bottom: var(--spacing-3);
+
+      h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--neutral-100);
+      }
+
+      .metadata-close {
+        background: none;
+        border: none;
+        color: var(--neutral-300);
+        font-size: 24px;
+        padding: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: background-color var(--transition-normal);
+
+        svg {
+          width: 20px;
+          height: 20px;
+
+          line,
+          circle,
+          rect,
+          path {
+            stroke: white;
+          }
+        }
+
+        &:hover {
+          background-color: var(--neutral-700);
+        }
+      }
+    }
+
+    .metadata-content {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-3);
+
+      .metadata-item {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: var(--spacing-3);
+
+        .metadata-label {
+          font-size: 12px;
+          color: var(--neutral-400);
+          font-weight: 500;
+        }
+
+        .metadata-value {
+          font: var(--code);
+          color: var(--neutral-100);
+          word-break: break-word;
         }
       }
     }
