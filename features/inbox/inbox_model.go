@@ -13,8 +13,9 @@ func CreatePhoto(photo PhotoFile) error {
 			file_path, sha256_hash, dhash, file_size, date_time,
 			camera_make, camera_model, width, height, orientation,
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
-			file_format, mime_type, is_video, duration
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			file_format, mime_type, is_video, duration,
+			file_created_at, file_modified_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(file_path) DO UPDATE SET
 			sha256_hash = excluded.sha256_hash,
 			dhash = excluded.dhash,
@@ -35,6 +36,8 @@ func CreatePhoto(photo PhotoFile) error {
 			mime_type = excluded.mime_type,
 			is_video = excluded.is_video,
 			duration = excluded.duration,
+			file_created_at = excluded.file_created_at,
+			file_modified_at = excluded.file_modified_at,
 			updated_at = CURRENT_TIMESTAMP
 	`
 
@@ -105,12 +108,21 @@ func CreatePhoto(photo PhotoFile) error {
 		dhashStr = fmt.Sprintf("%016x", photo.Dhash)
 	}
 
+	var fileCreatedAt, fileModifiedAt interface{}
+	if !photo.FileCreatedAt.IsZero() {
+		fileCreatedAt = photo.FileCreatedAt
+	}
+	if !photo.FileModifiedAt.IsZero() {
+		fileModifiedAt = photo.FileModifiedAt
+	}
+
 	_, err := sqlite.DB.Exec(
 		query,
 		photo.Path, photo.Hash, dhashStr, photo.Size, dateTime,
 		cameraMake, cameraModel, width, height, orientation,
 		latitude, longitude, iso, fNumber, exposureTime, focalLength,
 		photo.FileFormat, photo.MimeType, photo.IsVideo, duration,
+		fileCreatedAt, fileModifiedAt,
 	)
 
 	if err != nil {

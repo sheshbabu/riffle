@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS photos (
     is_curated     BOOLEAN DEFAULT 0,
     quality_score  INTEGER,
     notes          TEXT,
+    file_created_at  TIMESTAMP,
+    file_modified_at TIMESTAMP,
     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     imported_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP

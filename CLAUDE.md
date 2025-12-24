@@ -67,9 +67,21 @@ When multiple files share the same hash (exact duplicates), select one to keep:
 - **Primary source**: EXIF DateTime fields (DateTimeOriginal, CreateDate, etc.)
 - **Fallback**: File modification time (ModTime) if EXIF DateTime is unavailable
 - Files are organized by date from either source
+- **File system timestamps preserved**: Original file creation time and modification time are captured during scanning and preserved in the database
+  - `file_created_at`: Original file birth/creation time from filesystem
+  - `file_modified_at`: Original file modification time from filesystem
+  - After moving files to library, modification time is restored using `os.Chtimes()`
+  - Birth time cannot be restored on most filesystems but is stored in database
+- **Timestamp distinction**:
+  - `date_time`: EXIF DateTime (photo/video capture time) - used for organization
+  - `file_created_at`: Original file creation time from filesystem
+  - `file_modified_at`: Original file modification time from filesystem
+  - `created_at`: Database record creation time (when imported)
+  - `imported_at`: Time when file was imported to library
 
 ### Known Limitations
 - **Scanned photos**: When physical photos are scanned, the scan date often gets written to `DateTimeOriginal` instead of the original photo date. These files will be organized by scan date rather than the actual photo date.
+- **Birth time preservation**: While birth time is captured and stored in the database, it cannot be restored to the filesystem after moving files (filesystem limitation).
 
 ### Folder Structure
 

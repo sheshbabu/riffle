@@ -12,19 +12,22 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 )
 
 type PhotoFile struct {
-	Path       string
-	Size       int64
-	Hash       string
-	Dhash      uint64
-	HasExif    bool
-	ExifData   map[string]any
-	FileFormat string
-	MimeType   string
-	IsVideo    bool
+	Path            string
+	Size            int64
+	Hash            string
+	Dhash           uint64
+	HasExif         bool
+	ExifData        map[string]any
+	FileFormat      string
+	MimeType        string
+	IsVideo         bool
+	FileCreatedAt   time.Time
+	FileModifiedAt  time.Time
 }
 
 type DuplicateFile struct {
@@ -188,9 +191,17 @@ func ScanDirectory(path string) ([]PhotoFile, error) {
 			return nil
 		}
 
+		fileModifiedAt := info.ModTime()
+		var fileCreatedAt time.Time
+		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+			fileCreatedAt = time.Unix(stat.Birthtimespec.Sec, stat.Birthtimespec.Nsec)
+		}
+
 		photos = append(photos, PhotoFile{
-			Path: filePath,
-			Size: info.Size(),
+			Path:           filePath,
+			Size:           info.Size(),
+			FileModifiedAt: fileModifiedAt,
+			FileCreatedAt:  fileCreatedAt,
 		})
 
 		return nil
@@ -401,6 +412,14 @@ func moveFile(photo PhotoFile, destDir string) (string, error) {
 
 	if err := os.Rename(photo.Path, destPath); err != nil {
 		return "", fmt.Errorf("failed to move file: %w", err)
+	}
+
+	if !photo.FileModifiedAt.IsZero() {
+		atime := photo.FileModifiedAt
+		mtime := photo.FileModifiedAt
+		if err := os.Chtimes(destPath, atime, mtime); err != nil {
+			slog.Error("failed to preserve file modification time", "file", destPath, "error", err)
+		}
 	}
 
 	return destPath, nil
