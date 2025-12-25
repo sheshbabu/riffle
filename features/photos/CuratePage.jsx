@@ -1,7 +1,7 @@
 import CurateGallery from './CurateGallery.jsx';
 import CurateSessionGallery from './CurateSessionGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
-import './PhotosPage.css';
+import './LibraryPage.css';
 
 const { useState, useEffect } = React;
 
@@ -139,12 +139,11 @@ export default function CuratePage() {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h2>Curate</h2>
         {viewToggle}
+        {paginationElement}
       </div>
       {loadingIndicator}
       {content}
-      {paginationElement}
     </div>
   );
 }

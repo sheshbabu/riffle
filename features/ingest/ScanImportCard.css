@@ -1,0 +1,17 @@
+.scan-card {
+  display: flex;
+  margin-top: calc(50vh - 90px);
+  flex-direction: column;
+  align-items: center;
+
+  .help {
+    font: var(--sm);
+    text-align: center;
+    line-height: 1.5;
+    color: var(--neutral-500);
+  }
+
+  .scan-button {
+    margin-bottom: var(--spacing-3);
+  }
+}

@@ -1,6 +1,6 @@
 import PhotoGallery from './PhotoGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
-import './PhotosPage.css';
+import './LibraryPage.css';
 
 const { useState, useEffect } = React;
 
@@ -110,7 +110,6 @@ export default function TrashPage() {
 
   return (
     <div className="page-container">
-      <h2>Trash</h2>
       {loadingIndicator}
       {content}
       {paginationElement}

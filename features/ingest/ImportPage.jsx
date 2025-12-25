@@ -1,18 +1,18 @@
 import ApiClient from '../../commons/http/ApiClient.js';
-import ImportForm from './ImportForm.jsx';
+import ScanImportCard from './ScanImportCard.jsx';
 import ImportAnalysisStats from './ImportAnalysisStats.jsx';
 import DuplicateGroups from './DuplicateGroups.jsx';
 
 const { useState, useEffect } = React;
 
 export default function ImportPage() {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [message, setMessage] = useState('');
   const [results, setResults] = useState(null);
 
   useEffect(() => {
-    if (!isAnalyzing && !isImporting) {
+    if (!isScanning && !isImporting) {
       return;
     }
 
@@ -21,8 +21,8 @@ export default function ImportPage() {
         const data = await ApiClient.getImportAnalysis();
         setResults(data);
 
-        if (isAnalyzing) {
-          setIsAnalyzing(false);
+        if (isScanning) {
+          setIsScanning(false);
           setMessage('Analysis completed!');
         }
 
@@ -36,20 +36,20 @@ export default function ImportPage() {
     }, 2000);
 
     return () => clearInterval(pollInterval);
-  }, [isAnalyzing, isImporting]);
+  }, [isScanning, isImporting]);
 
-  async function handleAnalyze() {
-    setIsAnalyzing(true);
-    setMessage('Analyzing import folder...');
+  async function handleScanClick() {
+    setIsScanning(true);
+    setMessage('Scanning import folder...');
     setResults(null);
 
     try {
       const response = await ApiClient.analyzeImport({});
 
-      setMessage(response.message || 'Analysis started');
+      setMessage(response.message || 'Scan started');
     } catch (error) {
       setMessage(error.message || 'Failed to start analysis');
-      setIsAnalyzing(false);
+      setIsScanning(false);
     }
   }
 
@@ -67,6 +67,12 @@ export default function ImportPage() {
     }
   }
 
+  /**
+   * Show "Scan Import Folder" first
+   * Once the results have come, hide the above button
+   * Show the "Import to Library" button next with results and duplicates
+   */
+
   let messageElement = null;
   if (message) {
     messageElement = (
@@ -81,29 +87,14 @@ export default function ImportPage() {
     statsElement = <ImportAnalysisStats stats={results} />;
   }
 
-  const analyzeButtonText = isAnalyzing ? 'Analyzing...' : 'Analyze Import Folder';
   const importButtonText = isImporting ? 'Importing...' : 'Import to Library';
 
   return (
     <div className="page-container">
-      <h2>Import</h2>
-
-      <ImportForm
-        isAnalyzing={isAnalyzing}
-        analyzeButtonText={analyzeButtonText}
-        onAnalyze={handleAnalyze}
-      />
-
+      <ScanImportCard isScanning={isScanning} onScanClick={handleScanClick} />
       {messageElement}
       {statsElement}
-      <DuplicateGroups
-        duplicates={results?.duplicates}
-        importPath={results?.importPath}
-        onImport={handleImport}
-        isImporting={isImporting}
-        importButtonText={importButtonText}
-        hasResults={results != null}
-      />
+      <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} onImport={handleImport} isImporting={isImporting} importButtonText={importButtonText} hasResults={results != null} />
     </div>
   );
 }

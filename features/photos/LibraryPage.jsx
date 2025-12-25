@@ -1,11 +1,11 @@
 import PhotoGallery from './PhotoGallery.jsx';
 import SessionGallery from './SessionGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
-import './PhotosPage.css';
+import './LibraryPage.css';
 
 const { useState, useEffect } = React;
 
-export default function PhotosPage() {
+export default function LibraryPage() {
   const [photos, setPhotos] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -133,12 +133,11 @@ export default function PhotosPage() {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h2>Library</h2>
         {viewToggle}
+        {paginationElement}
       </div>
       {loadingIndicator}
       {content}
-      {paginationElement}
     </div>
   );
 }
