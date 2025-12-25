@@ -54,21 +54,26 @@ async function request(method, url, payload) {
   }
 }
 
-async function analyzeImport(payload) {
-  return await request('POST', '/api/import/analyze/', payload);
+async function scanImportFolder(payload) {
+  return await request('POST', '/api/import/scan/', payload);
 }
 
-async function getImportAnalysis() {
-  return await request('GET', '/api/import/analysis/');
+async function getScanResults() {
+  return await request('GET', '/api/import/scan/results/');
+}
+
+async function getScanProgress() {
+  return await request('GET', '/api/import/scan/progress/');
 }
 
 async function importToLibrary(payload) {
-  return await request('POST', '/api/import/import/', payload);
+  return await request('POST', '/api/import/move/', payload);
 }
 
 export default {
   request,
-  analyzeImport,
-  getImportAnalysis,
+  scanImportFolder,
+  getScanResults,
+  getScanProgress,
   importToLibrary
 };

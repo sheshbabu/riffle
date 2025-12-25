@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"sync"
 )
 
 type IngestResponse struct {
@@ -14,9 +15,44 @@ type IngestResponse struct {
 	importPath string `json:"importPath,omitempty"`
 }
 
+type ProgressStatus struct {
+	Status    string `json:"status"`
+	Completed int    `json:"completed"`
+	Total     int    `json:"total"`
+	Percent   int    `json:"percent"`
+}
+
+var (
+	progressMutex   sync.RWMutex
+	currentProgress ProgressStatus
+)
+
 const resultsFilePath = "/tmp/riffle-ingest-results.json"
 
-func HandleAnalyze(w http.ResponseWriter, r *http.Request) {
+func UpdateProgress(status string, completed, total int) {
+	progressMutex.Lock()
+	defer progressMutex.Unlock()
+
+	percent := 0
+	if total > 0 {
+		percent = int(float64(completed) / float64(total) * 100)
+	}
+
+	currentProgress = ProgressStatus{
+		Status:    status,
+		Completed: completed,
+		Total:     total,
+		Percent:   percent,
+	}
+}
+
+func GetProgress() ProgressStatus {
+	progressMutex.RLock()
+	defer progressMutex.RUnlock()
+	return currentProgress
+}
+
+func HandleScanImportFolder(w http.ResponseWriter, r *http.Request) {
 	importPath := os.Getenv("IMPORT_PATH")
 	libraryPath := os.Getenv("LIBRARY_PATH")
 
@@ -32,6 +68,7 @@ func HandleAnalyze(w http.ResponseWriter, r *http.Request) {
 	}
 
 	os.Remove(resultsFilePath)
+	UpdateProgress("scanning", 0, 0)
 
 	go func() {
 		stats, err := ProcessIngest(importPath, libraryPath, libraryPath)
@@ -51,6 +88,7 @@ func HandleAnalyze(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		UpdateProgress("complete", stats.TotalScanned, stats.TotalScanned)
 		slog.Info("results written to file", "path", resultsFilePath)
 	}()
 
@@ -62,7 +100,7 @@ func HandleAnalyze(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func HandleGetAnalysis(w http.ResponseWriter, r *http.Request) {
+func HandleGetScanResults(w http.ResponseWriter, r *http.Request) {
 	data, err := os.ReadFile(resultsFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -137,6 +175,13 @@ func HandleImport(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Message: "import started",
 	})
+}
+
+func HandleScanProgress(w http.ResponseWriter, r *http.Request) {
+	progress := GetProgress()
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(progress)
 }
 
 func checkDirectories(paths ...string) error {

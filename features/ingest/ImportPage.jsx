@@ -1,5 +1,6 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import ScanImportCard from './ScanImportCard.jsx';
+import ScanProgressCard from './ScanProgressCard.jsx';
 import ImportAnalysisStats from './ImportAnalysisStats.jsx';
 import DuplicateGroups from './DuplicateGroups.jsx';
 
@@ -10,6 +11,7 @@ export default function ImportPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [message, setMessage] = useState('');
   const [results, setResults] = useState(null);
+  const [progress, setProgress] = useState(null);
 
   useEffect(() => {
     if (!isScanning && !isImporting) {
@@ -17,23 +19,35 @@ export default function ImportPage() {
     }
 
     const pollInterval = setInterval(async () => {
-      try {
-        const data = await ApiClient.getImportAnalysis();
-        setResults(data);
+      if (isScanning) {
+        try {
+          const progressData = await ApiClient.getScanProgress();
+          setProgress(progressData);
 
-        if (isScanning) {
-          setIsScanning(false);
-          setMessage('Analysis completed!');
+          if (progressData.status === 'complete') {
+            const data = await ApiClient.getScanResults();
+            setResults(data);
+            setIsScanning(false);
+            setMessage('Analysis completed!');
+            setProgress(null);
+          }
+        } catch (error) {
+          // Progress not ready yet, keep polling
         }
+      } else if (isImporting) {
+        try {
+          const data = await ApiClient.getScanResults();
+          setResults(data);
 
-        if (isImporting) {
-          setIsImporting(false);
-          setMessage('Import completed!');
+          if (data.movedToLibrary > 0 || data.movedToTrash > 0) {
+            setIsImporting(false);
+            setMessage('Import completed!');
+          }
+        } catch (error) {
+          // Results not ready yet, keep polling
         }
-      } catch (error) {
-        // Results not ready yet, keep polling
       }
-    }, 2000);
+    }, 1000);
 
     return () => clearInterval(pollInterval);
   }, [isScanning, isImporting]);
@@ -44,7 +58,7 @@ export default function ImportPage() {
     setResults(null);
 
     try {
-      const response = await ApiClient.analyzeImport({});
+      const response = await ApiClient.scanImportFolder({});
 
       setMessage(response.message || 'Scan started');
     } catch (error) {
@@ -67,12 +81,6 @@ export default function ImportPage() {
     }
   }
 
-  /**
-   * Show "Scan Import Folder" first
-   * Once the results have come, hide the above button
-   * Show the "Import to Library" button next with results and duplicates
-   */
-
   let messageElement = null;
   if (message) {
     messageElement = (
@@ -92,6 +100,7 @@ export default function ImportPage() {
   return (
     <div className="page-container">
       <ScanImportCard isScanning={isScanning} onScanClick={handleScanClick} />
+      <ScanProgressCard isScanning={isScanning} progress={progress} />
       {messageElement}
       {statsElement}
       <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} onImport={handleImport} isImporting={isImporting} importButtonText={importButtonText} hasResults={results != null} />

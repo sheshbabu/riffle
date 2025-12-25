@@ -1,0 +1,90 @@
+.scan-progress-card-container {
+  display: flex;
+  justify-content: center;
+
+  .scan-progress-card {
+    display: flex;
+    margin-top: calc(50vh - 320px);
+    flex-direction: column;
+
+    .help {
+      font: var(--sm);
+      line-height: 1.5;
+      color: var(--neutral-500);
+    }
+
+    .progress-container {
+      display: flex;
+      flex-direction: column;
+      margin-top: var(--spacing-3);
+      gap: var(--spacing-1);
+
+      .step-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: var(--spacing-2) 0;
+
+        svg.lucide {
+          width: 24px;
+          height: 24px;
+
+          line,
+          circle,
+          rect,
+          path {
+            stroke-width: 2;
+            stroke: var(--neutral-500);
+          }
+        }
+
+        .subtext {
+          font: var(--sm);
+          line-height: 1.5;
+          color: var(--neutral-500);
+        }
+
+        .step-inprogress {
+          animation: spin 1s linear infinite;
+
+          svg.lucide {
+            path {
+              stroke: var(--yellow-400);
+            }
+          }
+        }
+
+        .step-done {
+          svg.lucide {
+            circle {
+              stroke: var(--green-500);
+              fill: var(--green-500);
+            }
+
+            path {
+              stroke: var(--neutral-50);
+            }
+          }
+        }
+
+        .step-notstarted {
+          svg.lucide {
+            path {
+              stroke: var(--neutral-300);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
