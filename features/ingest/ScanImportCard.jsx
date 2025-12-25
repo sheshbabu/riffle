@@ -1,8 +1,8 @@
 import Button from '../../commons/components/Button.jsx';
 import './ScanImportCard.css';
 
-export default function ScanImportCard({ isScanning, onScanClick }) {
-  if (isScanning) {
+export default function ScanImportCard({ isScanning, results, onScanClick }) {
+  if (isScanning || results !== null) {
     return null
   }
 

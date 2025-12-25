@@ -4,7 +4,7 @@
 
   .scan-progress-card {
     display: flex;
-    margin-top: calc(50vh - 320px);
+    margin-top: calc(50vh - 300px);
     flex-direction: column;
 
     .help {
@@ -16,7 +16,7 @@
     .progress-container {
       display: flex;
       flex-direction: column;
-      margin-top: var(--spacing-3);
+      margin-top: var(--spacing-1);
       gap: var(--spacing-1);
 
       .step-container {

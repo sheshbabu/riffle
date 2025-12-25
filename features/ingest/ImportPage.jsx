@@ -9,7 +9,6 @@ const { useState, useEffect } = React;
 export default function ImportPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [message, setMessage] = useState('');
   const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(null);
 
@@ -28,7 +27,6 @@ export default function ImportPage() {
             const data = await ApiClient.getScanResults();
             setResults(data);
             setIsScanning(false);
-            setMessage('Analysis completed!');
             setProgress(null);
           }
         } catch (error) {
@@ -41,7 +39,6 @@ export default function ImportPage() {
 
           if (data.movedToLibrary > 0 || data.movedToTrash > 0) {
             setIsImporting(false);
-            setMessage('Import completed!');
           }
         } catch (error) {
           // Results not ready yet, keep polling
@@ -54,40 +51,23 @@ export default function ImportPage() {
 
   async function handleScanClick() {
     setIsScanning(true);
-    setMessage('Scanning import folder...');
     setResults(null);
 
     try {
-      const response = await ApiClient.scanImportFolder({});
-
-      setMessage(response.message || 'Scan started');
+      await ApiClient.scanImportFolder({});
     } catch (error) {
-      setMessage(error.message || 'Failed to start analysis');
       setIsScanning(false);
     }
   }
 
   async function handleImport() {
     setIsImporting(true);
-    setMessage('Importing photos...');
 
     try {
-      const response = await ApiClient.importToLibrary({});
-
-      setMessage(response.message || 'Import started');
+      await ApiClient.importToLibrary({});
     } catch (error) {
-      setMessage(error.message || 'Failed to import');
       setIsImporting(false);
     }
-  }
-
-  let messageElement = null;
-  if (message) {
-    messageElement = (
-      <div className="message-box">
-        {message}
-      </div>
-    );
   }
 
   let statsElement = null;
@@ -99,9 +79,8 @@ export default function ImportPage() {
 
   return (
     <div className="page-container">
-      <ScanImportCard isScanning={isScanning} onScanClick={handleScanClick} />
+      <ScanImportCard isScanning={isScanning} results={results} onScanClick={handleScanClick} />
       <ScanProgressCard isScanning={isScanning} progress={progress} />
-      {messageElement}
       {statsElement}
       <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} onImport={handleImport} isImporting={isImporting} importButtonText={importButtonText} hasResults={results != null} />
     </div>
