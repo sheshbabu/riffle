@@ -51,6 +51,8 @@ function StatusLine({ stepStatus, progress }) {
     stepName = "Computing hashes"
     if (currentStepIndex === progressingStepIndex) {
       subText = <div className="subtext">{`Processing ${progress.completed} / ${progress.total} (${progress.percent}%)`}</div>
+    } else if (currentStepIndex < progressingStepIndex) {
+      subText = <div className="subtext">Finished</div>
     }
   }
 
