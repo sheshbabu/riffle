@@ -1,8 +1,7 @@
-import Button from '../../commons/components/Button.jsx';
 import DuplicateGroup from './DuplicateGroup.jsx';
 import './DuplicateGroups.css';
 
-export default function DuplicateGroups({ duplicates, importPath, onImport, isImporting, importButtonText, hasResults }) {
+export default function DuplicateGroups({ duplicates, importPath, hasResults }) {
   if (!hasResults) {
     return null;
   }
@@ -25,12 +24,6 @@ export default function DuplicateGroups({ duplicates, importPath, onImport, isIm
 
   return (
     <div className="duplicate-groups">
-      <div className="execute-section">
-        <p>Review the analysis above. Click "Import to Library" to move selected photos to library and duplicates to trash.</p>
-        <Button className='primary' onClick={onImport} disabled={isImporting}>
-          {importButtonText}
-        </Button>
-      </div>
       {duplicateGroupsElement}
     </div>
   );

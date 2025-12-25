@@ -1,25 +1,38 @@
+import Button from '../../commons/components/Button.jsx';
 import './ScanResultsCard.css';
 
-export default function ScanResultsCard({ stats }) {
+export default function ScanResultsCard({ results, onImportClick }) {
+  if (results === null) {
+    return null
+  }
+
+  const duplicateCount = results.totalScanned - results.uniqueFiles;
+
   return (
     <div className="scan-results-card">
-      <h3>Scan Results</h3>
+      <h3>Scan Complete</h3>
+      <div className="help">
+        Found {results.uniqueFiles} unique files to import. {duplicateCount > 0 ? `${duplicateCount} duplicates will be skipped.` : ''}
+      </div>
       <table className="results-table">
         <tbody>
           <tr>
-            <td>Total files scanned:</td>
-            <td>{stats.totalScanned}</td>
+            <td>Files scanned:</td>
+            <td>{results.totalScanned}</td>
           </tr>
           <tr>
-            <td>Unique files:</td>
-            <td>{stats.uniqueFiles}</td>
+            <td>Files to import:</td>
+            <td><strong>{results.uniqueFiles}</strong></td>
           </tr>
           <tr>
-            <td>Duplicate groups found:</td>
-            <td>{stats.duplicateGroups}</td>
+            <td>Duplicates detected:</td>
+            <td>{duplicateCount}</td>
           </tr>
         </tbody>
       </table>
+      <Button className='primary' onClick={onImportClick}>
+        Import to Library
+      </Button>
     </div>
   );
 }

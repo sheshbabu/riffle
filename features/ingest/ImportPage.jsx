@@ -60,7 +60,7 @@ export default function ImportPage() {
     }
   }
 
-  async function handleImport() {
+  async function handleImportClick() {
     setIsImporting(true);
 
     try {
@@ -70,19 +70,12 @@ export default function ImportPage() {
     }
   }
 
-  let statsElement = null;
-  if (results) {
-    statsElement = <ScanResultsCard stats={results} />;
-  }
-
-  const importButtonText = isImporting ? 'Importing...' : 'Import to Library';
-
   return (
     <div className="page-container">
       <ScanImportCard isScanning={isScanning} results={results} onScanClick={handleScanClick} />
       <ScanProgressCard isScanning={isScanning} progress={progress} />
-      {statsElement}
-      <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} onImport={handleImport} isImporting={isImporting} importButtonText={importButtonText} hasResults={results != null} />
+      <ScanResultsCard results={results} onImportClick={handleImportClick} />
+      <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} hasResults={results != null} />
     </div>
   );
 }
