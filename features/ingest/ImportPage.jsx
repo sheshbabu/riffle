@@ -1,7 +1,7 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import ScanImportCard from './ScanImportCard.jsx';
 import ScanProgressCard from './ScanProgressCard.jsx';
-import ImportAnalysisStats from './ImportAnalysisStats.jsx';
+import ScanResultsCard from './ScanResultsCard.jsx';
 import DuplicateGroups from './DuplicateGroups.jsx';
 
 const { useState, useEffect } = React;
@@ -72,7 +72,7 @@ export default function ImportPage() {
 
   let statsElement = null;
   if (results) {
-    statsElement = <ImportAnalysisStats stats={results} />;
+    statsElement = <ScanResultsCard stats={results} />;
   }
 
   const importButtonText = isImporting ? 'Importing...' : 'Import to Library';

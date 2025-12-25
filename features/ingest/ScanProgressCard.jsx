@@ -56,6 +56,9 @@ function StatusLine({ stepStatus, progress }) {
 
   if (stepStatus === "finding_duplicates") {
     stepName = "Finding duplicates"
+    if (currentStepIndex < progressingStepIndex) {
+      subText = <div className="subtext">Finished</div>
+    }
   }
 
   if (stepStatus === "complete") {
