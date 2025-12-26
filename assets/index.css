@@ -156,6 +156,7 @@ svg.lucide {
 
 .page-container {
     padding: 16px;
+    padding-top: 0;
 
     h2 {
         font-weight: 400;
@@ -180,6 +181,7 @@ svg.lucide {
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }

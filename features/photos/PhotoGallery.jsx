@@ -156,7 +156,7 @@ export default function PhotoGallery({
       videoIndicator = (
         <div className="video-indicator">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M8 5v14l11-7z"/>
+            <path d="M8 5v14l11-7z" />
           </svg>
         </div>
       );
@@ -193,7 +193,7 @@ export default function PhotoGallery({
       return (
         <div key={session.sessionId} className="session-group">
           <div className="session-header">
-            <h3>{formatSessionDate(session.startTime, session.endTime)}</h3>
+            <span className="session-date">{formatSessionDate(session.startTime, session.endTime)}</span>
             <span className="session-count">{session.photoCount} {session.photoCount === 1 ? 'photo' : 'photos'}</span>
           </div>
           <div className="session-grid">

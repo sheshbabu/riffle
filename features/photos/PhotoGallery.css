@@ -7,7 +7,6 @@
 
 .session-gallery {
   padding: var(--spacing-2);
-  margin-top: 24px;
 }
 
 .session-group {
@@ -21,10 +20,10 @@
   margin: 8px 0;
 }
 
-.session-header h3 {
-  font: var(--h5);
+.session-date {
   margin: 0;
   color: var(--text-primary);
+  font-weight: 600;
 }
 
 .session-count {
@@ -45,13 +44,12 @@
   border-radius: 4px;
   background-color: var(--neutral-100);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease, border 0.2s ease;
+  transition: opacity 0.3s ease, border 0.2s ease;
   border: 3px solid transparent;
 }
 
 .gallery-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-4);
+  opacity: 0.9;
 }
 
 .gallery-item.selected {
