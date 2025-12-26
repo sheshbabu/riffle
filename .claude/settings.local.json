@@ -20,7 +20,10 @@
       "Bash(grep:*)",
       "Bash(wc:*)",
       "Bash(go mod graph:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(go doc:*)",
+      "WebSearch",
+      "Bash(brew list:*)"
     ]
   }
 }

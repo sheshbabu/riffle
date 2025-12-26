@@ -43,10 +43,10 @@ A photo organizer designed for photographers who need to efficiently manage and 
 Install system dependencies:
 ```bash
 # macOS
-brew install exiftool ffmpeg libheif
+brew install exiftool ffmpeg libheif vips
 
 # Linux
-apt-get install libimage-exiftool-perl ffmpeg libheif-dev
+apt-get install libimage-exiftool-perl ffmpeg libheif-dev libvips-dev
 ```
 
 Build from source:
@@ -101,3 +101,4 @@ curl -L -o assets/react-dom.production.min.js https://cdn.jsdelivr.net/npm/react
 * [go-exiftool](https://github.com/barasher/go-exiftool) - EXIF metadata extraction
 * [goimagehash](https://github.com/corona10/goimagehash) - Perceptual image hashing
 * [goheif](https://github.com/adrium/goheif) - HEIC/HEIF format support
+* [bimg](https://github.com/h2non/bimg) - Fast image processing with libvips

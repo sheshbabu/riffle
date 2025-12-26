@@ -1,89 +1,74 @@
 package media
 
 import (
-	"bytes"
 	"fmt"
-	"image"
-	"image/gif"
-	"image/jpeg"
-	"image/png"
 	"path/filepath"
+	"riffle/commons/exif"
+	"strconv"
 	"strings"
 
-	"github.com/adrium/goheif"
-	"golang.org/x/image/draw"
-	"golang.org/x/image/webp"
+	"github.com/h2non/bimg"
 )
 
 func ResizeImage(imageData []byte, filePath string, maxWidth, maxHeight int) ([]byte, string, error) {
 	ext := strings.ToLower(filepath.Ext(filePath))
 
-	img, format, err := decodeImage(imageData, ext)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to decode image: %w", err)
+	img := bimg.NewImage(imageData)
+
+	// Get EXIF orientation and apply rotation for HEIC (bimg AutoRotate doesn't work for HEIC)
+	if ext == ".heic" || ext == ".heif" {
+		orientation := getOrientation(filePath)
+		if orientation > 1 {
+			rotated, err := img.Process(bimg.Options{
+				Rotate: OrientationToAngle(orientation),
+				Flip:   OrientationNeedsFlip(orientation),
+			})
+			if err == nil {
+				img = bimg.NewImage(rotated)
+			}
+		}
 	}
 
-	bounds := img.Bounds()
-	width := bounds.Dx()
-	height := bounds.Dy()
+	size, err := img.Size()
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get image size: %w", err)
+	}
 
-	if width <= maxWidth && height <= maxHeight {
+	if size.Width <= maxWidth && size.Height <= maxHeight {
 		return imageData, GetContentType(ext), nil
 	}
 
-	newWidth, newHeight := calculateDimensions(width, height, maxWidth, maxHeight)
+	newWidth, newHeight := calculateDimensions(size.Width, size.Height, maxWidth, maxHeight)
 
-	resizedImg := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
-	draw.BiLinear.Scale(resizedImg, resizedImg.Bounds(), img, img.Bounds(), draw.Over, nil)
-
-	buf := new(bytes.Buffer)
-	err = encodeImage(buf, resizedImg, format)
+	resized, err := img.Process(bimg.Options{
+		Width:         newWidth,
+		Height:        newHeight,
+		Type:          bimg.JPEG,
+		Quality:       85,
+		StripMetadata: true,
+	})
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to encode resized image: %w", err)
+		return nil, "", fmt.Errorf("failed to resize image: %w", err)
 	}
 
-	return buf.Bytes(), GetContentType(ext), nil
+	return resized, "image/jpeg", nil
 }
 
-func decodeImage(data []byte, ext string) (image.Image, string, error) {
-	reader := bytes.NewReader(data)
 
-	switch ext {
-	case ".jpg", ".jpeg":
-		img, err := jpeg.Decode(reader)
-		return img, "jpeg", err
-	case ".png":
-		img, err := png.Decode(reader)
-		return img, "png", err
-	case ".gif":
-		img, err := gif.Decode(reader)
-		return img, "gif", err
-	case ".webp":
-		img, err := webp.Decode(reader)
-		return img, "webp", err
-	case ".heic", ".heif":
-		img, err := goheif.Decode(reader)
-		return img, "heif", err
-	default:
-		return nil, "", fmt.Errorf("unsupported image format: %s", ext)
+func getOrientation(filePath string) int {
+	data, err := exif.ExtractExif(filePath)
+	if err != nil {
+		return 1
 	}
-}
-
-func encodeImage(buf *bytes.Buffer, img image.Image, format string) error {
-	switch format {
-	case "jpeg":
-		return jpeg.Encode(buf, img, &jpeg.Options{Quality: 85})
-	case "png":
-		return png.Encode(buf, img)
-	case "gif":
-		return gif.Encode(buf, img, nil)
-	case "webp":
-		return jpeg.Encode(buf, img, &jpeg.Options{Quality: 85})
-	case "heif":
-		return jpeg.Encode(buf, img, &jpeg.Options{Quality: 85})
-	default:
-		return fmt.Errorf("unsupported encoding format: %s", format)
+	orientationStr, ok := data["Orientation"].(string)
+	if !ok {
+		return 1
 	}
+	orientation, err := strconv.Atoi(orientationStr)
+	if err != nil || orientation < 1 || orientation > 8 {
+		return 1
+	}
+	return orientation
 }
 
 func calculateDimensions(width, height, maxWidth, maxHeight int) (int, int) {
