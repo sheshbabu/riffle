@@ -3,17 +3,14 @@
 }
 
 .session-group {
-  margin-bottom: var(--spacing-8);
+  margin-bottom: 48px;
 }
 
 .session-header {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
-  margin-bottom: var(--spacing-4);
-  padding: var(--spacing-3) var(--spacing-4);
-  background-color: var(--bg-secondary);
-  border-radius: 4px;
+  margin: 8px 0;
 }
 
 .session-header h3 {
