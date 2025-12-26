@@ -36,7 +36,5 @@ func GenerateVideoThumbnail(filePath string, maxWidth, maxHeight int) ([]byte, s
 		return nil, "", fmt.Errorf("ffmpeg produced empty thumbnail")
 	}
 
-	slog.Info("video thumbnail generated successfully", "file", filePath, "size", len(thumbnailData))
-
 	return thumbnailData, "image/jpeg", nil
 }
