@@ -4,9 +4,7 @@ import Router from './commons/components/Router.jsx';
 import Route from './commons/components/Route.jsx';
 import Sidebar from './commons/components/Sidebar.jsx';
 import ImportPage from './features/ingest/ImportPage.jsx';
-import LibraryPage from './features/photos/LibraryPage.jsx';
-import CuratePage from './features/photos/CuratePage.jsx';
-import TrashPage from './features/photos/TrashPage.jsx';
+import PhotoListPage from './features/photos/PhotoListPage.jsx';
 
 function App() {
   return (
@@ -23,6 +21,18 @@ function App() {
       </div>
     </div>
   );
+}
+
+function LibraryPage() {
+  return <PhotoListPage mode="library" />;
+}
+
+function CuratePage() {
+  return <PhotoListPage mode="curate" />;
+}
+
+function TrashPage() {
+  return <PhotoListPage mode="trash" />;
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

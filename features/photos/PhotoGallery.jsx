@@ -1,26 +1,114 @@
 import Lightbox from '../../commons/components/Lightbox.jsx';
+import { getPhotoUrl, isVideoFile, formatSessionDate } from './photoUtils.js';
 import './PhotoGallery.css';
 
-const { useState } = React;
+const { useState, useEffect } = React;
 
-export default function PhotoGallery({ photos, selectedIndex, onPhotoSelect, fadingPhotos, onUndo }) {
+export default function PhotoGallery({
+  photos,
+  sessions,
+  selectedIndex,
+  onPhotoSelect,
+  fadingPhotos,
+  onCurate,
+  onUndo,
+  isCurateMode = false
+}) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const fadingSet = fadingPhotos || new Set();
-  function getPhotoUrl(filePath, width = null, height = null) {
-    const encoded = btoa(filePath);
-    let url = `/api/photo/?path=${encoded}`;
-    if (width) {
-      url += `&width=${width}`;
-    }
-    if (height) {
-      url += `&height=${height}`;
-    }
-    return url;
-  }
+  const isSessionView = sessions && sessions.length > 0;
 
-  function isVideoFile(filePath) {
-    const ext = filePath.toLowerCase().split('.').pop();
-    return ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg'].includes(ext);
+  useEffect(() => {
+    if (isCurateMode && selectedIndex >= photos.length && photos.length > 0) {
+      onPhotoSelect(Math.max(0, photos.length - 1));
+    }
+  }, [photos.length, selectedIndex, isCurateMode]);
+
+  useEffect(() => {
+    if (!isCurateMode) {
+      return;
+    }
+
+    function handleKeyDown(e) {
+      if (lightboxIndex !== null) {
+        return;
+      }
+
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      if (photos.length === 0) {
+        return;
+      }
+
+      const currentPhoto = photos[selectedIndex];
+      if (!currentPhoto || fadingSet.has(currentPhoto.filePath)) {
+        return;
+      }
+
+      switch (e.key) {
+        case 'ArrowRight':
+          e.preventDefault();
+          onPhotoSelect(Math.min(photos.length - 1, selectedIndex + 1));
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          onPhotoSelect(Math.max(0, selectedIndex - 1));
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          {
+            const nextIndex = selectedIndex + getGridColumns();
+            onPhotoSelect(Math.min(photos.length - 1, nextIndex));
+          }
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          {
+            const prevIndex = selectedIndex - getGridColumns();
+            onPhotoSelect(Math.max(0, prevIndex));
+          }
+          break;
+        case 'Enter':
+        case ' ':
+          e.preventDefault();
+          setLightboxIndex(selectedIndex);
+          break;
+        case 'p':
+        case 'P':
+          e.preventDefault();
+          onCurate(currentPhoto.filePath, true, false, 0);
+          break;
+        case 'x':
+        case 'X':
+          e.preventDefault();
+          onCurate(currentPhoto.filePath, true, true, 0);
+          break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+          e.preventDefault();
+          onCurate(currentPhoto.filePath, true, false, parseInt(e.key));
+          break;
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedIndex, photos, lightboxIndex, fadingSet, isCurateMode]);
+
+  function getGridColumns() {
+    const gridSelector = isSessionView ? '.session-grid' : '.photo-gallery';
+    const gridElement = document.querySelector(gridSelector);
+    if (!gridElement) {
+      return 5;
+    }
+    const style = window.getComputedStyle(gridElement);
+    const columns = style.gridTemplateColumns.split(' ').length;
+    return columns;
   }
 
   function handlePhotoClick(index, e) {
@@ -37,7 +125,7 @@ export default function PhotoGallery({ photos, selectedIndex, onPhotoSelect, fad
     setLightboxIndex(null);
   }
 
-  const photoElements = photos.map((photo, index) => {
+  function renderPhotoItem(photo, index) {
     const isVideo = photo.isVideo || isVideoFile(photo.filePath);
     const thumbnailUrl = getPhotoUrl(photo.filePath, 300, 300);
     const isSelected = index === selectedIndex;
@@ -49,27 +137,6 @@ export default function PhotoGallery({ photos, selectedIndex, onPhotoSelect, fad
     }
     if (isFading) {
       className += ' fading';
-    }
-
-    let mediaElement = null;
-    if (isVideo) {
-      mediaElement = (
-        <img
-          src={thumbnailUrl}
-          alt={photo.filePath}
-          className="gallery-media"
-          loading="lazy"
-        />
-      );
-    } else {
-      mediaElement = (
-        <img
-          src={thumbnailUrl}
-          alt={photo.filePath}
-          className="gallery-media"
-          loading="lazy"
-        />
-      );
     }
 
     let undoButton = null;
@@ -84,20 +151,72 @@ export default function PhotoGallery({ photos, selectedIndex, onPhotoSelect, fad
       );
     }
 
+    let videoIndicator = null;
+    if (isVideo) {
+      videoIndicator = (
+        <div className="video-indicator">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </div>
+      );
+    }
+
     return (
       <div key={photo.filePath} className={className} onClick={(e) => handlePhotoClick(index, e)}>
-        {mediaElement}
-        {isVideo && (
-          <div className="video-indicator">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-          </div>
-        )}
+        <img
+          src={thumbnailUrl}
+          alt={photo.filePath}
+          className="gallery-media"
+          loading="lazy"
+        />
+        {videoIndicator}
         {undoButton}
       </div>
     );
-  });
+  }
+
+  let galleryContent = null;
+
+  if (isSessionView) {
+    let photoOffset = 0;
+    const sessionElements = sessions.map((session) => {
+      const sessionPhotos = photos.slice(photoOffset, photoOffset + session.photoCount);
+      const sessionStartIndex = photoOffset;
+      photoOffset += session.photoCount;
+
+      const photoElements = sessionPhotos.map((photo, photoIdx) => {
+        const globalIndex = sessionStartIndex + photoIdx;
+        return renderPhotoItem(photo, globalIndex);
+      });
+
+      return (
+        <div key={session.sessionId} className="session-group">
+          <div className="session-header">
+            <h3>{formatSessionDate(session.startTime, session.endTime)}</h3>
+            <span className="session-count">{session.photoCount} {session.photoCount === 1 ? 'photo' : 'photos'}</span>
+          </div>
+          <div className="session-grid">
+            {photoElements}
+          </div>
+        </div>
+      );
+    });
+
+    galleryContent = (
+      <div className="session-gallery">
+        {sessionElements}
+      </div>
+    );
+  } else {
+    const photoElements = photos.map((photo, index) => renderPhotoItem(photo, index));
+
+    galleryContent = (
+      <div className="photo-gallery">
+        {photoElements}
+      </div>
+    );
+  }
 
   let lightboxElement = null;
   if (lightboxIndex !== null) {
@@ -106,15 +225,15 @@ export default function PhotoGallery({ photos, selectedIndex, onPhotoSelect, fad
         photos={photos}
         selectedIndex={lightboxIndex}
         onClose={handleCloseLightbox}
+        onCurate={isCurateMode ? onCurate : undefined}
+        isCurateMode={isCurateMode}
       />
     );
   }
 
   return (
     <>
-      <div className="photo-gallery">
-        {photoElements}
-      </div>
+      {galleryContent}
       {lightboxElement}
     </>
   );

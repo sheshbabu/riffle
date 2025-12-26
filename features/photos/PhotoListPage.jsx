@@ -1,6 +1,5 @@
 import ApiClient from '../../commons/http/ApiClient.js';
-import CurateGallery from './CurateGallery.jsx';
-import CurateSessionGallery from './CurateSessionGallery.jsx';
+import PhotoGallery from './PhotoGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
 import { LoadingSpinner } from '../../commons/components/Icon.jsx';
@@ -9,7 +8,37 @@ import './Loading.css';
 
 const { useState, useEffect } = React;
 
-export default function CuratePage() {
+const PAGE_CONFIG = {
+  library: {
+    fetchPhotos: (offset, withSessions) => ApiClient.getPhotos(offset, withSessions),
+    emptyMessage: 'No photos found. Import photos from the inbox first.',
+    initialSelectedIndex: null,
+    fadeOnlyOnTrash: true,
+    showViewToggle: true,
+    showActionButtons: true,
+  },
+  curate: {
+    fetchPhotos: (offset, withSessions) => ApiClient.getUncuratedPhotos(offset, withSessions),
+    emptyMessage: 'No photos to curate. All photos have been reviewed!',
+    initialSelectedIndex: 0,
+    fadeOnlyOnTrash: false,
+    showViewToggle: true,
+    showActionButtons: true,
+  },
+  trash: {
+    fetchPhotos: (offset) => ApiClient.getTrashedPhotos(offset),
+    emptyMessage: 'No trashed photos. Trash is empty.',
+    initialSelectedIndex: null,
+    fadeOnlyOnTrash: true,
+    showViewToggle: false,
+    showActionButtons: false,
+  },
+};
+
+export default function PhotoListPage({ mode = 'library' }) {
+  const config = PAGE_CONFIG[mode];
+  const isCurateMode = mode === 'curate';
+
   const [photos, setPhotos] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +49,7 @@ export default function CuratePage() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [limit, setLimit] = useState(100);
   const [viewMode, setViewMode] = useState('sessions');
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(config.initialSelectedIndex);
   const [fadingPhotos, setFadingPhotos] = useState(new Set());
   const [undoTimers, setUndoTimers] = useState(new Map());
 
@@ -30,8 +59,8 @@ export default function CuratePage() {
       setError(null);
 
       try {
-        const withSessions = viewMode === 'sessions';
-        const data = await ApiClient.getUncuratedPhotos(offset, withSessions);
+        const withSessions = config.showViewToggle && viewMode === 'sessions';
+        const data = await config.fetchPhotos(offset, withSessions);
         setPhotos(data.photos || []);
         setSessions(data.sessions || []);
         setPageStartRecord(data.pageStartRecord || 0);
@@ -52,18 +81,18 @@ export default function CuratePage() {
     fetchPhotos();
   }, [offset, viewMode]);
 
-  function handlePhotoRemoved(filePath) {
-    setPhotos(prevPhotos => prevPhotos.filter(p => p.filePath !== filePath));
-    setTotalRecords(prev => Math.max(0, prev - 1));
-    setPageEndRecord(prev => Math.max(0, prev - 1));
-  }
-
   function handleViewModeChange(mode) {
     setViewMode(mode);
   }
 
   function handlePhotoSelect(index) {
     setSelectedIndex(index);
+  }
+
+  function handlePhotoRemoved(filePath) {
+    setPhotos(prevPhotos => prevPhotos.filter(p => p.filePath !== filePath));
+    setTotalRecords(prev => Math.max(0, prev - 1));
+    setPageEndRecord(prev => Math.max(0, prev - 1));
   }
 
   async function curatePhoto(filePath, isCurated, isTrashed, rating) {
@@ -85,23 +114,34 @@ export default function CuratePage() {
         throw new Error('Failed to curate photo');
       }
 
-      setFadingPhotos(prev => new Set([...prev, filePath]));
+      const shouldFade = config.fadeOnlyOnTrash ? isTrashed : true;
 
-      const timerId = setTimeout(() => {
-        handlePhotoRemoved(filePath);
-        setFadingPhotos(prev => {
-          const next = new Set(prev);
-          next.delete(filePath);
-          return next;
-        });
-        setUndoTimers(prev => {
-          const next = new Map(prev);
-          next.delete(filePath);
-          return next;
-        });
-      }, 3000);
+      if (shouldFade) {
+        setFadingPhotos(prev => new Set([...prev, filePath]));
 
-      setUndoTimers(prev => new Map([...prev, [filePath, timerId]]));
+        const timerId = setTimeout(() => {
+          handlePhotoRemoved(filePath);
+          setFadingPhotos(prev => {
+            const next = new Set(prev);
+            next.delete(filePath);
+            return next;
+          });
+          setUndoTimers(prev => {
+            const next = new Map(prev);
+            next.delete(filePath);
+            return next;
+          });
+        }, 3000);
+
+        setUndoTimers(prev => new Map([...prev, [filePath, timerId]]));
+      } else {
+        setPhotos(prevPhotos => prevPhotos.map(p => {
+          if (p.filePath === filePath) {
+            return { ...p, isCurated: true, isTrashed: false, rating };
+          }
+          return p;
+        }));
+      }
     } catch (err) {
       console.error('Failed to curate photo:', err);
     }
@@ -168,15 +208,23 @@ export default function CuratePage() {
   } else if (photos.length === 0 && !isLoading) {
     content = (
       <div className="message-box">
-        No photos to curate. All photos have been reviewed!
+        {config.emptyMessage}
       </div>
     );
   } else if (photos.length > 0) {
-    if (viewMode === 'sessions') {
-      content = <CurateSessionGallery photos={photos} sessions={sessions} selectedIndex={selectedIndex} onPhotoSelect={handlePhotoSelect} fadingPhotos={fadingPhotos} onCurate={curatePhoto} onUndo={handleUndo} />;
-    } else {
-      content = <CurateGallery photos={photos} selectedIndex={selectedIndex} onPhotoSelect={handlePhotoSelect} fadingPhotos={fadingPhotos} onCurate={curatePhoto} onUndo={handleUndo} />;
-    }
+    const sessionsToPass = viewMode === 'sessions' ? sessions : null;
+    content = (
+      <PhotoGallery
+        photos={photos}
+        sessions={sessionsToPass}
+        selectedIndex={selectedIndex}
+        onPhotoSelect={handlePhotoSelect}
+        fadingPhotos={fadingPhotos}
+        onCurate={curatePhoto}
+        onUndo={handleUndo}
+        isCurateMode={isCurateMode}
+      />
+    );
   }
 
   const hasPrev = offset > 0;
@@ -197,14 +245,12 @@ export default function CuratePage() {
     );
   }
 
-
-  const viewModeOptions = [
-    { value: 'sessions', label: 'Grouped' },
-    { value: 'grid', label: 'Grid' },
-  ];
-
   let viewToggle = null;
-  if (!error && photos.length > 0) {
+  if (config.showViewToggle && !error && photos.length > 0) {
+    const viewModeOptions = [
+      { value: 'sessions', label: 'Grouped' },
+      { value: 'grid', label: 'Grid' },
+    ];
     viewToggle = (
       <SegmentedControl
         options={viewModeOptions}
@@ -226,7 +272,7 @@ export default function CuratePage() {
   const selectedPhoto = selectedIndex !== null ? photos[selectedIndex] : null;
 
   let actionButtons = null;
-  if (selectedPhoto) {
+  if (config.showActionButtons && selectedPhoto) {
     const isAccepted = selectedPhoto.isCurated && !selectedPhoto.isTrashed;
     const isRejected = selectedPhoto.isTrashed;
     const currentRating = selectedPhoto.rating || 0;
