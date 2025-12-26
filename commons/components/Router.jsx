@@ -10,21 +10,16 @@ export default function Router({ children }) {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   useEffect(() => {
-    function handleNavigate(event) {
-      setCurrentPath(event.detail.path);
-    }
-
-    window.addEventListener('navigate', handleNavigate);
-
-    function handlePopState() {
+    function handleLocationChange() {
       setCurrentPath(window.location.pathname);
     }
 
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('navigate', handleLocationChange);
+    window.addEventListener('popstate', handleLocationChange);
 
     return () => {
-      window.removeEventListener('navigate', handleNavigate);
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('navigate', handleLocationChange);
+      window.removeEventListener('popstate', handleLocationChange);
     };
   }, []);
 

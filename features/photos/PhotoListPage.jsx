@@ -3,6 +3,8 @@ import PhotoGallery from './PhotoGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
 import { LoadingSpinner } from '../../commons/components/Icon.jsx';
+import useSearchParams from '../../commons/hooks/useSearchParams.js';
+import { updateSearchParams } from '../../commons/components/Link.jsx';
 import './LibraryPage.css';
 import './Loading.css';
 
@@ -38,17 +40,22 @@ const PAGE_CONFIG = {
 export default function PhotoListPage({ mode = 'library' }) {
   const config = PAGE_CONFIG[mode];
   const isCurateMode = mode === 'curate';
+  const searchParams = useSearchParams();
+
+  const offsetParam = searchParams.get('offset');
+  const offset = offsetParam ? Math.max(0, parseInt(offsetParam, 10) || 0) : 0;
+
+  const viewParam = searchParams.get('view');
+  const viewMode = (viewParam === 'grid' || viewParam === 'sessions') ? viewParam : 'sessions';
 
   const [photos, setPhotos] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [offset, setOffset] = useState(0);
   const [pageStartRecord, setPageStartRecord] = useState(0);
   const [pageEndRecord, setPageEndRecord] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
   const [limit, setLimit] = useState(100);
-  const [viewMode, setViewMode] = useState('sessions');
   const [selectedIndex, setSelectedIndex] = useState(config.initialSelectedIndex);
   const [fadingPhotos, setFadingPhotos] = useState(new Set());
   const [undoTimers, setUndoTimers] = useState(new Map());
@@ -81,8 +88,8 @@ export default function PhotoListPage({ mode = 'library' }) {
     fetchPhotos();
   }, [offset, viewMode]);
 
-  function handleViewModeChange(mode) {
-    setViewMode(mode);
+  function handleViewModeChange(newViewMode) {
+    updateSearchParams({ view: newViewMode === 'sessions' ? null : newViewMode });
   }
 
   function handlePhotoSelect(index) {
@@ -187,13 +194,15 @@ export default function PhotoListPage({ mode = 'library' }) {
 
   function handlePrevPage() {
     if (offset > 0) {
-      setOffset(Math.max(0, offset - limit));
+      const newOffset = Math.max(0, offset - limit);
+      updateSearchParams({ offset: newOffset });
     }
   }
 
   function handleNextPage() {
     if (offset + limit < totalRecords) {
-      setOffset(offset + limit);
+      const newOffset = offset + limit;
+      updateSearchParams({ offset: newOffset });
     }
   }
 

@@ -1,8 +1,34 @@
 const { useState, useEffect } = React;
 
-export function navigateTo(path) {
+export function navigateTo(path, shouldPreserveSearchParams = false) {
+  if (shouldPreserveSearchParams) {
+    const currentUrl = new URL(window.location.href);
+    const newUrl = new URL(path, currentUrl.origin);
+
+    for (const [key, value] of currentUrl.searchParams.entries()) {
+      if (!newUrl.searchParams.has(key)) {
+        newUrl.searchParams.set(key, value);
+      }
+    }
+    path = newUrl.pathname + newUrl.search;
+  }
+
   window.history.pushState({}, '', path);
-  window.dispatchEvent(new CustomEvent('navigate', { detail: { path } }));
+  window.dispatchEvent(new PopStateEvent('navigate'));
+}
+
+export function updateSearchParams(params) {
+  const url = new URL(window.location.href);
+  for (const [key, value] of Object.entries(params)) {
+    if (value === null || value === undefined || value === '' || value === 0) {
+      url.searchParams.delete(key);
+    } else {
+      url.searchParams.set(key, value);
+    }
+  }
+  const newPath = url.pathname + url.search;
+  window.history.pushState({}, '', newPath);
+  window.dispatchEvent(new PopStateEvent('navigate'));
 }
 
 export default function Link({ to, className, activeClassName, children }) {
