@@ -50,7 +50,7 @@
   border-radius: 4px;
   font: var(--sm);
 
-  &.badge-kept {
+  &.badge-picked {
     background-color: var(--green-500);
     color: white;
   }

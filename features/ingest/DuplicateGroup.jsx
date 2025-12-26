@@ -25,7 +25,7 @@ function DuplicateFile({ file, importPath }) {
 
   if (file.isCandidate) {
     badgeElements.push(
-      <span key="kept" className="badge badge-kept">KEPT</span>
+      <span key="picked" className="badge badge-picked">PICKED</span>
     );
   }
 

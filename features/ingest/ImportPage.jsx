@@ -24,8 +24,8 @@ export default function ImportPage() {
           setProgress(progressData);
 
           if (progressData.status === 'complete') {
-            const data = await ApiClient.getScanResults();
-            setResults(data);
+            const resultsData = await ApiClient.getScanResults();
+            setResults(resultsData);
             setIsScanning(false);
             setProgress(null);
           }
@@ -34,10 +34,10 @@ export default function ImportPage() {
         }
       } else if (isImporting) {
         try {
-          const data = await ApiClient.getScanResults();
-          setResults(data);
+          const resultsData = await ApiClient.getScanResults();
+          setResults(resultsData);
 
-          if (data.movedToLibrary > 0 || data.movedToTrash > 0) {
+          if (resultsData.movedToLibrary > 0 || resultsData.movedToTrash > 0) {
             setIsImporting(false);
           }
         } catch (error) {
@@ -52,11 +52,13 @@ export default function ImportPage() {
   async function handleScanClick() {
     setIsScanning(true);
     setResults(null);
+    setProgress({ status: 'scanning', completed: 0, total: 0, percent: 0 });
 
     try {
       await ApiClient.scanImportFolder({});
     } catch (error) {
       setIsScanning(false);
+      setProgress(null);
     }
   }
 

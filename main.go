@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"riffle/commons/exif"
 	"riffle/commons/sqlite"
+	"riffle/commons/utils"
 	"riffle/features/ingest"
 	"riffle/features/photos"
 	"syscall"
@@ -70,13 +71,16 @@ func loadEnv() {
 		slog.Warn("no .env file found, using env vars only")
 	}
 
-	importPath := os.Getenv("IMPORT_PATH")
-	libraryPath := os.Getenv("LIBRARY_PATH")
-	exportPath := os.Getenv("EXPORT_PATH")
-
-	if importPath == "" || libraryPath == "" || exportPath == "" {
-		slog.Error("missing env vars: IMPORT_PATH, LIBRARY_PATH, and EXPORT_PATH")
-		os.Exit(1)
+	for _, pathVar := range []string{"IMPORT_PATH", "LIBRARY_PATH", "EXPORT_PATH"} {
+		pathVal := os.Getenv(pathVar)
+		if pathVal == "" {
+			slog.Error("missing env var", "name", pathVar)
+			os.Exit(1)
+		}
+		if err := utils.CheckDirectories(pathVal); err != nil {
+			slog.Error("directory check failed", "name", pathVal, "error", err)
+			os.Exit(1)
+		}
 	}
 }
 
