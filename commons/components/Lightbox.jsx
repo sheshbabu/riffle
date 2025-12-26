@@ -1,6 +1,10 @@
 import { ModalBackdrop, ModalContainer } from './Modal.jsx';
 import { CloseIcon, InfoIcon } from './Icon.jsx';
-import { getPhotoUrl } from '../../features/photos/photoUtils.js';
+import getPhotoUrl from '../utils/getPhotoUrl.js';
+import formatDateTime from '../utils/formatDateTime.js';
+import formatFileSize from '../utils/formatFileSize.js';
+import formatExposureTime from '../utils/formatExposureTime.js';
+import getFileName from '../utils/getFileName.js';
 import './Lightbox.css';
 
 const { useState, useEffect } = React;
@@ -84,41 +88,6 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
 
   function handleToggleMetadata() {
     setShowMetadata(!showMetadata);
-  }
-
-  function formatFileSize(bytes) {
-    if (bytes < 1024) {
-      return `${bytes} B`
-    };
-    if (bytes < 1024 * 1024) {
-      return `${(bytes / 1024).toFixed(1)} KB`
-    };
-    if (bytes < 1024 * 1024 * 1024) {
-      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-    };
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-  }
-
-  function formatDateTime(dateTimeStr) {
-    if (!dateTimeStr) {
-      return null
-    };
-    const date = new Date(dateTimeStr);
-    return date.toLocaleString();
-  }
-
-  function formatExposureTime(exposureTime) {
-    if (!exposureTime) {
-      return null
-    };
-    const decimal = parseFloat(exposureTime);
-    if (decimal >= 1) return `${decimal}s`;
-    const fraction = 1 / decimal;
-    return `1/${Math.round(fraction)}s`;
-  }
-
-  function getFileName(filePath) {
-    return filePath.split('/').pop();
   }
 
   const photoUrl = getPhotoUrl(currentPhoto.filePath);

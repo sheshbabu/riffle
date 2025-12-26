@@ -1,21 +1,4 @@
-export function getPhotoUrl(filePath, width = null, height = null) {
-  const encoded = btoa(filePath);
-  let url = `/api/photo/?path=${encoded}`;
-  if (width) {
-    url += `&width=${width}`;
-  }
-  if (height) {
-    url += `&height=${height}`;
-  }
-  return url;
-}
-
-export function isVideoFile(filePath) {
-  const ext = filePath.toLowerCase().split('.').pop();
-  return ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg'].includes(ext);
-}
-
-export function formatSessionDate(startTime, endTime) {
+export default function formatSessionDate(startTime, endTime) {
   const start = new Date(startTime);
   const end = new Date(endTime);
 

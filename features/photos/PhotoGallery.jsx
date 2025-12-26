@@ -1,5 +1,7 @@
 import Lightbox from '../../commons/components/Lightbox.jsx';
-import { getPhotoUrl, isVideoFile, formatSessionDate } from './photoUtils.js';
+import getPhotoUrl from '../../commons/utils/getPhotoUrl.js';
+import isVideoFile from '../../commons/utils/isVideoFile.js';
+import formatSessionDate from '../../commons/utils/formatSessionDate.js';
 import './PhotoGallery.css';
 
 const { useState, useEffect } = React;
