@@ -43,14 +43,14 @@ function StatusLine({ stepStatus, progress }) {
   if (stepStatus === "scanning") {
     stepName = "Discovering files"
     if (currentStepIndex < progressingStepIndex) {
-      subText = <div className="subtext">{`Found ${progress.total} photos and videos`}</div>
+      subText = <div className="subtext">{`Found ${progress.total.toLocaleString()} photos and videos`}</div>
     }
   }
 
   if (stepStatus === "hashing") {
     stepName = "Computing hashes"
     if (currentStepIndex === progressingStepIndex) {
-      subText = <div className="subtext">{`Processing ${progress.completed} / ${progress.total} (${progress.percent}%)`}</div>
+      subText = <div className="subtext">{`Processing ${progress.completed.toLocaleString()} / ${progress.total.toLocaleString()} (${progress.percent}%)`}</div>
     } else if (currentStepIndex < progressingStepIndex) {
       subText = <div className="subtext">Finished</div>
     }

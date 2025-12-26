@@ -6,13 +6,13 @@ export default function ScanResultsCard({ results, onImportClick }) {
     return null
   }
 
-  const duplicateCount = results.totalScanned - results.uniqueFiles;
+  const filesToImport = results.totalScanned - results.duplicatesRemoved;
 
   return (
     <div className="scan-results-card">
       <h3>Scan Complete</h3>
       <div className="help">
-        Found {results.uniqueFiles} unique files to import. {duplicateCount > 0 ? `${duplicateCount} duplicates will be skipped.` : ''}
+        Found {filesToImport.toLocaleString()} files to import. {results.duplicatesRemoved > 0 ? `${results.duplicatesRemoved.toLocaleString()} duplicates will be skipped.` : ''}
       </div>
       <Button className='primary' onClick={onImportClick}>
         Import to Library
