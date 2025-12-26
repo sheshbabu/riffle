@@ -1,5 +1,6 @@
 import { ModalBackdrop, ModalContainer } from './Modal.jsx';
 import { CloseIcon, InfoIcon } from './Icon.jsx';
+import { getPhotoUrl } from '../../features/photos/photoUtils.js';
 import './Lightbox.css';
 
 const { useState, useEffect } = React;
@@ -83,11 +84,6 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
 
   function handleToggleMetadata() {
     setShowMetadata(!showMetadata);
-  }
-
-  function getPhotoUrl(filePath) {
-    const encoded = btoa(filePath);
-    return `/api/photo/?path=${encoded}`;
   }
 
   function formatFileSize(bytes) {
