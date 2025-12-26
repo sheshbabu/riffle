@@ -8,9 +8,8 @@ import (
 )
 
 type IngestResponse struct {
-	Success    bool   `json:"success"`
-	Message    string `json:"message"`
-	importPath string `json:"importPath,omitempty"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
 const resultsFilePath = "/tmp/riffle-ingest-results.json"

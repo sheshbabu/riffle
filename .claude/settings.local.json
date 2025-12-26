@@ -24,7 +24,8 @@
       "Bash(go doc:*)",
       "WebSearch",
       "Bash(brew list:*)",
-      "Bash(ffprobe:*)"
+      "Bash(ffprobe:*)",
+      "Bash(go vet:*)"
     ]
   }
 }

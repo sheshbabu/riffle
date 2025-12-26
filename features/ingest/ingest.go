@@ -53,7 +53,7 @@ type FileAction struct {
 }
 
 type AnalysisStats struct {
-	importPath        string           `json:"importPath"`
+	ImportPath        string           `json:"importPath"`
 	TotalScanned      int              `json:"totalScanned"`
 	UniqueFiles       int              `json:"uniqueFiles"`
 	DuplicateGroups   int              `json:"duplicateGroups"`
@@ -77,7 +77,7 @@ func ProcessIngest(importPath, libraryPath, trashPath string) (*AnalysisStats, e
 	slog.Info("scanned ingest folder", "count", len(photos))
 
 	stats := &AnalysisStats{
-		importPath:     importPath,
+		ImportPath:     importPath,
 		TotalScanned:   len(photos),
 		FilesToLibrary: make([]FileAction, 0),
 		FilesToTrash:   make([]FileAction, 0),
