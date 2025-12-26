@@ -1,8 +1,6 @@
 .pagination-container {
   display: flex;
   flex-direction: row-reverse;
-  margin-top: var(--spacing-2);
-  padding: var(--spacing-2);
 }
 
 .pagination {
@@ -10,13 +8,13 @@
   height: 36px;
   align-items: center;
   border-radius: 6px;
-  border: 1px solid var(--neutral-200);
+  border: 1px solid var(--neutral-100);
   overflow: hidden;
-  transition-property: background-color, box-shadow;
-  transition-duration: 500ms;
+  background-color: var(--bg-primary);
   box-shadow: var(--shadow-1);
   font: var(--sm);
-  color: var(--text-secondary);
+  font-weight: 600;
+  color: var(--text-primary);
 
   .pagination-text {
     padding: 0 12px;
@@ -29,13 +27,18 @@
     height: 34px;
     padding: 8px;
     line-height: 1;
-    transition-property: background-color;
-    transition-duration: 500ms;
     text-decoration: none;
+    transition-property: background-color;
+    transition-duration: var(--transition-normal);
 
     &:hover {
       background-color: var(--neutral-100);
       cursor: pointer;
+    }
+
+    &:active {
+      transform: scale(0.95);
+      transition: transform var(--transition-fast) ease-out;
     }
 
     &.disabled {
@@ -53,6 +56,10 @@
 
       &:hover {
         background-color: transparent;
+      }
+
+      &:active {
+        transform: none;
       }
     }
 

@@ -2,6 +2,7 @@ import ApiClient from '../../commons/http/ApiClient.js';
 import CurateGallery from './CurateGallery.jsx';
 import CurateSessionGallery from './CurateSessionGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
+import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
 import './LibraryPage.css';
 
 const { useState, useEffect } = React;
@@ -52,8 +53,8 @@ export default function CuratePage() {
     setPageEndRecord(prev => Math.max(0, prev - 1));
   }
 
-  function handleToggleViewMode() {
-    setViewMode(prev => prev === 'grid' ? 'sessions' : 'grid');
+  function handleViewModeChange(mode) {
+    setViewMode(mode);
   }
 
   function handlePrevPage() {
@@ -123,13 +124,19 @@ export default function CuratePage() {
     );
   }
 
+  const viewModeOptions = [
+    { value: 'sessions', label: 'Grouped' },
+    { value: 'grid', label: 'Grid' },
+  ];
+
   let viewToggle = null;
   if (!isLoading && !error && photos.length > 0) {
-    const toggleText = viewMode === 'sessions' ? 'Grid View' : 'Session View';
     viewToggle = (
-      <button className="view-toggle-button" onClick={handleToggleViewMode}>
-        {toggleText}
-      </button>
+      <SegmentedControl
+        options={viewModeOptions}
+        value={viewMode}
+        onChange={handleViewModeChange}
+      />
     );
   }
 

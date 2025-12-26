@@ -1,5 +1,6 @@
 .session-gallery {
   padding: var(--spacing-2);
+  margin-top: 24px;
 }
 
 .session-group {
@@ -73,26 +74,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--spacing-4);
-}
-
-.page-header h2 {
-  margin: 0;
-}
-
-.view-toggle-button {
-  padding: var(--spacing-2) var(--spacing-4);
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--neutral-200);
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.view-toggle-button:hover {
-  background-color: var(--neutral-100);
-  border-color: var(--neutral-300);
+  position: sticky;
+  padding: 16px 0;
+  z-index: 1;
+  background-color: white;
+  top: 0px;
 }

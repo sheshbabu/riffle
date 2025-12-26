@@ -2,6 +2,7 @@ import ApiClient from '../../commons/http/ApiClient.js';
 import PhotoGallery from './PhotoGallery.jsx';
 import SessionGallery from './SessionGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
+import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
 import './LibraryPage.css';
 
 const { useState, useEffect } = React;
@@ -46,8 +47,8 @@ export default function LibraryPage() {
     fetchPhotos();
   }, [offset, viewMode]);
 
-  function handleToggleViewMode() {
-    setViewMode(prev => prev === 'grid' ? 'sessions' : 'grid');
+  function handleViewModeChange(mode) {
+    setViewMode(mode);
   }
 
   let content = null;
@@ -117,13 +118,19 @@ export default function LibraryPage() {
     );
   }
 
+  const viewModeOptions = [
+    { value: 'sessions', label: 'Grouped' },
+    { value: 'grid', label: 'Grid' },
+  ];
+
   let viewToggle = null;
   if (!isLoading && !error && photos.length > 0) {
-    const toggleText = viewMode === 'sessions' ? 'Grid View' : 'Session View';
     viewToggle = (
-      <button className="view-toggle-button" onClick={handleToggleViewMode}>
-        {toggleText}
-      </button>
+      <SegmentedControl
+        options={viewModeOptions}
+        value={viewMode}
+        onChange={handleViewModeChange}
+      />
     );
   }
 
