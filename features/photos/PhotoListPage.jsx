@@ -3,6 +3,7 @@ import PhotoGallery from './PhotoGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
 import { LoadingSpinner } from '../../commons/components/Icon.jsx';
+import ViewPreferences from '../../commons/utils/ViewPreferences.js';
 import useSearchParams from '../../commons/hooks/useSearchParams.js';
 import { updateSearchParams } from '../../commons/components/Link.jsx';
 import './LibraryPage.css';
@@ -46,7 +47,8 @@ export default function PhotoListPage({ mode = 'library' }) {
   const offset = offsetParam ? Math.max(0, parseInt(offsetParam, 10) || 0) : 0;
 
   const viewParam = searchParams.get('view');
-  const viewMode = (viewParam === 'grid' || viewParam === 'sessions') ? viewParam : 'sessions';
+  const savedView = ViewPreferences.getPreference(mode);
+  const viewMode = (viewParam === 'grid' || viewParam === 'sessions') ? viewParam : savedView;
 
   const [photos, setPhotos] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -89,7 +91,8 @@ export default function PhotoListPage({ mode = 'library' }) {
   }, [offset, viewMode]);
 
   function handleViewModeChange(newViewMode) {
-    updateSearchParams({ view: newViewMode === 'sessions' ? null : newViewMode });
+    ViewPreferences.setPreference(mode, newViewMode);
+    updateSearchParams({ view: newViewMode === savedView ? null : newViewMode });
   }
 
   function handlePhotoSelect(index) {
