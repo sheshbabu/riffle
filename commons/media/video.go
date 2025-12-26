@@ -8,14 +8,11 @@ import (
 )
 
 func GenerateVideoThumbnail(filePath string, maxWidth, maxHeight int) ([]byte, string, error) {
-	timestamp := "00:00:01"
-
 	cmd := exec.Command(
 		"ffmpeg",
-		"-ss", timestamp,
 		"-i", filePath,
 		"-vframes", "1",
-		"-vf", fmt.Sprintf("scale='min(%d,iw)':min'(%d,ih)':force_original_aspect_ratio=decrease", maxWidth, maxHeight),
+		"-vf", fmt.Sprintf("scale='min(%d,iw)':'min(%d,ih)':force_original_aspect_ratio=decrease", maxWidth, maxHeight),
 		"-f", "image2pipe",
 		"-vcodec", "mjpeg",
 		"-",
