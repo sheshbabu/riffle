@@ -45,11 +45,15 @@
         }
 
         .step-inprogress {
-          animation: spin 1s linear infinite;
-
           svg.lucide {
+            circle {
+              stroke: var(--neutral-300);
+            }
+
             path {
               stroke: var(--yellow-400);
+              transform-origin: 12px 12px;
+              animation: spin 1s linear infinite;
             }
           }
         }
