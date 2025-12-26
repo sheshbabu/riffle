@@ -12,13 +12,11 @@ type IngestResponse struct {
 	Message string `json:"message"`
 }
 
-const resultsFilePath = "/tmp/riffle-ingest-results.json"
-
 func HandleScanImportFolder(w http.ResponseWriter, r *http.Request) {
 	importPath := os.Getenv("IMPORT_PATH")
 	libraryPath := os.Getenv("LIBRARY_PATH")
 
-	os.Remove(resultsFilePath)
+	ClearResults()
 	UpdateProgress("scanning", 0, 0)
 
 	go func() {
@@ -28,19 +26,9 @@ func HandleScanImportFolder(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data, err := json.MarshalIndent(stats, "", "  ")
-		if err != nil {
-			slog.Error("failed to marshal stats", "error", err)
-			return
-		}
-
-		if err := os.WriteFile(resultsFilePath, data, 0644); err != nil {
-			slog.Error("failed to write results file", "error", err)
-			return
-		}
-
+		SetResults(stats)
 		UpdateProgress("complete", stats.TotalScanned, stats.TotalScanned)
-		slog.Info("results written to file", "path", resultsFilePath)
+		slog.Info("scan complete", "totalScanned", stats.TotalScanned)
 	}()
 
 	w.Header().Set("Content-Type", "application/json")
@@ -52,61 +40,34 @@ func HandleScanImportFolder(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetScanResults(w http.ResponseWriter, r *http.Request) {
-	data, err := os.ReadFile(resultsFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			http.Error(w, "no results available", http.StatusNotFound)
-			return
-		}
-		slog.Error("failed to read results file", "error", err)
-		http.Error(w, "failed to read results", http.StatusInternalServerError)
+	results := GetResults()
+	if results == nil {
+		http.Error(w, "no results available", http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	json.NewEncoder(w).Encode(results)
 }
 
 func HandleImport(w http.ResponseWriter, r *http.Request) {
 	libraryPath := os.Getenv("LIBRARY_PATH")
 
-	data, err := os.ReadFile(resultsFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			http.Error(w, "no analysis results available - run analysis first", http.StatusNotFound)
-			return
-		}
-		slog.Error("failed to read results file", "error", err)
-		http.Error(w, "failed to read results", http.StatusInternalServerError)
-		return
-	}
-
-	var stats AnalysisStats
-	if err := json.Unmarshal(data, &stats); err != nil {
-		slog.Error("failed to unmarshal stats", "error", err)
-		http.Error(w, "invalid results format", http.StatusInternalServerError)
+	stats := GetResults()
+	if stats == nil {
+		http.Error(w, "no analysis results available - run analysis first", http.StatusNotFound)
 		return
 	}
 
 	go func() {
-		if err := ExecuteMoves(libraryPath, libraryPath, &stats); err != nil {
+		if err := ExecuteMoves(libraryPath, libraryPath, stats); err != nil {
 			slog.Error("failed to execute moves", "error", err)
 			return
 		}
 
-		data, err := json.MarshalIndent(stats, "", "  ")
-		if err != nil {
-			slog.Error("failed to marshal updated stats", "error", err)
-			return
-		}
-
-		if err := os.WriteFile(resultsFilePath, data, 0644); err != nil {
-			slog.Error("failed to update results file", "error", err)
-			return
-		}
-
-		slog.Info("execution completed and results updated")
+		SetResults(stats)
+		slog.Info("import complete", "movedToLibrary", stats.MovedToLibrary)
 	}()
 
 	w.Header().Set("Content-Type", "application/json")
