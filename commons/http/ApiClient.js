@@ -1,3 +1,5 @@
+import { showToast } from '../components/Toast.jsx';
+
 async function request(method, url, payload) {
   const options = {
     method: method,
@@ -22,6 +24,7 @@ async function request(method, url, payload) {
     return isJsonResponse ? await response.json() : null;
   } catch (error) {
     if (!navigator.onLine) {
+      showToast("No internet connection");
       console.error("Network error:", error);
       throw error;
     }
@@ -31,23 +34,30 @@ async function request(method, url, payload) {
       error.message.includes('Load failed') ||
       error.message.includes('NetworkError')
     )) {
+      showToast("Connection failed");
       console.error("Fetch error:", error);
       throw error;
     }
 
     if (error instanceof Response) {
-      const isJsonResponse = error.headers.get('content-type')?.includes('application/json');
+      const contentType = error.headers.get('content-type') || '';
 
-      if (isJsonResponse) {
+      if (contentType.includes('application/json')) {
         const body = await error.json();
         const err = new Error(error.statusText);
         err.code = body?.code;
         err.message = body?.message || 'An unexpected error occurred';
+        showToast(err.message);
         console.error('API error:', body);
         throw err;
       }
 
-      throw new Error(error.statusText);
+      // Handle plain text errors from http.Error()
+      const text = await error.text();
+      const message = text || 'An unexpected error occurred';
+      showToast(message);
+      console.error('API error:', message);
+      throw new Error(message);
     }
 
     throw error;

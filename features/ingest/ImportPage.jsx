@@ -1,4 +1,5 @@
 import ApiClient from '../../commons/http/ApiClient.js';
+import { showToast } from '../../commons/components/Toast.jsx';
 import ScanImportCard from './ScanImportCard.jsx';
 import ScanProgressCard from './ScanProgressCard.jsx';
 import ScanResultsCard from './ScanResultsCard.jsx';
@@ -39,6 +40,7 @@ export default function ImportPage() {
 
           if (resultsData.movedToLibrary > 0 || resultsData.movedToTrash > 0) {
             setIsImporting(false);
+            showToast(`Imported ${resultsData.movedToLibrary.toLocaleString()} files to library`);
           }
         } catch (error) {
           // Results not ready yet, keep polling

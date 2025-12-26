@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"riffle/commons/utils"
 )
 
 type IngestResponse struct {
@@ -42,7 +43,7 @@ func HandleScanImportFolder(w http.ResponseWriter, r *http.Request) {
 func HandleGetScanResults(w http.ResponseWriter, r *http.Request) {
 	results := GetResults()
 	if results == nil {
-		http.Error(w, "no results available", http.StatusNotFound)
+		utils.SendErrorResponse(w, http.StatusNotFound, "NO_RESULTS", "No scan results available")
 		return
 	}
 
@@ -56,7 +57,7 @@ func HandleImport(w http.ResponseWriter, r *http.Request) {
 
 	stats := GetResults()
 	if stats == nil {
-		http.Error(w, "no analysis results available - run analysis first", http.StatusNotFound)
+		utils.SendErrorResponse(w, http.StatusNotFound, "NO_RESULTS", "No scan results available. Run scan first.")
 		return
 	}
 

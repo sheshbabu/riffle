@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"fmt"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -113,9 +112,8 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		err = fmt.Errorf("error reading index.html: %w", err)
-		slog.Error(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("error reading index.html", "error", err)
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to load page")
 		return
 	}
 
@@ -132,9 +130,8 @@ func handleStaticAssets(w http.ResponseWriter, r *http.Request) {
 	} else {
 		subtree, err := fs.Sub(assets, "assets")
 		if err != nil {
-			err = fmt.Errorf("error reading assets subtree: %w", err)
-			slog.Error(err.Error())
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			slog.Error("error reading assets subtree", "error", err)
+			utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to load assets")
 			return
 		}
 		fsys = http.FS(subtree)

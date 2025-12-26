@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"riffle/commons/media"
+	"riffle/commons/utils"
 	"strconv"
 	"strings"
 )
@@ -15,13 +16,13 @@ import (
 func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 	encodedPath := r.URL.Query().Get("path")
 	if encodedPath == "" {
-		http.Error(w, "path parameter required", http.StatusBadRequest)
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATH", "Path parameter required")
 		return
 	}
 
 	decodedPath, err := base64.URLEncoding.DecodeString(encodedPath)
 	if err != nil {
-		http.Error(w, "invalid path encoding", http.StatusBadRequest)
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_PATH", "Invalid path encoding")
 		return
 	}
 
@@ -30,15 +31,15 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			http.Error(w, "file not found", http.StatusNotFound)
+			utils.SendErrorResponse(w, http.StatusNotFound, "NOT_FOUND", "File not found")
 			return
 		}
-		http.Error(w, "cannot access file", http.StatusForbidden)
+		utils.SendErrorResponse(w, http.StatusForbidden, "ACCESS_DENIED", "Cannot access file")
 		return
 	}
 
 	if fileInfo.IsDir() {
-		http.Error(w, "path is a directory", http.StatusBadRequest)
+		utils.SendErrorResponse(w, http.StatusBadRequest, "IS_DIRECTORY", "Path is a directory")
 		return
 	}
 
@@ -65,7 +66,7 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 			thumbnailData, thumbnailContentType, err := media.GenerateVideoThumbnail(filePath, width, height)
 			if err != nil {
 				slog.Error("failed to generate video thumbnail, serving placeholder", "path", filePath, "error", err)
-				http.Error(w, "failed to generate video thumbnail", http.StatusInternalServerError)
+				utils.SendErrorResponse(w, http.StatusInternalServerError, "THUMBNAIL_ERROR", "Failed to generate video thumbnail")
 				return
 			}
 
@@ -78,7 +79,7 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 		fileData, err := os.ReadFile(filePath)
 		if err != nil {
 			slog.Error("failed to read file for resizing", "path", filePath, "error", err)
-			http.Error(w, "failed to read file", http.StatusInternalServerError)
+			utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to read file")
 			return
 		}
 
@@ -100,7 +101,7 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		slog.Error("failed to open file", "path", filePath, "error", err)
-		http.Error(w, "failed to read file", http.StatusInternalServerError)
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to read file")
 		return
 	}
 	defer file.Close()
@@ -137,7 +138,7 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 		photos, sessions, err := GetPhotosWithSessions(limit, offset, true, false)
 		if err != nil {
 			slog.Error("failed to get photos with sessions", "error", err)
-			http.Error(w, "failed to fetch photos", http.StatusInternalServerError)
+			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
 			return
 		}
 
@@ -163,7 +164,7 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 	photos, err := GetPhotos(limit, offset)
 	if err != nil {
 		slog.Error("failed to get photos", "error", err)
-		http.Error(w, "failed to fetch photos", http.StatusInternalServerError)
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
 		return
 	}
 
@@ -200,7 +201,7 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 		photos, sessions, err := GetPhotosWithSessions(limit, offset, false, false)
 		if err != nil {
 			slog.Error("failed to get uncurated photos with sessions", "error", err)
-			http.Error(w, "failed to fetch uncurated photos", http.StatusInternalServerError)
+			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
 			return
 		}
 
@@ -226,7 +227,7 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 	photos, err := GetUncuratedPhotos(limit, offset)
 	if err != nil {
 		slog.Error("failed to get uncurated photos", "error", err)
-		http.Error(w, "failed to fetch uncurated photos", http.StatusInternalServerError)
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
 		return
 	}
 
@@ -261,7 +262,7 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 	photos, err := GetTrashedPhotos(limit, offset)
 	if err != nil {
 		slog.Error("failed to get trashed photos", "error", err)
-		http.Error(w, "failed to fetch trashed photos", http.StatusInternalServerError)
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
 		return
 	}
 
@@ -292,24 +293,24 @@ type CurateRequest struct {
 func HandleCuratePhoto(w http.ResponseWriter, r *http.Request) {
 	var req CurateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_BODY", "Invalid request body")
 		return
 	}
 
 	if req.FilePath == "" {
-		http.Error(w, "filePath is required", http.StatusBadRequest)
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATH", "File path is required")
 		return
 	}
 
 	if req.Rating < 0 || req.Rating > 5 {
-		http.Error(w, "rating must be between 0 and 5", http.StatusBadRequest)
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_RATING", "Rating must be between 0 and 5")
 		return
 	}
 
 	err := UpdatePhotoCuration(req.FilePath, req.IsCurated, req.IsTrashed, req.Rating)
 	if err != nil {
 		slog.Error("failed to curate photo", "error", err)
-		http.Error(w, "failed to curate photo", http.StatusInternalServerError)
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "CURATE_ERROR", "Failed to update photo")
 		return
 	}
 

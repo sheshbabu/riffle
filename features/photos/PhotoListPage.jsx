@@ -150,7 +150,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         }));
       }
     } catch (err) {
-      console.error('Failed to curate photo:', err);
+      // Error toast shown automatically by ApiClient
     }
   }
 
