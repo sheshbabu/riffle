@@ -39,9 +39,14 @@ export default function SessionGallery({ photos, sessions }) {
     const timeOptions = { hour: 'numeric', minute: '2-digit' };
 
     const sameDay = start.toDateString() === end.toDateString();
+    const startTimeStr = start.toLocaleTimeString('en-US', timeOptions);
+    const endTimeStr = end.toLocaleTimeString('en-US', timeOptions);
+    const sameDisplayTime = startTimeStr === endTimeStr;
 
-    if (sameDay) {
-      return `${start.toLocaleDateString('en-US', dateOptions)} • ${start.toLocaleTimeString('en-US', timeOptions)} - ${end.toLocaleTimeString('en-US', timeOptions)}`;
+    if (sameDay && sameDisplayTime) {
+      return `${start.toLocaleDateString('en-US', dateOptions)} • ${startTimeStr}`;
+    } else if (sameDay) {
+      return `${start.toLocaleDateString('en-US', dateOptions)} • ${startTimeStr} - ${endTimeStr}`;
     } else {
       return `${start.toLocaleDateString('en-US', dateOptions)} - ${end.toLocaleDateString('en-US', dateOptions)}`;
     }
