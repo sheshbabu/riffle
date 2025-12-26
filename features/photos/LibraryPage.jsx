@@ -1,3 +1,4 @@
+import ApiClient from '../../commons/http/ApiClient.js';
 import PhotoGallery from './PhotoGallery.jsx';
 import SessionGallery from './SessionGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
@@ -23,12 +24,8 @@ export default function LibraryPage() {
       setError(null);
 
       try {
-        const sessionsParam = viewMode === 'sessions' ? '&sessions=true' : '';
-        const response = await fetch(`/api/photos/?offset=${offset}${sessionsParam}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch photos');
-        }
-        const data = await response.json();
+        const withSessions = viewMode === 'sessions';
+        const data = await ApiClient.getPhotos(offset, withSessions);
         setPhotos(data.photos || []);
         setSessions(data.sessions || []);
         setPageStartRecord(data.pageStartRecord || 0);
@@ -95,10 +92,9 @@ export default function LibraryPage() {
 
   const hasPrev = offset > 0;
   const hasNext = offset + limit < totalRecords;
-  const shouldShowPagination = !isLoading && !error && totalRecords > limit;
 
   let paginationElement = null;
-  if (shouldShowPagination) {
+  if (!isLoading && !error && totalRecords > limit) {
     paginationElement = (
       <Pagination
         pageStartRecord={pageStartRecord}
@@ -123,9 +119,10 @@ export default function LibraryPage() {
 
   let viewToggle = null;
   if (!isLoading && !error && photos.length > 0) {
+    const toggleText = viewMode === 'sessions' ? 'Grid View' : 'Session View';
     viewToggle = (
       <button className="view-toggle-button" onClick={handleToggleViewMode}>
-        {viewMode === 'sessions' ? 'Grid View' : 'Session View'}
+        {toggleText}
       </button>
     );
   }

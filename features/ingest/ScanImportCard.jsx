@@ -3,7 +3,7 @@ import './ScanImportCard.css';
 
 export default function ScanImportCard({ isScanning, results, onScanClick }) {
   if (isScanning || results !== null) {
-    return null
+    return null;
   }
 
   return (

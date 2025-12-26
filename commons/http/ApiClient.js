@@ -70,10 +70,27 @@ async function importToLibrary(payload) {
   return await request('POST', '/api/import/move/', payload);
 }
 
+async function getPhotos(offset, withSessions) {
+  const sessionsParam = withSessions ? '&sessions=true' : '';
+  return await request('GET', `/api/photos/?offset=${offset}${sessionsParam}`);
+}
+
+async function getUncuratedPhotos(offset, withSessions) {
+  const sessionsParam = withSessions ? '&sessions=true' : '';
+  return await request('GET', `/api/photos/uncurated/?offset=${offset}${sessionsParam}`);
+}
+
+async function getTrashedPhotos(offset) {
+  return await request('GET', `/api/photos/trashed/?offset=${offset}`);
+}
+
 export default {
   request,
   scanImportFolder,
   getScanResults,
   getScanProgress,
-  importToLibrary
+  importToLibrary,
+  getPhotos,
+  getUncuratedPhotos,
+  getTrashedPhotos
 };

@@ -5,7 +5,7 @@ const stepOrder = ["scanning", "hashing", "finding_duplicates", "complete"]
 
 export default function ScanProgressCard({ isScanning, progress }) {
   if (!isScanning || progress === null) {
-    return null
+    return null;
   }
 
   return (

@@ -1,3 +1,4 @@
+import ApiClient from '../../commons/http/ApiClient.js';
 import PhotoGallery from './PhotoGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import './LibraryPage.css';
@@ -20,11 +21,7 @@ export default function TrashPage() {
       setError(null);
 
       try {
-        const response = await fetch(`/api/photos/trashed/?offset=${offset}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch trashed photos');
-        }
-        const data = await response.json();
+        const data = await ApiClient.getTrashedPhotos(offset);
         setPhotos(data.photos || []);
         setPageStartRecord(data.pageStartRecord || 0);
         setPageEndRecord(data.pageEndRecord || 0);
@@ -82,10 +79,9 @@ export default function TrashPage() {
 
   const hasPrev = offset > 0;
   const hasNext = offset + limit < totalRecords;
-  const shouldShowPagination = !isLoading && !error && totalRecords > limit;
 
   let paginationElement = null;
-  if (shouldShowPagination) {
+  if (!isLoading && !error && totalRecords > limit) {
     paginationElement = (
       <Pagination
         pageStartRecord={pageStartRecord}
