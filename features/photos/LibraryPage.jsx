@@ -3,7 +3,9 @@ import PhotoGallery from './PhotoGallery.jsx';
 import SessionGallery from './SessionGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
+import { LoadingSpinner } from '../../commons/components/Icon.jsx';
 import './LibraryPage.css';
+import './Loading.css';
 
 const { useState, useEffect } = React;
 
@@ -71,12 +73,6 @@ export default function LibraryPage() {
     } else {
       content = <PhotoGallery photos={photos} />;
     }
-  } else if (isLoading && photos.length === 0) {
-    content = (
-      <div className="message-box">
-        Loading photos...
-      </div>
-    );
   }
 
   function handlePrevPage() {
@@ -95,7 +91,7 @@ export default function LibraryPage() {
   const hasNext = offset + limit < totalRecords;
 
   let paginationElement = null;
-  if (!isLoading && !error && totalRecords > limit) {
+  if (!error && totalRecords > limit) {
     paginationElement = (
       <Pagination
         pageStartRecord={pageStartRecord}
@@ -109,14 +105,6 @@ export default function LibraryPage() {
     );
   }
 
-  let loadingIndicator = null;
-  if (isLoading && photos.length > 0) {
-    loadingIndicator = (
-      <div className="loading-overlay">
-        Loading...
-      </div>
-    );
-  }
 
   const viewModeOptions = [
     { value: 'sessions', label: 'Grouped' },
@@ -124,7 +112,7 @@ export default function LibraryPage() {
   ];
 
   let viewToggle = null;
-  if (!isLoading && !error && photos.length > 0) {
+  if (!error && photos.length > 0) {
     viewToggle = (
       <SegmentedControl
         options={viewModeOptions}
@@ -134,14 +122,23 @@ export default function LibraryPage() {
     );
   }
 
+  let loadingOverlay = null;
+  if (isLoading) {
+    loadingOverlay = (
+      <div className="loading-overlay">
+        <LoadingSpinner size={32} />
+      </div>
+    );
+  }
+
   return (
     <div className="page-container">
       <div className="page-header">
         {viewToggle}
         {paginationElement}
       </div>
-      {loadingIndicator}
       {content}
+      {loadingOverlay}
     </div>
   );
 }
