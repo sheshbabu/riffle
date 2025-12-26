@@ -3,8 +3,9 @@ import './SessionGallery.css';
 
 const { useState } = React;
 
-export default function SessionGallery({ photos, sessions }) {
+export default function SessionGallery({ photos, sessions, selectedIndex, onPhotoSelect, fadingPhotos, onUndo }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
+  const fadingSet = fadingPhotos || new Set();
 
   function getPhotoUrl(filePath, width = null, height = null) {
     const encoded = btoa(filePath);
@@ -23,8 +24,14 @@ export default function SessionGallery({ photos, sessions }) {
     return ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg'].includes(ext);
   }
 
-  function handlePhotoClick(index) {
-    setLightboxIndex(index);
+  function handlePhotoClick(index, e) {
+    if (e.detail === 2) {
+      setLightboxIndex(index);
+    } else {
+      if (onPhotoSelect) {
+        onPhotoSelect(index);
+      }
+    }
   }
 
   function handleCloseLightbox() {
@@ -52,12 +59,26 @@ export default function SessionGallery({ photos, sessions }) {
     }
   }
 
-  const sessionElements = sessions.map((session, sessionIndex) => {
-    const sessionPhotos = photos.slice(0, session.photoCount);
+  let photoOffset = 0;
+  const sessionElements = sessions.map((session, sessionIdx) => {
+    const sessionPhotos = photos.slice(photoOffset, photoOffset + session.photoCount);
+    const sessionStartIndex = photoOffset;
+    photoOffset += session.photoCount;
 
-    const photoElements = sessionPhotos.map((photo, photoIndex) => {
+    const photoElements = sessionPhotos.map((photo, photoIdx) => {
       const isVideo = photo.isVideo || isVideoFile(photo.filePath);
       const thumbnailUrl = getPhotoUrl(photo.filePath, 300, 300);
+      const globalIndex = sessionStartIndex + photoIdx;
+      const isSelected = globalIndex === selectedIndex;
+      const isFading = fadingSet.has(photo.filePath);
+
+      let className = 'session-gallery-item';
+      if (isSelected) {
+        className += ' selected';
+      }
+      if (isFading) {
+        className += ' fading';
+      }
 
       let mediaElement = null;
       if (isVideo) {
@@ -80,10 +101,20 @@ export default function SessionGallery({ photos, sessions }) {
         );
       }
 
-      const globalIndex = sessionPhotos.slice(0, sessionIndex).reduce((acc, s) => acc + s.photoCount, 0) + photoIndex;
+      let undoButton = null;
+      if (isFading && onUndo) {
+        undoButton = (
+          <div className="undo-overlay" onClick={(e) => {
+            e.stopPropagation();
+            onUndo(photo.filePath);
+          }}>
+            <button className="undo-button">Undo</button>
+          </div>
+        );
+      }
 
       return (
-        <div key={photo.filePath} className="session-gallery-item" onClick={() => handlePhotoClick(globalIndex)}>
+        <div key={photo.filePath} className={className} onClick={(e) => handlePhotoClick(globalIndex, e)}>
           {mediaElement}
           {isVideo && (
             <div className="video-indicator">
@@ -92,6 +123,7 @@ export default function SessionGallery({ photos, sessions }) {
               </svg>
             </div>
           )}
+          {undoButton}
         </div>
       );
     });

@@ -4,15 +4,12 @@ import './CurateGallery.css';
 
 const { useState, useEffect } = React;
 
-export default function CurateSessionGallery({ photos, sessions, onPhotoRemoved }) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+export default function CurateSessionGallery({ photos, sessions, selectedIndex, onPhotoSelect, fadingPhotos, onCurate, onUndo }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
-  const [fadingPhotos, setFadingPhotos] = useState(new Set());
-  const [undoTimers, setUndoTimers] = useState(new Map());
 
   useEffect(() => {
     if (selectedIndex >= photos.length && photos.length > 0) {
-      setSelectedIndex(Math.max(0, photos.length - 1));
+      onPhotoSelect(Math.max(0, photos.length - 1));
     }
   }, [photos.length, selectedIndex]);
 
@@ -38,25 +35,25 @@ export default function CurateSessionGallery({ photos, sessions, onPhotoRemoved 
       switch (e.key) {
         case 'ArrowRight':
           e.preventDefault();
-          setSelectedIndex(prev => Math.min(photos.length - 1, prev + 1));
+          onPhotoSelect(Math.min(photos.length - 1, selectedIndex + 1));
           break;
         case 'ArrowLeft':
           e.preventDefault();
-          setSelectedIndex(prev => Math.max(0, prev - 1));
+          onPhotoSelect(Math.max(0, selectedIndex - 1));
           break;
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedIndex(prev => {
-            const nextIndex = prev + getGridColumns();
-            return Math.min(photos.length - 1, nextIndex);
-          });
+          {
+            const nextIndex = selectedIndex + getGridColumns();
+            onPhotoSelect(Math.min(photos.length - 1, nextIndex));
+          }
           break;
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedIndex(prev => {
-            const prevIndex = prev - getGridColumns();
-            return Math.max(0, prevIndex);
-          });
+          {
+            const prevIndex = selectedIndex - getGridColumns();
+            onPhotoSelect(Math.max(0, prevIndex));
+          }
           break;
         case 'Enter':
         case ' ':
@@ -66,12 +63,12 @@ export default function CurateSessionGallery({ photos, sessions, onPhotoRemoved 
         case 'p':
         case 'P':
           e.preventDefault();
-          handleAccept(currentPhoto.filePath);
+          onCurate(currentPhoto.filePath, true, false, 0);
           break;
         case 'x':
         case 'X':
           e.preventDefault();
-          handleReject(currentPhoto.filePath);
+          onCurate(currentPhoto.filePath, true, true, 0);
           break;
         case '1':
         case '2':
@@ -79,7 +76,7 @@ export default function CurateSessionGallery({ photos, sessions, onPhotoRemoved 
         case '4':
         case '5':
           e.preventDefault();
-          handleRate(currentPhoto.filePath, parseInt(e.key));
+          onCurate(currentPhoto.filePath, true, false, parseInt(e.key));
           break;
       }
     }
@@ -115,83 +112,16 @@ export default function CurateSessionGallery({ photos, sessions, onPhotoRemoved 
     return ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg'].includes(ext);
   }
 
-  function handlePhotoClick(index) {
-    setSelectedIndex(index);
-    setLightboxIndex(index);
+  function handlePhotoClick(index, e) {
+    if (e.detail === 2) {
+      setLightboxIndex(index);
+    } else {
+      onPhotoSelect(index);
+    }
   }
 
   function handleCloseLightbox() {
     setLightboxIndex(null);
-  }
-
-  async function curatePhoto(filePath, isCurated, isTrashed, rating) {
-    try {
-      const response = await fetch('/api/photos/curate/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filePath,
-          isCurated,
-          isTrashed,
-          rating,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to curate photo');
-      }
-
-      setFadingPhotos(prev => new Set([...prev, filePath]));
-
-      const timerId = setTimeout(() => {
-        onPhotoRemoved(filePath);
-        setFadingPhotos(prev => {
-          const next = new Set(prev);
-          next.delete(filePath);
-          return next;
-        });
-        setUndoTimers(prev => {
-          const next = new Map(prev);
-          next.delete(filePath);
-          return next;
-        });
-      }, 3000);
-
-      setUndoTimers(prev => new Map([...prev, [filePath, timerId]]));
-    } catch (err) {
-      console.error('Failed to curate photo:', err);
-    }
-  }
-
-  function handleAccept(filePath) {
-    curatePhoto(filePath, true, false, 0);
-  }
-
-  function handleReject(filePath) {
-    curatePhoto(filePath, true, true, 0);
-  }
-
-  function handleRate(filePath, rating) {
-    curatePhoto(filePath, true, false, rating);
-  }
-
-  function handleUndo(filePath) {
-    const timerId = undoTimers.get(filePath);
-    if (timerId) {
-      clearTimeout(timerId);
-      setFadingPhotos(prev => {
-        const next = new Set(prev);
-        next.delete(filePath);
-        return next;
-      });
-      setUndoTimers(prev => {
-        const next = new Map(prev);
-        next.delete(filePath);
-        return next;
-      });
-    }
   }
 
   function formatSessionDate(startTime, endTime) {
@@ -262,7 +192,7 @@ export default function CurateSessionGallery({ photos, sessions, onPhotoRemoved 
         undoButton = (
           <div className="undo-overlay" onClick={(e) => {
             e.stopPropagation();
-            handleUndo(photo.filePath);
+            onUndo(photo.filePath);
           }}>
             <button className="undo-button">Undo</button>
           </div>
@@ -270,7 +200,7 @@ export default function CurateSessionGallery({ photos, sessions, onPhotoRemoved 
       }
 
       return (
-        <div key={photo.filePath} className={className} onClick={() => handlePhotoClick(globalIndex)}>
+        <div key={photo.filePath} className={className} onClick={(e) => handlePhotoClick(globalIndex, e)}>
           {mediaElement}
           {isVideo && (
             <div className="video-indicator">
@@ -304,7 +234,7 @@ export default function CurateSessionGallery({ photos, sessions, onPhotoRemoved 
         photos={photos}
         selectedIndex={lightboxIndex}
         onClose={handleCloseLightbox}
-        onCurate={curatePhoto}
+        onCurate={onCurate}
         isCurateMode={true}
       />
     );

@@ -3,8 +3,9 @@ import './PhotoGallery.css';
 
 const { useState } = React;
 
-export default function PhotoGallery({ photos }) {
+export default function PhotoGallery({ photos, selectedIndex, onPhotoSelect, fadingPhotos, onUndo }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
+  const fadingSet = fadingPhotos || new Set();
   function getPhotoUrl(filePath, width = null, height = null) {
     const encoded = btoa(filePath);
     let url = `/api/photo/?path=${encoded}`;
@@ -22,8 +23,14 @@ export default function PhotoGallery({ photos }) {
     return ['mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv', 'webm', 'm4v', 'mpg', 'mpeg'].includes(ext);
   }
 
-  function handlePhotoClick(index) {
-    setLightboxIndex(index);
+  function handlePhotoClick(index, e) {
+    if (e.detail === 2) {
+      setLightboxIndex(index);
+    } else {
+      if (onPhotoSelect) {
+        onPhotoSelect(index);
+      }
+    }
   }
 
   function handleCloseLightbox() {
@@ -33,7 +40,16 @@ export default function PhotoGallery({ photos }) {
   const photoElements = photos.map((photo, index) => {
     const isVideo = photo.isVideo || isVideoFile(photo.filePath);
     const thumbnailUrl = getPhotoUrl(photo.filePath, 300, 300);
-    const fullUrl = getPhotoUrl(photo.filePath);
+    const isSelected = index === selectedIndex;
+    const isFading = fadingSet.has(photo.filePath);
+
+    let className = 'gallery-item';
+    if (isSelected) {
+      className += ' selected';
+    }
+    if (isFading) {
+      className += ' fading';
+    }
 
     let mediaElement = null;
     if (isVideo) {
@@ -56,8 +72,20 @@ export default function PhotoGallery({ photos }) {
       );
     }
 
+    let undoButton = null;
+    if (isFading && onUndo) {
+      undoButton = (
+        <div className="undo-overlay" onClick={(e) => {
+          e.stopPropagation();
+          onUndo(photo.filePath);
+        }}>
+          <button className="undo-button">Undo</button>
+        </div>
+      );
+    }
+
     return (
-      <div key={photo.filePath} className="gallery-item" onClick={() => handlePhotoClick(index)}>
+      <div key={photo.filePath} className={className} onClick={(e) => handlePhotoClick(index, e)}>
         {mediaElement}
         {isVideo && (
           <div className="video-indicator">
@@ -66,6 +94,7 @@ export default function PhotoGallery({ photos }) {
             </svg>
           </div>
         )}
+        {undoButton}
       </div>
     );
   });

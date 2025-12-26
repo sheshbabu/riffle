@@ -12,13 +12,12 @@
   border-radius: 4px;
   background-color: var(--neutral-100);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease, border 0.2s ease;
+  transition: opacity 0.3s ease, border 0.2s ease;
   border: 3px solid transparent;
 }
 
 .curate-gallery-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-4);
+  opacity: 0.9;
 }
 
 .curate-gallery-item.selected {

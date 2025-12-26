@@ -12,12 +12,53 @@
   border-radius: 4px;
   background-color: var(--neutral-100);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+  border: 3px solid transparent;
 }
 
 .gallery-item:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-4);
+}
+
+.gallery-item.selected {
+  border: 3px solid #3B82F6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.gallery-item.fading {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.gallery-item .undo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+}
+
+.gallery-item .undo-button {
+  padding: var(--spacing-2) var(--spacing-4);
+  background-color: #FFF;
+  color: var(--neutral-700);
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-3);
+  transition: background-color 0.2s ease;
+}
+
+.gallery-item .undo-button:hover {
+  background-color: var(--neutral-100);
 }
 
 .gallery-media {

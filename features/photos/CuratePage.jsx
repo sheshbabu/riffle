@@ -20,6 +20,9 @@ export default function CuratePage() {
   const [totalRecords, setTotalRecords] = useState(0);
   const [limit, setLimit] = useState(100);
   const [viewMode, setViewMode] = useState('sessions');
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [fadingPhotos, setFadingPhotos] = useState(new Set());
+  const [undoTimers, setUndoTimers] = useState(new Map());
 
   useEffect(() => {
     async function fetchPhotos() {
@@ -59,6 +62,89 @@ export default function CuratePage() {
     setViewMode(mode);
   }
 
+  function handlePhotoSelect(index) {
+    setSelectedIndex(index);
+  }
+
+  async function curatePhoto(filePath, isCurated, isTrashed, rating) {
+    try {
+      const response = await fetch('/api/photos/curate/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filePath,
+          isCurated,
+          isTrashed,
+          rating,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to curate photo');
+      }
+
+      setFadingPhotos(prev => new Set([...prev, filePath]));
+
+      const timerId = setTimeout(() => {
+        handlePhotoRemoved(filePath);
+        setFadingPhotos(prev => {
+          const next = new Set(prev);
+          next.delete(filePath);
+          return next;
+        });
+        setUndoTimers(prev => {
+          const next = new Map(prev);
+          next.delete(filePath);
+          return next;
+        });
+      }, 3000);
+
+      setUndoTimers(prev => new Map([...prev, [filePath, timerId]]));
+    } catch (err) {
+      console.error('Failed to curate photo:', err);
+    }
+  }
+
+  function handleUndo(filePath) {
+    const timerId = undoTimers.get(filePath);
+    if (timerId) {
+      clearTimeout(timerId);
+      setFadingPhotos(prev => {
+        const next = new Set(prev);
+        next.delete(filePath);
+        return next;
+      });
+      setUndoTimers(prev => {
+        const next = new Map(prev);
+        next.delete(filePath);
+        return next;
+      });
+    }
+  }
+
+  function handleAcceptClick() {
+    if (selectedIndex === null || !photos[selectedIndex]) {
+      return;
+    }
+    curatePhoto(photos[selectedIndex].filePath, true, false, 0);
+  }
+
+  function handleRejectClick() {
+    if (selectedIndex === null || !photos[selectedIndex]) {
+      return;
+    }
+    curatePhoto(photos[selectedIndex].filePath, true, true, 0);
+  }
+
+  function handleRateClick(rating) {
+    if (selectedIndex === null || !photos[selectedIndex]) {
+      return;
+    }
+    curatePhoto(photos[selectedIndex].filePath, true, false, rating);
+  }
+
   function handlePrevPage() {
     if (offset > 0) {
       setOffset(Math.max(0, offset - limit));
@@ -87,9 +173,9 @@ export default function CuratePage() {
     );
   } else if (photos.length > 0) {
     if (viewMode === 'sessions') {
-      content = <CurateSessionGallery photos={photos} sessions={sessions} onPhotoRemoved={handlePhotoRemoved} />;
+      content = <CurateSessionGallery photos={photos} sessions={sessions} selectedIndex={selectedIndex} onPhotoSelect={handlePhotoSelect} fadingPhotos={fadingPhotos} onCurate={curatePhoto} onUndo={handleUndo} />;
     } else {
-      content = <CurateGallery photos={photos} onPhotoRemoved={handlePhotoRemoved} />;
+      content = <CurateGallery photos={photos} selectedIndex={selectedIndex} onPhotoSelect={handlePhotoSelect} fadingPhotos={fadingPhotos} onCurate={curatePhoto} onUndo={handleUndo} />;
     }
   }
 
@@ -137,11 +223,57 @@ export default function CuratePage() {
     );
   }
 
+  const selectedPhoto = selectedIndex !== null ? photos[selectedIndex] : null;
+
+  let actionButtons = null;
+  if (selectedPhoto) {
+    const isAccepted = selectedPhoto.isCurated && !selectedPhoto.isTrashed;
+    const isRejected = selectedPhoto.isTrashed;
+    const currentRating = selectedPhoto.rating || 0;
+
+    const starElements = [1, 2, 3, 4, 5].map(rating => {
+      const isFilled = rating <= currentRating;
+      return (
+        <button key={rating} className={`action-button rate ${isFilled ? 'active' : ''}`} onClick={() => handleRateClick(rating)} title={`Rate ${rating}`}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={isFilled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />
+          </svg>
+        </button>
+      );
+    });
+
+    actionButtons = (
+      <div className="library-actions">
+        <button className={`action-button accept ${isAccepted && currentRating === 0 ? 'active' : ''}`} onClick={handleAcceptClick} title="Accept (P)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+          <span>Accept</span>
+        </button>
+        <button className={`action-button reject ${isRejected ? 'active' : ''}`} onClick={handleRejectClick} title="Reject (X)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="m15 9-6 6" />
+            <path d="m9 9 6 6" />
+          </svg>
+          <span>Reject</span>
+        </button>
+        <div className="rating-buttons">
+          {starElements}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page-container">
       <div className="page-header">
-        {viewToggle}
-        {paginationElement}
+        {actionButtons}
+        <div className="right-actions">
+          {viewToggle}
+          {paginationElement}
+        </div>
       </div>
       {content}
       {loadingOverlay}
