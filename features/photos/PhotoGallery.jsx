@@ -1,4 +1,5 @@
 import Lightbox from '../../commons/components/Lightbox.jsx';
+import { PlayIcon } from '../../commons/components/Icon.jsx';
 import getPhotoUrl from '../../commons/utils/getPhotoUrl.js';
 import isVideoFile from '../../commons/utils/isVideoFile.js';
 import formatSessionDate from '../../commons/utils/formatSessionDate.js';
@@ -9,8 +10,8 @@ const { useState, useEffect } = React;
 export default function PhotoGallery({
   photos,
   sessions,
-  selectedIndex,
-  onPhotoSelect,
+  selectedIndices,
+  onSelectionChange,
   fadingPhotos,
   onCurate,
   onUndo,
@@ -18,11 +19,14 @@ export default function PhotoGallery({
 }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const fadingSet = fadingPhotos || new Set();
+  const selectedSet = selectedIndices || new Set();
   const isSessionView = sessions && sessions.length > 0;
 
+  const selectedIndex = selectedSet.size > 0 ? Array.from(selectedSet)[0] : null;
+
   useEffect(() => {
-    if (isCurateMode && selectedIndex >= photos.length && photos.length > 0) {
-      onPhotoSelect(Math.max(0, photos.length - 1));
+    if (isCurateMode && selectedIndex !== null && selectedIndex >= photos.length && photos.length > 0) {
+      onSelectionChange(new Set([Math.max(0, photos.length - 1)]));
     }
   }, [photos.length, selectedIndex, isCurateMode]);
 
@@ -49,51 +53,30 @@ export default function PhotoGallery({
         return;
       }
 
+      const lastIndex = photos.length - 1;
+      const cols = getGridColumns();
+
       switch (e.key) {
         case 'ArrowRight':
           e.preventDefault();
-          onPhotoSelect(Math.min(photos.length - 1, selectedIndex + 1));
+          onSelectionChange(new Set([Math.min(lastIndex, selectedIndex + 1)]));
           break;
         case 'ArrowLeft':
           e.preventDefault();
-          onPhotoSelect(Math.max(0, selectedIndex - 1));
+          onSelectionChange(new Set([Math.max(0, selectedIndex - 1)]));
           break;
         case 'ArrowDown':
           e.preventDefault();
-          {
-            const nextIndex = selectedIndex + getGridColumns();
-            onPhotoSelect(Math.min(photos.length - 1, nextIndex));
-          }
+          onSelectionChange(new Set([Math.min(lastIndex, selectedIndex + cols)]));
           break;
         case 'ArrowUp':
           e.preventDefault();
-          {
-            const prevIndex = selectedIndex - getGridColumns();
-            onPhotoSelect(Math.max(0, prevIndex));
-          }
+          onSelectionChange(new Set([Math.max(0, selectedIndex - cols)]));
           break;
         case 'Enter':
         case ' ':
           e.preventDefault();
           setLightboxIndex(selectedIndex);
-          break;
-        case 'p':
-        case 'P':
-          e.preventDefault();
-          onCurate(currentPhoto.filePath, true, false, 0);
-          break;
-        case 'x':
-        case 'X':
-          e.preventDefault();
-          onCurate(currentPhoto.filePath, true, true, 0);
-          break;
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-          e.preventDefault();
-          onCurate(currentPhoto.filePath, true, false, parseInt(e.key));
           break;
       }
     }
@@ -116,10 +99,25 @@ export default function PhotoGallery({
   function handlePhotoClick(index, e) {
     if (e.detail === 2) {
       setLightboxIndex(index);
-    } else {
-      if (onPhotoSelect) {
-        onPhotoSelect(index);
+      return;
+    }
+
+    if (!onSelectionChange) {
+      return;
+    }
+
+    if (e.shiftKey && selectedIndex !== null) {
+      onSelectionChange(createRangeSet(selectedIndex, index));
+    } else if (e.metaKey || e.ctrlKey) {
+      const newSelection = new Set(selectedSet);
+      if (newSelection.has(index)) {
+        newSelection.delete(index);
+      } else {
+        newSelection.add(index);
       }
+      onSelectionChange(newSelection);
+    } else {
+      onSelectionChange(new Set([index]));
     }
   }
 
@@ -130,7 +128,7 @@ export default function PhotoGallery({
   function renderPhotoItem(photo, index) {
     const isVideo = photo.isVideo || isVideoFile(photo.filePath);
     const thumbnailUrl = getPhotoUrl(photo.filePath, 300, 300);
-    const isSelected = index === selectedIndex;
+    const isSelected = selectedSet.has(index);
     const isFading = fadingSet.has(photo.filePath);
 
     let className = 'gallery-item';
@@ -157,15 +155,17 @@ export default function PhotoGallery({
     if (isVideo) {
       videoIndicator = (
         <div className="video-indicator">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-            <path d="M8 5v14l11-7z" />
-          </svg>
+          <PlayIcon />
         </div>
       );
     }
 
     return (
-      <div key={photo.filePath} className={className} onClick={(e) => handlePhotoClick(index, e)}>
+      <div
+        key={photo.filePath}
+        className={className}
+        onClick={(e) => handlePhotoClick(index, e)}
+      >
         <img
           src={thumbnailUrl}
           alt={photo.filePath}
@@ -245,4 +245,14 @@ export default function PhotoGallery({
       {lightboxElement}
     </>
   );
+}
+
+function createRangeSet(start, end) {
+  const set = new Set();
+  const from = Math.min(start, end);
+  const to = Math.max(start, end);
+  for (let i = from; i <= to; i++) {
+    set.add(i);
+  }
+  return set;
 }

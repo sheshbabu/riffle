@@ -59,7 +59,8 @@ export default function PhotoListPage({ mode = 'library' }) {
   const [pageEndRecord, setPageEndRecord] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
   const [limit, setLimit] = useState(100);
-  const [selectedIndex, setSelectedIndex] = useState(config.initialSelectedIndex);
+  const initialSelection = config.initialSelectedIndex !== null ? new Set([config.initialSelectedIndex]) : new Set();
+  const [selectedIndices, setSelectedIndices] = useState(initialSelection);
   const [fadingPhotos, setFadingPhotos] = useState(new Set());
   const [undoTimers, setUndoTimers] = useState(new Map());
   const [isCurating, setIsCurating] = useState(false);
@@ -118,13 +119,54 @@ export default function PhotoListPage({ mode = 'library' }) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [offset, limit, totalRecords]);
 
+  useEffect(() => {
+    if (!config.showActionButtons) {
+      return;
+    }
+
+    function handleCurateKeyDown(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      const hasSelection = selectedIndices.size > 0;
+      if (!hasSelection) {
+        return;
+      }
+
+      switch (e.key) {
+        case 'p':
+        case 'P':
+          e.preventDefault();
+          handlePickClick();
+          break;
+        case 'x':
+        case 'X':
+          e.preventDefault();
+          handleRejectClick();
+          break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+          e.preventDefault();
+          handleRateClick(parseInt(e.key));
+          break;
+      }
+    }
+
+    document.addEventListener('keydown', handleCurateKeyDown);
+    return () => document.removeEventListener('keydown', handleCurateKeyDown);
+  }, [selectedIndices, photos]);
+
   function handleViewModeChange(newViewMode) {
     ViewPreferences.setPreference(mode, newViewMode);
     updateSearchParams({ view: newViewMode === savedView ? null : newViewMode });
   }
 
-  function handlePhotoSelect(index) {
-    setSelectedIndex(index);
+  function handleSelectionChange(indices) {
+    setSelectedIndices(indices);
   }
 
   function handlePhotoRemoved(filePath) {
@@ -215,25 +257,35 @@ export default function PhotoListPage({ mode = 'library' }) {
     }
   }
 
+  function getSelectedFilePaths() {
+    return Array.from(selectedIndices).map(i => photos[i]?.filePath).filter(Boolean);
+  }
+
   function handlePickClick() {
-    if (selectedIndex === null || !photos[selectedIndex]) {
+    const filePaths = getSelectedFilePaths();
+    if (filePaths.length === 0) {
       return;
     }
-    curatePhoto(photos[selectedIndex].filePath, true, false, 0);
+    filePaths.forEach(filePath => curatePhoto(filePath, true, false, 0));
+    setSelectedIndices(new Set());
   }
 
   function handleRejectClick() {
-    if (selectedIndex === null || !photos[selectedIndex]) {
+    const filePaths = getSelectedFilePaths();
+    if (filePaths.length === 0) {
       return;
     }
-    curatePhoto(photos[selectedIndex].filePath, true, true, 0);
+    filePaths.forEach(filePath => curatePhoto(filePath, true, true, 0));
+    setSelectedIndices(new Set());
   }
 
   function handleRateClick(rating) {
-    if (selectedIndex === null || !photos[selectedIndex]) {
+    const filePaths = getSelectedFilePaths();
+    if (filePaths.length === 0) {
       return;
     }
-    curatePhoto(photos[selectedIndex].filePath, true, false, rating);
+    filePaths.forEach(filePath => curatePhoto(filePath, true, false, rating));
+    setSelectedIndices(new Set());
   }
 
   function handlePrevPage() {
@@ -270,8 +322,8 @@ export default function PhotoListPage({ mode = 'library' }) {
       <PhotoGallery
         photos={photos}
         sessions={sessionsToPass}
-        selectedIndex={selectedIndex}
-        onPhotoSelect={handlePhotoSelect}
+        selectedIndices={selectedIndices}
+        onSelectionChange={handleSelectionChange}
         fadingPhotos={fadingPhotos}
         onCurate={curatePhoto}
         onUndo={handleUndo}
@@ -322,13 +374,15 @@ export default function PhotoListPage({ mode = 'library' }) {
     );
   }
 
-  const selectedPhoto = selectedIndex !== null ? photos[selectedIndex] : null;
+  const hasSelection = selectedIndices.size > 0;
+  const firstSelectedIndex = hasSelection ? Array.from(selectedIndices)[0] : null;
+  const selectedPhoto = firstSelectedIndex !== null ? photos[firstSelectedIndex] : null;
 
   let actionButtons = null;
-  if (config.showActionButtons && selectedPhoto) {
-    const isPicked = selectedPhoto.isCurated && !selectedPhoto.isTrashed;
-    const isRejected = selectedPhoto.isTrashed;
-    const currentRating = selectedPhoto.rating || 0;
+  if (config.showActionButtons && hasSelection) {
+    const isPicked = selectedIndices.size === 1 && selectedPhoto ? (selectedPhoto.isCurated && !selectedPhoto.isTrashed) : false;
+    const isRejected = selectedIndices.size === 1 && selectedPhoto ? selectedPhoto.isTrashed : false;
+    const currentRating = selectedIndices.size === 1 && selectedPhoto ? (selectedPhoto.rating || 0) : 0;
 
     const starElements = [1, 2, 3, 4, 5].map(rating => {
       const isFilled = rating <= currentRating;
@@ -341,8 +395,11 @@ export default function PhotoListPage({ mode = 'library' }) {
       );
     });
 
+    const selectionCount = <span className="selection-count">{selectedIndices.size} selected</span>;
+
     actionButtons = (
       <div className="library-actions">
+        {selectionCount}
         <button className={`action-button pick ${isPicked && currentRating === 0 ? 'active' : ''}`} onClick={handlePickClick} title="Pick (P)" disabled={isCurating}>
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" />
