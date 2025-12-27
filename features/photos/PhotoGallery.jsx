@@ -1,8 +1,8 @@
 import Lightbox from '../../commons/components/Lightbox.jsx';
-import { PlayIcon } from '../../commons/components/Icon.jsx';
 import getPhotoUrl from '../../commons/utils/getPhotoUrl.js';
 import isVideoFile from '../../commons/utils/isVideoFile.js';
 import formatSessionDate from '../../commons/utils/formatSessionDate.js';
+import formatDuration from '../../commons/utils/formatDuration.js';
 import './PhotoGallery.css';
 
 const { useState, useEffect } = React;
@@ -153,9 +153,10 @@ export default function PhotoGallery({
 
     let videoIndicator = null;
     if (isVideo) {
+      const duration = formatDuration(photo.duration, true);
       videoIndicator = (
         <div className="video-indicator">
-          <PlayIcon />
+          {duration || 'Video'}
         </div>
       );
     }

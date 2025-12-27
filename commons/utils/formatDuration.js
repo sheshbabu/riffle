@@ -1,4 +1,4 @@
-export default function formatDuration(durationStr) {
+export default function formatDuration(durationStr, compact = false) {
   if (!durationStr) {
     return null;
   }
@@ -6,30 +6,34 @@ export default function formatDuration(durationStr) {
   // Duration format is typically "0:00:28" or "00:28"
   const parts = durationStr.split(':').map(p => parseInt(p, 10));
 
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+
   if (parts.length === 3) {
-    // Format: H:MM:SS
-    const hours = parts[0];
-    const minutes = parts[1];
-    const seconds = parts[2];
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    } else if (minutes > 0) {
-      return `${minutes}m ${seconds}s`;
-    } else {
-      return `${seconds}s`;
-    }
+    hours = parts[0];
+    minutes = parts[1];
+    seconds = parts[2];
   } else if (parts.length === 2) {
-    // Format: MM:SS
-    const minutes = parts[0];
-    const seconds = parts[1];
-
-    if (minutes > 0) {
-      return `${minutes}m ${seconds}s`;
-    } else {
-      return `${seconds}s`;
-    }
+    minutes = parts[0];
+    seconds = parts[1];
+  } else {
+    return durationStr;
   }
 
-  return durationStr;
+  if (compact) {
+    const pad = (n) => n.toString().padStart(2, '0');
+    if (hours > 0) {
+      return `${hours}:${pad(minutes)}:${pad(seconds)}`;
+    }
+    return `${minutes}:${pad(seconds)}`;
+  }
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  } else {
+    return `${seconds}s`;
+  }
 }

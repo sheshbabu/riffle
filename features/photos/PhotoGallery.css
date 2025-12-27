@@ -107,18 +107,13 @@
   position: absolute;
   bottom: var(--spacing-2);
   right: var(--spacing-2);
-  width: 32px;
-  height: 32px;
-  background-color: rgba(0, 0, 0, 0.6);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 2px 6px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
   pointer-events: none;
-}
-
-.video-indicator svg {
-  margin-left: 2px;
 }
 
 .page-header {
