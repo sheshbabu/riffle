@@ -26,6 +26,11 @@
   font-weight: 600;
 }
 
+.session-location {
+  font: var(--sm);
+  color: var(--text-secondary);
+}
+
 .session-count {
   font: var(--sm);
   color: var(--text-secondary);

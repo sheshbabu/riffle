@@ -7,35 +7,38 @@ import (
 )
 
 type Photo struct {
-	FilePath     string  `json:"filePath"`
-	Sha256Hash   string  `json:"sha256Hash"`
-	Dhash        *string `json:"dhash,omitempty"`
-	FileSize     int64   `json:"fileSize"`
-	DateTime     *string `json:"dateTime,omitempty"`
-	CameraMake   *string `json:"cameraMake,omitempty"`
-	CameraModel  *string `json:"cameraModel,omitempty"`
-	Width        *string `json:"width,omitempty"`
-	Height       *string `json:"height,omitempty"`
-	Orientation  *string `json:"orientation,omitempty"`
-	Latitude     *string `json:"latitude,omitempty"`
-	Longitude    *string `json:"longitude,omitempty"`
-	ISO          *string `json:"iso,omitempty"`
-	FNumber      *string `json:"fNumber,omitempty"`
-	ExposureTime *string `json:"exposureTime,omitempty"`
-	FocalLength  *string `json:"focalLength,omitempty"`
-	FileFormat      string  `json:"fileFormat"`
-	MimeType        string  `json:"mimeType"`
-	IsVideo         bool    `json:"isVideo"`
-	Duration        *string `json:"duration,omitempty"`
-	FileCreatedAt   *string `json:"fileCreatedAt,omitempty"`
-	FileModifiedAt  *string `json:"fileModifiedAt,omitempty"`
-	IsCurated       bool    `json:"isCurated"`
-	IsTrashed       bool    `json:"isTrashed"`
-	Rating          int     `json:"rating"`
-	Notes           *string `json:"notes,omitempty"`
-	CreatedAt       string  `json:"createdAt"`
-	UpdatedAt       string  `json:"updatedAt"`
-	TotalRecords    int     `json:"totalRecords,omitempty"`
+	FilePath       string  `json:"filePath"`
+	Sha256Hash     string  `json:"sha256Hash"`
+	Dhash          *string `json:"dhash,omitempty"`
+	FileSize       int64   `json:"fileSize"`
+	DateTime       *string `json:"dateTime,omitempty"`
+	CameraMake     *string `json:"cameraMake,omitempty"`
+	CameraModel    *string `json:"cameraModel,omitempty"`
+	Width          *string `json:"width,omitempty"`
+	Height         *string `json:"height,omitempty"`
+	Orientation    *string `json:"orientation,omitempty"`
+	Latitude       *string `json:"latitude,omitempty"`
+	Longitude      *string `json:"longitude,omitempty"`
+	ISO            *string `json:"iso,omitempty"`
+	FNumber        *string `json:"fNumber,omitempty"`
+	ExposureTime   *string `json:"exposureTime,omitempty"`
+	FocalLength    *string `json:"focalLength,omitempty"`
+	FileFormat     string  `json:"fileFormat"`
+	MimeType       string  `json:"mimeType"`
+	IsVideo        bool    `json:"isVideo"`
+	Duration       *string `json:"duration,omitempty"`
+	FileCreatedAt  *string `json:"fileCreatedAt,omitempty"`
+	FileModifiedAt *string `json:"fileModifiedAt,omitempty"`
+	City           *string `json:"city,omitempty"`
+	State          *string `json:"state,omitempty"`
+	CountryCode    *string `json:"countryCode,omitempty"`
+	IsCurated      bool    `json:"isCurated"`
+	IsTrashed      bool    `json:"isTrashed"`
+	Rating         int     `json:"rating"`
+	Notes          *string `json:"notes,omitempty"`
+	CreatedAt      string  `json:"createdAt"`
+	UpdatedAt      string  `json:"updatedAt"`
+	TotalRecords   int     `json:"totalRecords,omitempty"`
 }
 
 func GetPhotos(limit, offset int) ([]Photo, error) {
@@ -46,6 +49,7 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
+			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
 			created_at, updated_at,
 			COUNT(*) OVER() AS total_records
@@ -74,6 +78,7 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 			&p.FileCreatedAt, &p.FileModifiedAt,
+			&p.City, &p.State, &p.CountryCode,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
 			&p.TotalRecords,
@@ -97,6 +102,7 @@ func GetPhoto(filePath string) (*Photo, error) {
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
+			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
 			created_at, updated_at
 		FROM photos
@@ -110,6 +116,7 @@ func GetPhoto(filePath string) (*Photo, error) {
 		&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 		&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 		&p.FileCreatedAt, &p.FileModifiedAt,
+		&p.City, &p.State, &p.CountryCode,
 		&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 		&p.CreatedAt, &p.UpdatedAt,
 	)
@@ -131,6 +138,7 @@ func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
+			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
 			created_at, updated_at,
 			COUNT(*) OVER() AS total_records
@@ -159,6 +167,7 @@ func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 			&p.FileCreatedAt, &p.FileModifiedAt,
+			&p.City, &p.State, &p.CountryCode,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
 			&p.TotalRecords,
@@ -182,6 +191,7 @@ func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
+			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
 			created_at, updated_at,
 			COUNT(*) OVER() AS total_records
@@ -209,6 +219,7 @@ func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 			&p.FileCreatedAt, &p.FileModifiedAt,
+			&p.City, &p.State, &p.CountryCode,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
 			&p.TotalRecords,

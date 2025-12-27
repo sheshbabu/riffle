@@ -10,6 +10,7 @@ import (
 	"riffle/commons/exif"
 	"riffle/commons/sqlite"
 	"riffle/commons/utils"
+	"riffle/features/geocoding"
 	"riffle/features/ingest"
 	"riffle/features/photos"
 	"syscall"
@@ -49,6 +50,10 @@ func main() {
 	}()
 
 	sqlite.Migrate(migrations)
+
+	if err := geocoding.Init(); err != nil {
+		slog.Error("error initializing geocoding", "error", err)
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {

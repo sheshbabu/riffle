@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"riffle/commons/sqlite"
+	"riffle/commons/utils"
+	"riffle/features/geocoding"
 	"time"
 )
 
@@ -14,8 +16,9 @@ func CreatePhoto(photo PhotoFile) error {
 			camera_make, camera_model, width, height, orientation,
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
-			file_created_at, file_modified_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			file_created_at, file_modified_at,
+			city, state, country_code
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(file_path) DO UPDATE SET
 			sha256_hash = excluded.sha256_hash,
 			dhash = excluded.dhash,
@@ -38,6 +41,9 @@ func CreatePhoto(photo PhotoFile) error {
 			duration = excluded.duration,
 			file_created_at = excluded.file_created_at,
 			file_modified_at = excluded.file_modified_at,
+			city = excluded.city,
+			state = excluded.state,
+			country_code = excluded.country_code,
 			updated_at = CURRENT_TIMESTAMP
 	`
 
@@ -116,6 +122,22 @@ func CreatePhoto(photo PhotoFile) error {
 		fileModifiedAt = photo.FileModifiedAt
 	}
 
+	var city, state, countryCode interface{}
+	if latStr, ok := photo.ExifData["Latitude"].(string); ok {
+		if lonStr, ok := photo.ExifData["Longitude"].(string); ok {
+			lat := utils.ParseDMSOrDecimal(latStr)
+			lon := utils.ParseDMSOrDecimal(lonStr)
+			if lat != 0 && lon != 0 {
+				location, err := geocoding.ReverseGeocode(lat, lon)
+				if err == nil && location != nil {
+					city = location.City
+					state = location.State
+					countryCode = location.CountryCode
+				}
+			}
+		}
+	}
+
 	_, err := sqlite.DB.Exec(
 		query,
 		photo.Path, photo.Hash, dhashStr, photo.Size, dateTime,
@@ -123,6 +145,7 @@ func CreatePhoto(photo PhotoFile) error {
 		latitude, longitude, iso, fNumber, exposureTime, focalLength,
 		photo.FileFormat, photo.MimeType, photo.IsVideo, duration,
 		fileCreatedAt, fileModifiedAt,
+		city, state, countryCode,
 	)
 
 	if err != nil {

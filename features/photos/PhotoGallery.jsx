@@ -192,10 +192,16 @@ export default function PhotoGallery({
         return renderPhotoItem(photo, globalIndex);
       });
 
+      let locationElement = null;
+      if (session.location) {
+        locationElement = <span className="session-location">{session.location}</span>;
+      }
+
       return (
         <div key={session.sessionId} className="session-group">
           <div className="session-header">
             <span className="session-date">{formatSessionDate(session.startTime, session.endTime)}</span>
+            {locationElement}
             <span className="session-count">{session.photoCount} {session.photoCount === 1 ? 'photo' : 'photos'}</span>
           </div>
           <div className="session-grid">

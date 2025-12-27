@@ -2,8 +2,11 @@
 
 A photo organizer designed for photographers who need to efficiently manage and curate large photo collections.
 
-## Workflow: Import → Curate → Library → Export
+### Workflow
 
+```
+Import → Curate → Library → Export
+```
 
 **Import**
 * Exact duplicate detection using SHA256 hashing
@@ -11,10 +14,10 @@ A photo organizer designed for photographers who need to efficiently manage and 
 * Organizes photos by date into `YYYY/MM - MonthName/` folders
 * Preserves EXIF metadata (DateTime, GPS, camera settings, video duration)
 * Supports HEIC, HEIF, MOV, MP4, and common image formats
-* Single Go binary with embedded web frontend
 
 **Library**
 * Browse organized photos in chronological grid
+* Automatic photo grouping by time/location
 * Photo metadata display (camera, settings, GPS)
 * Image lightbox with full-screen view
 * Video playback support
@@ -30,13 +33,6 @@ A photo organizer designed for photographers who need to efficiently manage and 
 * Review rejected photos before final deletion
 * No immediate file deletion
 * Easy recovery of mistakenly rejected photos
-
-### Planned Features
-
-* **Session Grouping**: Automatic photo grouping by time/location
-* **Near-Duplicate Detection**: Find visually similar photos using perceptual hashing
-* **Burst Stacking**: Collapse photo bursts into single thumbnails
-* **Export**: Filter and export curated collections to cloud storage
 
 ### Installation
 
@@ -89,7 +85,13 @@ Or run once:
 $ make dev
 ```
 
-# Vendor Dependencies
+### Reverse Geocoding
+
+This project uses offline reverse geocoding with data from [GeoNames](http://download.geonames.org/export/dump/). Location data is stored locally for fast lookups without network requests.
+
+Note that cities1000 dataset includes places with population > 1000, providing city-level accuracy.
+
+### Vendor Dependencies
 
 Download React:
 ```bash

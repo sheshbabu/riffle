@@ -47,6 +47,7 @@ func DetectSessions(photos []Photo) []Session {
 				StartTime:  *photoTime,
 				EndTime:    *photoTime,
 				PhotoCount: 1,
+				Location:   formatPhotoLocation(photo),
 			}
 			lastPhotoTime = photoTime
 
@@ -91,6 +92,7 @@ func DetectSessions(photos []Photo) []Session {
 				StartTime:  *photoTime,
 				EndTime:    *photoTime,
 				PhotoCount: 1,
+				Location:   formatPhotoLocation(photo),
 			}
 			lastPhotoTime = photoTime
 
@@ -152,6 +154,7 @@ func GetPhotosWithSessions(limit, offset int, filterCurated bool, filterTrashed 
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
+			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
 			created_at, updated_at,
 			COUNT(*) OVER() AS total_records
@@ -180,6 +183,7 @@ func GetPhotosWithSessions(limit, offset int, filterCurated bool, filterTrashed 
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 			&p.FileCreatedAt, &p.FileModifiedAt,
+			&p.City, &p.State, &p.CountryCode,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
 			&p.TotalRecords,
@@ -247,4 +251,31 @@ func haversineDistance(lat1, lon1, lat2, lon2 float64) float64 {
 
 func degreesToRadians(degrees float64) float64 {
 	return degrees * math.Pi / 180
+}
+
+func formatPhotoLocation(photo Photo) *string {
+	if photo.City == nil && photo.State == nil && photo.CountryCode == nil {
+		return nil
+	}
+
+	var parts []string
+	if photo.City != nil && *photo.City != "" {
+		parts = append(parts, *photo.City)
+	}
+	if photo.State != nil && *photo.State != "" {
+		parts = append(parts, *photo.State)
+	}
+	if photo.CountryCode != nil && *photo.CountryCode != "" {
+		parts = append(parts, *photo.CountryCode)
+	}
+
+	if len(parts) == 0 {
+		return nil
+	}
+
+	location := parts[0]
+	if len(parts) > 1 {
+		location = parts[0] + ", " + parts[len(parts)-1]
+	}
+	return &location
 }

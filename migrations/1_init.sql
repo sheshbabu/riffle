@@ -19,6 +19,9 @@ CREATE TABLE IF NOT EXISTS photos (
     f_number       TEXT,
     exposure_time  TEXT,
     focal_length   TEXT,
+    city           TEXT,
+    state          TEXT,
+    country_code   TEXT,
     is_curated     BOOLEAN DEFAULT 0,
     is_trashed     BOOLEAN DEFAULT 0,
     rating         INTEGER DEFAULT 0,
@@ -62,6 +65,21 @@ CREATE TABLE IF NOT EXISTS album_photos (
     FOREIGN KEY (file_path) REFERENCES photos (file_path)
 );
 
+CREATE TABLE IF NOT EXISTS cities (
+    geoname_id    INTEGER PRIMARY KEY,
+    name          TEXT NOT NULL,
+    state         TEXT,
+    country_code  TEXT NOT NULL,
+    latitude      REAL NOT NULL,
+    longitude     REAL NOT NULL
+);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS cities_rtree USING rtree(
+    id,
+    min_lat, max_lat,
+    min_lon, max_lon
+);
+
 CREATE INDEX IF NOT EXISTS idx_photos_sha256_hash ON photos(sha256_hash);
 CREATE INDEX IF NOT EXISTS idx_photos_dhash ON photos(dhash);
 CREATE INDEX IF NOT EXISTS idx_photos_date_time ON photos(date_time);
@@ -72,3 +90,4 @@ CREATE INDEX IF NOT EXISTS idx_photos_rating ON photos(rating);
 CREATE INDEX IF NOT EXISTS idx_photos_is_video ON photos(is_video);
 CREATE INDEX IF NOT EXISTS idx_photos_camera ON photos(camera_make, camera_model);
 CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
+CREATE INDEX IF NOT EXISTS idx_cities_country ON cities(country_code);
