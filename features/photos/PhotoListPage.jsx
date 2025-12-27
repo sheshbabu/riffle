@@ -82,7 +82,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         setIsLoading(false);
         const mainContent = document.querySelector('.main-content');
         if (mainContent) {
-          mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+          mainContent.scrollTo({ top: 0 });
         }
       }
     }
