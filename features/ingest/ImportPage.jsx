@@ -78,7 +78,7 @@ export default function ImportPage() {
     <div className="page-container">
       <ScanImportCard isScanning={isScanning} results={results} onScanClick={handleScanClick} />
       <ScanProgressCard isScanning={isScanning} progress={progress} />
-      <ScanResultsCard results={results} onImportClick={handleImportClick} />
+      <ScanResultsCard results={results} isImporting={isImporting} onImportClick={handleImportClick} />
       <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} hasResults={results != null} />
     </div>
   );

@@ -52,6 +52,9 @@
         color: var(--neutral-50);
 
         svg.lucide {
+            margin-right: 8px;
+            margin-left: 0;
+
             line,
             circle,
             rect,
@@ -64,6 +67,7 @@
             background-color: var(--neutral-700);
 
             svg.lucide {
+
                 line,
                 circle,
                 rect,
@@ -83,9 +87,19 @@
         }
     }
 
-    &[disabled] {
+    &[disabled],
+    &.disabled {
         opacity: 0.8;
         cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .loading-spinner {
+        margin-right: 6px;
+    }
+
+    .button-text {
+        display: inline;
     }
 
     a {
