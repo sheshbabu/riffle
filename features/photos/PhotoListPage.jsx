@@ -180,7 +180,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     setPageEndRecord(prev => Math.max(0, prev - 1));
   }
 
-  async function curatePhoto(filePath, isCurated, isTrashed, rating) {
+  async function curatePhoto(filePath, isCurated, isTrashed, rating, shouldSkipToast = false) {
     setIsCurating(true);
     try {
       const response = await fetch('/api/photos/curate/', {
@@ -229,17 +229,20 @@ export default function PhotoListPage({ mode = 'library' }) {
         }));
       }
 
-      let toastMessage = 'Photo updated';
-      if (isTrashed) {
-        toastMessage = 'Photo rejected';
-      } else if (rating > 0) {
-        toastMessage = `Photo rated ${rating} star${rating > 1 ? 's' : ''}`;
-      } else if (isCurated) {
-        toastMessage = 'Photo picked';
-      } else {
-        toastMessage = 'Photo unflagged';
+      if (!shouldSkipToast) {
+        let toastMessage = 'Photo updated';
+        if (isTrashed) {
+          toastMessage = 'Photo rejected';
+        } else if (rating > 0) {
+          const stars = rating === 1 ? 'star' : 'stars';
+          toastMessage = `Photo rated ${rating} ${stars}`;
+        } else if (isCurated) {
+          toastMessage = 'Photo picked';
+        } else {
+          toastMessage = 'Photo unflagged';
+        }
+        showToast(toastMessage, 2000);
       }
-      showToast(toastMessage, 2000);
     } catch (err) {
       showToast('Failed to update photo', 3000);
     } finally {
@@ -273,8 +276,11 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, true, false, 0));
+    filePaths.forEach(filePath => curatePhoto(filePath, true, false, 0, true));
     setSelectedIndices(new Set());
+    const count = filePaths.length;
+    const label = count === 1 ? 'Photo' : `${count} photos`;
+    showToast(`${label} picked`, 2000);
   }
 
   function handleRejectClick() {
@@ -282,8 +288,11 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, true, true, 0));
+    filePaths.forEach(filePath => curatePhoto(filePath, true, true, 0, true));
     setSelectedIndices(new Set());
+    const count = filePaths.length;
+    const label = count === 1 ? 'Photo' : `${count} photos`;
+    showToast(`${label} rejected`, 2000);
   }
 
   function handleUnflagClick() {
@@ -291,8 +300,11 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, false, false, 0));
+    filePaths.forEach(filePath => curatePhoto(filePath, false, false, 0, true));
     setSelectedIndices(new Set());
+    const count = filePaths.length;
+    const label = count === 1 ? 'Photo' : `${count} photos`;
+    showToast(`${label} unflagged`, 2000);
   }
 
   function handleRateClick(rating) {
@@ -300,8 +312,12 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, true, false, rating));
+    filePaths.forEach(filePath => curatePhoto(filePath, true, false, rating, true));
     setSelectedIndices(new Set());
+    const count = filePaths.length;
+    const label = count === 1 ? 'Photo' : `${count} photos`;
+    const stars = rating === 1 ? 'star' : 'stars';
+    showToast(`${label} rated ${rating} ${stars}`, 2000);
   }
 
   function handlePrevPage() {
