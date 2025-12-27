@@ -338,7 +338,6 @@ function getPrevRowIndex(currentIndex, cols, sessions) {
       prevSessionStart += sessions[i].photoCount;
     }
     const prevSession = sessions[info.sessionIndex - 1];
-    const prevSessionEnd = prevSessionStart + prevSession.photoCount;
     const totalRowsInPrevSession = Math.ceil(prevSession.photoCount / cols);
     const lastRowStart = (totalRowsInPrevSession - 1) * cols;
     const targetCol = Math.min(currentCol, prevSession.photoCount - 1 - lastRowStart);

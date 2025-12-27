@@ -90,8 +90,9 @@ async function getUncuratedPhotos(offset, withSessions) {
   return await request('GET', `/api/photos/uncurated/?offset=${offset}${sessionsParam}`);
 }
 
-async function getTrashedPhotos(offset) {
-  return await request('GET', `/api/photos/trashed/?offset=${offset}`);
+async function getTrashedPhotos(offset, withSessions) {
+  const sessionsParam = withSessions ? '&sessions=true' : '';
+  return await request('GET', `/api/photos/trashed/?offset=${offset}${sessionsParam}`);
 }
 
 export default {

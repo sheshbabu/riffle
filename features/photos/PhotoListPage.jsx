@@ -18,24 +18,18 @@ const PAGE_CONFIG = {
     emptyMessage: 'No photos found. Import photos from the inbox first.',
     initialSelectedIndex: null,
     fadeOnlyOnTrash: true,
-    showViewToggle: true,
-    showActionButtons: true,
   },
   curate: {
     fetchPhotos: (offset, withSessions) => ApiClient.getUncuratedPhotos(offset, withSessions),
     emptyMessage: 'No photos to curate. All photos have been reviewed!',
     initialSelectedIndex: 0,
     fadeOnlyOnTrash: false,
-    showViewToggle: true,
-    showActionButtons: true,
   },
   trash: {
-    fetchPhotos: (offset) => ApiClient.getTrashedPhotos(offset),
+    fetchPhotos: (offset, withSessions) => ApiClient.getTrashedPhotos(offset, withSessions),
     emptyMessage: 'No trashed photos. Trash is empty.',
     initialSelectedIndex: null,
     fadeOnlyOnTrash: true,
-    showViewToggle: false,
-    showActionButtons: false,
   },
 };
 
@@ -71,7 +65,7 @@ export default function PhotoListPage({ mode = 'library' }) {
       setError(null);
 
       try {
-        const withSessions = config.showViewToggle && viewMode === 'sessions';
+        const withSessions = viewMode === 'sessions';
         const data = await config.fetchPhotos(offset, withSessions);
         setPhotos(data.photos || []);
         setSessions(data.sessions || []);
@@ -120,10 +114,6 @@ export default function PhotoListPage({ mode = 'library' }) {
   }, [offset, limit, totalRecords]);
 
   useEffect(() => {
-    if (!config.showActionButtons) {
-      return;
-    }
-
     function handleCurateKeyDown(e) {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         return;
@@ -404,7 +394,7 @@ export default function PhotoListPage({ mode = 'library' }) {
   }
 
   let viewToggle = null;
-  if (config.showViewToggle && !error && photos.length > 0) {
+  if (!error && photos.length > 0) {
     const viewModeOptions = [
       { value: 'sessions', label: 'Grouped' },
       { value: 'grid', label: 'Grid' },
@@ -432,7 +422,7 @@ export default function PhotoListPage({ mode = 'library' }) {
   const selectedPhoto = firstSelectedIndex !== null ? photos[firstSelectedIndex] : null;
 
   let actionButtons = null;
-  if (config.showActionButtons && hasSelection) {
+  if (hasSelection) {
     const isPicked = selectedIndices.size === 1 && selectedPhoto ? (selectedPhoto.isCurated && !selectedPhoto.isTrashed) : false;
     const isRejected = selectedIndices.size === 1 && selectedPhoto ? selectedPhoto.isTrashed : false;
     const currentRating = selectedIndices.size === 1 && selectedPhoto ? (selectedPhoto.rating || 0) : 0;

@@ -257,7 +257,35 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	withSessions := r.URL.Query().Get("sessions") == "true"
 	limit := 100
+
+	if withSessions {
+		photos, sessions, err := GetPhotosWithSessions(limit, offset, false, true)
+		if err != nil {
+			slog.Error("failed to get trashed photos with sessions", "error", err)
+			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
+			return
+		}
+
+		response := PhotosResponse{
+			Photos:        photos,
+			Sessions:      sessions,
+			CurrentOffset: offset,
+			Limit:         limit,
+		}
+
+		if len(photos) > 0 {
+			response.TotalRecords = photos[0].TotalRecords
+			response.PageStartRecord = offset + 1
+			response.PageEndRecord = offset + len(photos)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
 	photos, err := GetTrashedPhotos(limit, offset)
 	if err != nil {
