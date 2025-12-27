@@ -175,7 +175,28 @@ export default function PhotoListPage({ mode = 'library' }) {
   }
 
   function handlePhotoRemoved(filePath) {
-    setPhotos(prevPhotos => prevPhotos.filter(p => p.filePath !== filePath));
+    setPhotos(prevPhotos => {
+      const removedIndex = prevPhotos.findIndex(p => p.filePath === filePath);
+      const newPhotos = prevPhotos.filter(p => p.filePath !== filePath);
+
+      if (removedIndex !== -1 && viewMode === 'sessions') {
+        setSessions(prevSessions => {
+          let photoOffset = 0;
+          return prevSessions.map(session => {
+            const sessionStart = photoOffset;
+            const sessionEnd = photoOffset + session.photoCount;
+            photoOffset = sessionEnd;
+
+            if (removedIndex >= sessionStart && removedIndex < sessionEnd) {
+              return { ...session, photoCount: session.photoCount - 1 };
+            }
+            return session;
+          }).filter(session => session.photoCount > 0);
+        });
+      }
+
+      return newPhotos;
+    });
     setTotalRecords(prev => Math.max(0, prev - 1));
     setPageEndRecord(prev => Math.max(0, prev - 1));
   }

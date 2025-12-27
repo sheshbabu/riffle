@@ -67,11 +67,21 @@ export default function PhotoGallery({
           break;
         case 'ArrowDown':
           e.preventDefault();
-          onSelectionChange(new Set([Math.min(lastIndex, selectedIndex + cols)]));
+          if (isSessionView) {
+            const newIndex = getNextRowIndex(selectedIndex, cols, sessions, photos.length);
+            onSelectionChange(new Set([newIndex]));
+          } else {
+            onSelectionChange(new Set([Math.min(lastIndex, selectedIndex + cols)]));
+          }
           break;
         case 'ArrowUp':
           e.preventDefault();
-          onSelectionChange(new Set([Math.max(0, selectedIndex - cols)]));
+          if (isSessionView) {
+            const newIndex = getPrevRowIndex(selectedIndex, cols, sessions);
+            onSelectionChange(new Set([newIndex]));
+          } else {
+            onSelectionChange(new Set([Math.max(0, selectedIndex - cols)]));
+          }
           break;
         case 'Enter':
         case ' ':
@@ -256,4 +266,85 @@ function createRangeSet(start, end) {
     set.add(i);
   }
   return set;
+}
+
+function getSessionInfo(index, sessions) {
+  let photoOffset = 0;
+  for (let i = 0; i < sessions.length; i++) {
+    const session = sessions[i];
+    const sessionStart = photoOffset;
+    const sessionEnd = photoOffset + session.photoCount;
+    if (index >= sessionStart && index < sessionEnd) {
+      return {
+        sessionIndex: i,
+        sessionStart,
+        sessionEnd,
+        indexInSession: index - sessionStart,
+        photoCount: session.photoCount,
+      };
+    }
+    photoOffset = sessionEnd;
+  }
+  return null;
+}
+
+function getNextRowIndex(currentIndex, cols, sessions, totalPhotos) {
+  const info = getSessionInfo(currentIndex, sessions);
+  if (!info) {
+    return Math.min(totalPhotos - 1, currentIndex + cols);
+  }
+
+  const currentRow = Math.floor(info.indexInSession / cols);
+  const currentCol = info.indexInSession % cols;
+  const totalRowsInSession = Math.ceil(info.photoCount / cols);
+  const nextRow = currentRow + 1;
+
+  if (nextRow < totalRowsInSession) {
+    const nextIndexInSession = nextRow * cols + currentCol;
+    if (nextIndexInSession < info.photoCount) {
+      return info.sessionStart + nextIndexInSession;
+    }
+    return info.sessionEnd - 1;
+  }
+
+  if (info.sessionIndex + 1 < sessions.length) {
+    let nextSessionStart = info.sessionEnd;
+    const nextSession = sessions[info.sessionIndex + 1];
+    const targetIndexInNextSession = Math.min(currentCol, nextSession.photoCount - 1);
+    return nextSessionStart + targetIndexInNextSession;
+  }
+
+  return currentIndex;
+}
+
+function getPrevRowIndex(currentIndex, cols, sessions) {
+  const info = getSessionInfo(currentIndex, sessions);
+  if (!info) {
+    return Math.max(0, currentIndex - cols);
+  }
+
+  const currentRow = Math.floor(info.indexInSession / cols);
+  const currentCol = info.indexInSession % cols;
+  const prevRow = currentRow - 1;
+
+  if (prevRow >= 0) {
+    const prevIndexInSession = prevRow * cols + currentCol;
+    return info.sessionStart + prevIndexInSession;
+  }
+
+  if (info.sessionIndex > 0) {
+    let prevSessionStart = 0;
+    for (let i = 0; i < info.sessionIndex - 1; i++) {
+      prevSessionStart += sessions[i].photoCount;
+    }
+    const prevSession = sessions[info.sessionIndex - 1];
+    const prevSessionEnd = prevSessionStart + prevSession.photoCount;
+    const totalRowsInPrevSession = Math.ceil(prevSession.photoCount / cols);
+    const lastRowStart = (totalRowsInPrevSession - 1) * cols;
+    const targetCol = Math.min(currentCol, prevSession.photoCount - 1 - lastRowStart);
+    const targetIndexInPrevSession = lastRowStart + targetCol;
+    return prevSessionStart + Math.min(targetIndexInPrevSession, prevSession.photoCount - 1);
+  }
+
+  return currentIndex;
 }
