@@ -2,7 +2,7 @@ import ApiClient from '../../commons/http/ApiClient.js';
 import PhotoGallery from './PhotoGallery.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
-import { LoadingSpinner } from '../../commons/components/Icon.jsx';
+import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon } from '../../commons/components/Icon.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import ViewPreferences from '../../commons/utils/ViewPreferences.js';
 import useSearchParams from '../../commons/hooks/useSearchParams.js';
@@ -145,6 +145,11 @@ export default function PhotoListPage({ mode = 'library' }) {
           e.preventDefault();
           handleRejectClick();
           break;
+        case 'u':
+        case 'U':
+          e.preventDefault();
+          handleUnflagClick();
+          break;
         case '1':
         case '2':
         case '3':
@@ -231,6 +236,8 @@ export default function PhotoListPage({ mode = 'library' }) {
         toastMessage = `Photo rated ${rating} star${rating > 1 ? 's' : ''}`;
       } else if (isCurated) {
         toastMessage = 'Photo picked';
+      } else {
+        toastMessage = 'Photo unflagged';
       }
       showToast(toastMessage, 2000);
     } catch (err) {
@@ -276,6 +283,15 @@ export default function PhotoListPage({ mode = 'library' }) {
       return;
     }
     filePaths.forEach(filePath => curatePhoto(filePath, true, true, 0));
+    setSelectedIndices(new Set());
+  }
+
+  function handleUnflagClick() {
+    const filePaths = getSelectedFilePaths();
+    if (filePaths.length === 0) {
+      return;
+    }
+    filePaths.forEach(filePath => curatePhoto(filePath, false, false, 0));
     setSelectedIndices(new Set());
   }
 
@@ -401,19 +417,16 @@ export default function PhotoListPage({ mode = 'library' }) {
       <div className="library-actions">
         {selectionCount}
         <button className={`action-button pick ${isPicked && currentRating === 0 ? 'active' : ''}`} onClick={handlePickClick} title="Pick (P)" disabled={isCurating}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <path d="m9 12 2 2 4-4" />
-          </svg>
+          <PickIcon />
           <span>Pick</span>
         </button>
         <button className={`action-button reject ${isRejected ? 'active' : ''}`} onClick={handleRejectClick} title="Reject (X)" disabled={isCurating}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <path d="m15 9-6 6" />
-            <path d="m9 9 6 6" />
-          </svg>
+          <RejectIcon />
           <span>Reject</span>
+        </button>
+        <button className="action-button unflag" onClick={handleUnflagClick} title="Unflag (U)" disabled={isCurating}>
+          <UnflagIcon />
+          <span>Unflag</span>
         </button>
         <div className="rating-buttons">
           {starElements}

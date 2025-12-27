@@ -62,7 +62,13 @@
     color: var(--green-600);
 
     svg {
-      stroke: var(--green-600);
+
+      line,
+      circle,
+      rect,
+      path {
+        stroke: var(--green-600);
+      }
     }
 
     &:hover {
@@ -85,7 +91,13 @@
     color: var(--red-600);
 
     svg {
-      stroke: var(--red-600);
+
+      line,
+      circle,
+      rect,
+      path {
+        stroke: var(--red-600);
+      }
     }
 
     &:hover {
