@@ -427,11 +427,9 @@ export default function PhotoListPage({ mode = 'library' }) {
       );
     });
 
-    const selectionCount = <span className="selection-count">{selectedIndices.size} selected</span>;
 
     actionButtons = (
       <div className="library-actions">
-        {selectionCount}
         <button className={`action-button pick ${isPicked && currentRating === 0 ? 'active' : ''}`} onClick={handlePickClick} title="Pick (P)" disabled={isCurating}>
           <PickIcon />
           <span>Pick</span>
@@ -454,6 +452,7 @@ export default function PhotoListPage({ mode = 'library' }) {
   return (
     <div className="page-container">
       <div className="page-header">
+        <span className="selection-count">{selectedIndices.size} selected</span>
         {actionButtons}
         <div className="right-actions">
           {viewToggle}
