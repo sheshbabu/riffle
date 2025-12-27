@@ -15,11 +15,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    min-width: 0;
     position: relative;
 
     .lightbox-image {
-      max-width: 95vw;
+      max-width: 100%;
       max-height: calc(95vh - 48px);
       width: auto;
       height: auto;
