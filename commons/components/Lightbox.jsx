@@ -148,7 +148,7 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
     }
 
     if (currentPhoto.focalLength) {
-      metadataItems.push({ label: 'Focal Length', value: `${currentPhoto.focalLength}mm` });
+      metadataItems.push({ label: 'Focal Length', value: currentPhoto.focalLength });
     }
 
     if (currentPhoto.city || currentPhoto.state || currentPhoto.countryCode) {
