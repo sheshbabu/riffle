@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"syscall"
 	"time"
 )
 
@@ -203,10 +202,7 @@ func ScanDirectory(path string) ([]PhotoFile, error) {
 		}
 
 		fileModifiedAt := info.ModTime()
-		var fileCreatedAt time.Time
-		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-			fileCreatedAt = time.Unix(stat.Birthtimespec.Sec, stat.Birthtimespec.Nsec)
-		}
+		fileCreatedAt := getFileCreatedAt(info)
 
 		photos = append(photos, PhotoFile{
 			Path:           filePath,
