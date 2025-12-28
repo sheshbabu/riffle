@@ -357,7 +357,7 @@ export default function PhotoListPage({ mode = 'library' }) {
             next.delete(filePath);
             return next;
           });
-        }, 3000);
+        }, 10000);
 
         setUndoTimers(prev => new Map([...prev, [filePath, timerId]]));
       } else {
