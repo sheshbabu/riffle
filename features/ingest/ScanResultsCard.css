@@ -15,6 +15,29 @@
     margin: 4px 0;
   }
 
+  .import-options {
+    margin-top: 12px;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: var(--sm);
+    color: var(--neutral-700);
+    cursor: pointer;
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"]:disabled {
+      cursor: not-allowed;
+    }
+  }
+
   .button {
     margin-top: 16px;
   }

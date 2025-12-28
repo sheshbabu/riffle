@@ -76,8 +76,8 @@ async function getScanProgress() {
   return await request('GET', '/api/import/scan/progress/');
 }
 
-async function importToLibrary(payload) {
-  return await request('POST', '/api/import/move/', payload);
+async function importToLibrary(copyMode = false) {
+  return await request('POST', '/api/import/move/', { copyMode });
 }
 
 function buildFilterParams(filters) {

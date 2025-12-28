@@ -1,5 +1,6 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import { showToast } from '../../commons/components/Toast.jsx';
+import { navigateTo } from '../../commons/components/Link.jsx';
 import ScanImportCard from './ScanImportCard.jsx';
 import ScanProgressCard from './ScanProgressCard.jsx';
 import ScanResultsCard from './ScanResultsCard.jsx';
@@ -12,6 +13,7 @@ export default function ImportPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(null);
+  const [copyMode, setCopyMode] = useState(false);
 
   useEffect(() => {
     if (!isScanning && !isImporting) {
@@ -40,7 +42,9 @@ export default function ImportPage() {
 
           if (resultsData.movedToLibrary > 0 || resultsData.movedToTrash > 0) {
             setIsImporting(false);
-            showToast(`Imported ${resultsData.movedToLibrary.toLocaleString()} files to library`);
+            const action = copyMode ? 'Copied' : 'Imported';
+            showToast(`${action} ${resultsData.movedToLibrary.toLocaleString()} files to library`);
+            navigateTo('/curate');
           }
         } catch (error) {
           // Results not ready yet, keep polling
@@ -49,7 +53,7 @@ export default function ImportPage() {
     }, 1000);
 
     return () => clearInterval(pollInterval);
-  }, [isScanning, isImporting]);
+  }, [isScanning, isImporting, copyMode]);
 
   async function handleScanClick() {
     setIsScanning(true);
@@ -68,17 +72,21 @@ export default function ImportPage() {
     setIsImporting(true);
 
     try {
-      await ApiClient.importToLibrary({});
+      await ApiClient.importToLibrary(copyMode);
     } catch (error) {
       setIsImporting(false);
     }
+  }
+
+  function handleCopyModeChange(value) {
+    setCopyMode(value);
   }
 
   return (
     <div className="page-container">
       <ScanImportCard isScanning={isScanning} results={results} onScanClick={handleScanClick} />
       <ScanProgressCard isScanning={isScanning} progress={progress} />
-      <ScanResultsCard results={results} isImporting={isImporting} onImportClick={handleImportClick} />
+      <ScanResultsCard results={results} isImporting={isImporting} copyMode={copyMode} onCopyModeChange={handleCopyModeChange} onImportClick={handleImportClick} />
       <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} hasResults={results != null} />
     </div>
   );

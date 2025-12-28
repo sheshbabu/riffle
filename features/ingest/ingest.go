@@ -2,6 +2,7 @@ package ingest
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -284,8 +285,12 @@ func processFilesParallel(files []PhotoFile, workerCount int) []PhotoFile {
 	return files
 }
 
-func ExecuteMoves(libraryPath, trashPath string, stats *AnalysisStats) error {
-	slog.Info("starting file moves", "toLibrary", len(stats.FilesToLibrary), "toTrash", len(stats.FilesToTrash))
+func ExecuteMoves(libraryPath, trashPath string, stats *AnalysisStats, copyMode bool) error {
+	if copyMode {
+		slog.Info("starting file copies", "toLibrary", len(stats.FilesToLibrary))
+	} else {
+		slog.Info("starting file moves", "toLibrary", len(stats.FilesToLibrary), "toTrash", len(stats.FilesToTrash))
+	}
 
 	movedToLibrary := 0
 	movedToTrash := 0
@@ -306,9 +311,9 @@ func ExecuteMoves(libraryPath, trashPath string, stats *AnalysisStats) error {
 			photo.Size = fileInfo.Size()
 		}
 
-		newPath, err := moveFile(photo, libraryPath)
+		newPath, err := transferFile(photo, libraryPath, copyMode)
 		if err != nil {
-			slog.Error("failed to move file to library", "file", photo.Path, "error", err)
+			slog.Error("failed to transfer file to library", "file", photo.Path, "error", err)
 			continue
 		}
 
@@ -323,37 +328,47 @@ func ExecuteMoves(libraryPath, trashPath string, stats *AnalysisStats) error {
 		movedToLibrary++
 	}
 
-	for _, action := range stats.FilesToTrash {
-		photo := PhotoFile{
-			Path:     action.Path,
-			Hash:     action.Hash,
-			ExifData: action.ExifData,
-			HasExif:  len(action.ExifData) > 0,
-		}
+	if !copyMode {
+		for _, action := range stats.FilesToTrash {
+			photo := PhotoFile{
+				Path:     action.Path,
+				Hash:     action.Hash,
+				ExifData: action.ExifData,
+				HasExif:  len(action.ExifData) > 0,
+			}
 
-		_, err := moveFile(photo, trashPath)
-		if err != nil {
-			slog.Error("failed to move file to trash", "file", photo.Path, "error", err)
-			continue
+			_, err := transferFile(photo, trashPath, false)
+			if err != nil {
+				slog.Error("failed to move file to trash", "file", photo.Path, "error", err)
+				continue
+			}
+			movedToTrash++
 		}
-		movedToTrash++
 	}
 
 	stats.MovedToLibrary = movedToLibrary
 	stats.MovedToTrash = movedToTrash
 
-	slog.Info("file moves completed", "movedToLibrary", movedToLibrary, "movedToTrash", movedToTrash)
+	if copyMode {
+		slog.Info("file copies completed", "copiedToLibrary", movedToLibrary)
+	} else {
+		slog.Info("file moves completed", "movedToLibrary", movedToLibrary, "movedToTrash", movedToTrash)
+	}
 
 	fmt.Println()
 	fmt.Println("=== Execution Summary ===")
-	fmt.Printf("Files moved to library:   %d\n", movedToLibrary)
-	fmt.Printf("Files moved to trash:     %d\n", movedToTrash)
+	if copyMode {
+		fmt.Printf("Files copied to library:  %d\n", movedToLibrary)
+	} else {
+		fmt.Printf("Files moved to library:   %d\n", movedToLibrary)
+		fmt.Printf("Files moved to trash:     %d\n", movedToTrash)
+	}
 	fmt.Println()
 
 	return nil
 }
 
-func moveFile(photo PhotoFile, destDir string) (string, error) {
+func transferFile(photo PhotoFile, destDir string, copyMode bool) (string, error) {
 	var dateTime time.Time
 	var hasDateTime bool
 
@@ -420,8 +435,14 @@ func moveFile(photo PhotoFile, destDir string) (string, error) {
 		}
 	}
 
-	if err := os.Rename(photo.Path, destPath); err != nil {
-		return "", fmt.Errorf("failed to move file: %w", err)
+	if copyMode {
+		if err := copyFile(photo.Path, destPath); err != nil {
+			return "", fmt.Errorf("failed to copy file: %w", err)
+		}
+	} else {
+		if err := os.Rename(photo.Path, destPath); err != nil {
+			return "", fmt.Errorf("failed to move file: %w", err)
+		}
 	}
 
 	if !photo.FileModifiedAt.IsZero() {
@@ -433,6 +454,27 @@ func moveFile(photo PhotoFile, destDir string) (string, error) {
 	}
 
 	return destPath, nil
+}
+
+func copyFile(src, dst string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+
+	_, err = io.Copy(dstFile, srcFile)
+	if err != nil {
+		return err
+	}
+
+	return dstFile.Sync()
 }
 
 func SelectCandidate(duplicates []PhotoFile) PhotoFile {

@@ -52,8 +52,17 @@ func HandleGetScanResults(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(results)
 }
 
+type ImportRequest struct {
+	CopyMode bool `json:"copyMode"`
+}
+
 func HandleImport(w http.ResponseWriter, r *http.Request) {
 	libraryPath := os.Getenv("LIBRARY_PATH")
+
+	var req ImportRequest
+	if r.Body != nil {
+		json.NewDecoder(r.Body).Decode(&req)
+	}
 
 	stats := GetResults()
 	if stats == nil {
@@ -61,14 +70,16 @@ func HandleImport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	copyMode := req.CopyMode
+
 	go func() {
-		if err := ExecuteMoves(libraryPath, libraryPath, stats); err != nil {
+		if err := ExecuteMoves(libraryPath, libraryPath, stats, copyMode); err != nil {
 			slog.Error("failed to execute moves", "error", err)
 			return
 		}
 
 		SetResults(stats)
-		slog.Info("import complete", "movedToLibrary", stats.MovedToLibrary)
+		slog.Info("import complete", "movedToLibrary", stats.MovedToLibrary, "copyMode", copyMode)
 	}()
 
 	w.Header().Set("Content-Type", "application/json")
