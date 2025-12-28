@@ -43,8 +43,10 @@ services:
     ports:
       - "8080:8080"
     volumes:
+      - ./data:/data
       - ./import:/import
       - ./library:/library
+      - ./export:/export
     restart: unless-stopped
 ```
 

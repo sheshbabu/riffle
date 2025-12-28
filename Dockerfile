@@ -18,11 +18,16 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y libvips exiftool && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/riffle /riffle
+COPY --from=builder /app/.geonames /.geonames
 
+VOLUME /data
 VOLUME /import
 VOLUME /library
+VOLUME /export
 
+ENV DATA_FOLDER=/data
 ENV IMPORT_PATH=/import
 ENV LIBRARY_PATH=/library
+ENV EXPORT_PATH=/export
 
 CMD ["/riffle"]
