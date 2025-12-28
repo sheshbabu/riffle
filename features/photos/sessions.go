@@ -207,22 +207,41 @@ func GetPhotosWithSessions(limit, offset int, filterCurated bool, filterTrashed 
 
 func parsePhotoDateTime(photo Photo) *time.Time {
 	if photo.DateTime != nil {
-		t, err := time.Parse(time.RFC3339, *photo.DateTime)
-		if err == nil {
-			return &t
+		t := parseDateTimeString(*photo.DateTime)
+		if t != nil {
+			return t
 		}
 	}
 
 	if photo.FileModifiedAt != nil {
-		t, err := time.Parse(time.RFC3339, *photo.FileModifiedAt)
-		if err == nil {
-			return &t
+		t := parseDateTimeString(*photo.FileModifiedAt)
+		if t != nil {
+			return t
 		}
 	}
 
-	t, err := time.Parse(time.RFC3339, photo.CreatedAt)
-	if err == nil {
-		return &t
+	t := parseDateTimeString(photo.CreatedAt)
+	if t != nil {
+		return t
+	}
+
+	return nil
+}
+
+func parseDateTimeString(dtStr string) *time.Time {
+	formats := []string{
+		time.RFC3339,
+		"2006-01-02 15:04:05-07:00",
+		"2006-01-02 15:04:05+07:00",
+		"2006-01-02 15:04:05",
+		"2006-01-02T15:04:05",
+	}
+
+	for _, format := range formats {
+		t, err := time.Parse(format, dtStr)
+		if err == nil {
+			return &t
+		}
 	}
 
 	return nil

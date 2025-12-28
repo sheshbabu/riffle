@@ -49,18 +49,7 @@ func CreatePhoto(photo PhotoFile) error {
 
 	var dateTime interface{}
 	if dtStr, ok := photo.ExifData["DateTime"].(string); ok {
-		formats := []string{
-			"2006:01:02 15:04:05",
-			"2006-01-02 15:04:05",
-			"2006:01:02 15:04:05-07:00",
-			"2006-01-02T15:04:05",
-		}
-		for _, format := range formats {
-			if dt, err := time.Parse(format, dtStr); err == nil {
-				dateTime = dt
-				break
-			}
-		}
+		dateTime = parseExifDateTime(dtStr, photo.ExifData)
 	}
 
 	var cameraMake, cameraModel interface{}
@@ -155,4 +144,67 @@ func CreatePhoto(photo PhotoFile) error {
 	}
 
 	return nil
+}
+
+// parseExifDateTime parses EXIF DateTime and determines the correct timezone.
+// Priority:
+// 1. If OffsetTimeOriginal exists (e.g., "+08:00"), use it
+// 2. If GPSDateTime exists (UTC), calculate offset from DateTime - GPSDateTime
+// 3. Otherwise, return datetime as-is (local capture time, no timezone)
+func parseExifDateTime(dtStr string, exifData map[string]any) string {
+	// Parse the datetime string into components
+	formats := []string{
+		"2006:01:02 15:04:05",
+		"2006-01-02 15:04:05",
+		"2006-01-02T15:04:05",
+	}
+
+	var parsedTime time.Time
+	var parsed bool
+	for _, format := range formats {
+		if dt, err := time.Parse(format, dtStr); err == nil {
+			parsedTime = dt
+			parsed = true
+			break
+		}
+	}
+
+	if !parsed {
+		return dtStr
+	}
+
+	// Option 1: Use OffsetTimeOriginal if available (e.g., "+08:00")
+	if offsetStr, ok := exifData["OffsetTimeOriginal"].(string); ok && offsetStr != "" {
+		return parsedTime.Format("2006-01-02 15:04:05") + offsetStr
+	}
+
+	// Option 2: Calculate offset from GPSDateTime (UTC)
+	if gpsDateTimeStr, ok := exifData["GPSDateTime"].(string); ok && gpsDateTimeStr != "" {
+		gpsFormats := []string{
+			"2006:01:02 15:04:05Z",
+			"2006-01-02 15:04:05Z",
+			"2006:01:02 15:04:05",
+			"2006-01-02 15:04:05",
+		}
+		for _, format := range gpsFormats {
+			if gpsTime, err := time.Parse(format, gpsDateTimeStr); err == nil {
+				offsetSeconds := int(parsedTime.Sub(gpsTime).Seconds())
+				offsetHours := offsetSeconds / 3600
+				offsetMins := (offsetSeconds % 3600) / 60
+				if offsetMins < 0 {
+					offsetMins = -offsetMins
+				}
+				sign := "+"
+				if offsetHours < 0 {
+					sign = "-"
+					offsetHours = -offsetHours
+				}
+				offsetStr := fmt.Sprintf("%s%02d:%02d", sign, offsetHours, offsetMins)
+				return parsedTime.Format("2006-01-02 15:04:05") + offsetStr
+			}
+		}
+	}
+
+	// Option 3: No timezone info available, return as local capture time (no timezone suffix)
+	return parsedTime.Format("2006-01-02 15:04:05")
 }

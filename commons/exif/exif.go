@@ -43,6 +43,20 @@ func ExtractExif(filePath string) (map[string]any, error) {
 		}
 	}
 
+	// OffsetTimeOriginal: Timezone offset for DateTimeOriginal (EXIF 2.31+)
+	offsetFields := []string{"OffsetTimeOriginal", "OffsetTimeDigitized", "OffsetTime"}
+	for _, offsetField := range offsetFields {
+		if val, err := fileInfo.GetString(offsetField); err == nil && val != "" {
+			data["OffsetTimeOriginal"] = val
+			break
+		}
+	}
+
+	// GPSDateTime: UTC time from GPS (can be used to calculate timezone offset)
+	if val, err := fileInfo.GetString("GPSDateTime"); err == nil && val != "" {
+		data["GPSDateTime"] = val
+	}
+
 	fieldMap := map[string]string{
 		"Make":         "Make",
 		"Model":        "Model",
