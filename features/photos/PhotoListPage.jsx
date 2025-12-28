@@ -3,7 +3,7 @@ import PhotoGallery from './PhotoGallery.jsx';
 import FilterPanel from './FilterPanel.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
-import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon } from '../../commons/components/Icon.jsx';
+import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmptyIcon, SparklesIcon, ImageIcon } from '../../commons/components/Icon.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import ViewPreferences from '../../commons/utils/ViewPreferences.js';
 import useSearchParams from '../../commons/hooks/useSearchParams.js';
@@ -16,19 +16,31 @@ const { useState, useEffect } = React;
 const PAGE_CONFIG = {
   library: {
     fetchPhotos: (offset, withSessions, filters) => ApiClient.getPhotos(offset, withSessions, filters),
-    emptyMessage: 'No photos found. Import photos from the inbox first.',
+    emptyState: {
+      icon: ImageIcon,
+      title: 'No photos yet',
+      description: 'Picked photos will appear here.',
+    },
     initialSelectedIndex: null,
     fadeOnlyOnTrash: true,
   },
   curate: {
     fetchPhotos: (offset, withSessions, filters) => ApiClient.getUncuratedPhotos(offset, withSessions, filters),
-    emptyMessage: 'No photos to curate. All photos have been reviewed!',
+    emptyState: {
+      icon: SparklesIcon,
+      title: 'Nothing to review',
+      description: 'New imports will appear here for curation.',
+    },
     initialSelectedIndex: 0,
     fadeOnlyOnTrash: false,
   },
   trash: {
     fetchPhotos: (offset, withSessions, filters) => ApiClient.getTrashedPhotos(offset, withSessions, filters),
-    emptyMessage: 'No trashed photos. Trash is empty.',
+    emptyState: {
+      icon: TrashEmptyIcon,
+      title: 'Nothing here',
+      description: 'Rejected photos will appear here.',
+    },
     initialSelectedIndex: null,
     fadeOnlyOnTrash: true,
   },
@@ -462,6 +474,23 @@ export default function PhotoListPage({ mode = 'library' }) {
     }
   }
 
+  function getActiveFilterCount() {
+    let count = 0;
+    if (filters.ratings && filters.ratings.length > 0) count += filters.ratings.length;
+    if (filters.mediaType && filters.mediaType !== 'all') count++;
+    if (filters.orientation && filters.orientation !== 'all') count++;
+    if (filters.years && filters.years.length > 0) count += filters.years.length;
+    if (filters.cameraMakes && filters.cameraMakes.length > 0) count += filters.cameraMakes.length;
+    if (filters.cameraModels && filters.cameraModels.length > 0) count += filters.cameraModels.length;
+    if (filters.countries && filters.countries.length > 0) count += filters.countries.length;
+    if (filters.states && filters.states.length > 0) count += filters.states.length;
+    if (filters.cities && filters.cities.length > 0) count += filters.cities.length;
+    if (filters.fileFormats && filters.fileFormats.length > 0) count += filters.fileFormats.length;
+    return count;
+  }
+
+  const activeFilterCount = getActiveFilterCount();
+
   let content = null;
 
   if (error) {
@@ -471,11 +500,29 @@ export default function PhotoListPage({ mode = 'library' }) {
       </div>
     );
   } else if (photos.length === 0 && !isLoading) {
-    content = (
-      <div className="message-box">
-        {config.emptyMessage}
-      </div>
-    );
+    const hasActiveFilters = activeFilterCount > 0;
+    if (hasActiveFilters) {
+      content = (
+        <div className="empty-state">
+          <div className="empty-state-icon">
+            <FilterIcon />
+          </div>
+          <h2 className="empty-state-title">No matches</h2>
+          <p className="empty-state-description">Try adjusting your filters.</p>
+        </div>
+      );
+    } else {
+      const EmptyIcon = config.emptyState.icon;
+      content = (
+        <div className="empty-state">
+          <div className="empty-state-icon">
+            <EmptyIcon />
+          </div>
+          <h2 className="empty-state-title">{config.emptyState.title}</h2>
+          <p className="empty-state-description">{config.emptyState.description}</p>
+        </div>
+      );
+    }
   } else if (photos.length > 0) {
     const sessionsToPass = viewMode === 'sessions' ? sessions : null;
     content = (
@@ -510,25 +557,8 @@ export default function PhotoListPage({ mode = 'library' }) {
     );
   }
 
-  function getActiveFilterCount() {
-    let count = 0;
-    if (filters.ratings && filters.ratings.length > 0) count += filters.ratings.length;
-    if (filters.mediaType && filters.mediaType !== 'all') count++;
-    if (filters.orientation && filters.orientation !== 'all') count++;
-    if (filters.years && filters.years.length > 0) count += filters.years.length;
-    if (filters.cameraMakes && filters.cameraMakes.length > 0) count += filters.cameraMakes.length;
-    if (filters.cameraModels && filters.cameraModels.length > 0) count += filters.cameraModels.length;
-    if (filters.countries && filters.countries.length > 0) count += filters.countries.length;
-    if (filters.states && filters.states.length > 0) count += filters.states.length;
-    if (filters.cities && filters.cities.length > 0) count += filters.cities.length;
-    if (filters.fileFormats && filters.fileFormats.length > 0) count += filters.fileFormats.length;
-    return count;
-  }
-
-  const activeFilterCount = getActiveFilterCount();
-
   let filterButton = null;
-  if (!error && photos.length > 0) {
+  if (!error) {
     let filterBadge = null;
     if (activeFilterCount > 0) {
       filterBadge = <span className="filter-badge">{activeFilterCount}</span>;
