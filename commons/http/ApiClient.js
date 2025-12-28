@@ -80,19 +80,65 @@ async function importToLibrary(payload) {
   return await request('POST', '/api/import/move/', payload);
 }
 
-async function getPhotos(offset, withSessions) {
-  const sessionsParam = withSessions ? '&sessions=true' : '';
-  return await request('GET', `/api/photos/?offset=${offset}${sessionsParam}`);
+function buildFilterParams(filters) {
+  if (!filters) return '';
+
+  const params = [];
+
+  if (filters.ratings && filters.ratings.length > 0) {
+    filters.ratings.forEach(r => params.push(`ratings=${r}`));
+  }
+  if (filters.mediaType && filters.mediaType !== 'all') {
+    params.push(`mediaType=${filters.mediaType}`);
+  }
+  if (filters.orientation && filters.orientation !== 'all') {
+    params.push(`orientation=${filters.orientation}`);
+  }
+  if (filters.years && filters.years.length > 0) {
+    filters.years.forEach(y => params.push(`years=${y}`));
+  }
+  if (filters.cameraMakes && filters.cameraMakes.length > 0) {
+    filters.cameraMakes.forEach(m => params.push(`cameraMakes=${encodeURIComponent(m)}`));
+  }
+  if (filters.cameraModels && filters.cameraModels.length > 0) {
+    filters.cameraModels.forEach(m => params.push(`cameraModels=${encodeURIComponent(m)}`));
+  }
+  if (filters.countries && filters.countries.length > 0) {
+    filters.countries.forEach(c => params.push(`countries=${encodeURIComponent(c)}`));
+  }
+  if (filters.states && filters.states.length > 0) {
+    filters.states.forEach(s => params.push(`states=${encodeURIComponent(s)}`));
+  }
+  if (filters.cities && filters.cities.length > 0) {
+    filters.cities.forEach(c => params.push(`cities=${encodeURIComponent(c)}`));
+  }
+  if (filters.fileFormats && filters.fileFormats.length > 0) {
+    filters.fileFormats.forEach(f => params.push(`fileFormats=${encodeURIComponent(f)}`));
+  }
+
+  return params.length > 0 ? '&' + params.join('&') : '';
 }
 
-async function getUncuratedPhotos(offset, withSessions) {
+async function getPhotos(offset, withSessions, filters) {
   const sessionsParam = withSessions ? '&sessions=true' : '';
-  return await request('GET', `/api/photos/uncurated/?offset=${offset}${sessionsParam}`);
+  const filterParams = buildFilterParams(filters);
+  return await request('GET', `/api/photos/?offset=${offset}${sessionsParam}${filterParams}`);
 }
 
-async function getTrashedPhotos(offset, withSessions) {
+async function getUncuratedPhotos(offset, withSessions, filters) {
   const sessionsParam = withSessions ? '&sessions=true' : '';
-  return await request('GET', `/api/photos/trashed/?offset=${offset}${sessionsParam}`);
+  const filterParams = buildFilterParams(filters);
+  return await request('GET', `/api/photos/uncurated/?offset=${offset}${sessionsParam}${filterParams}`);
+}
+
+async function getTrashedPhotos(offset, withSessions, filters) {
+  const sessionsParam = withSessions ? '&sessions=true' : '';
+  const filterParams = buildFilterParams(filters);
+  return await request('GET', `/api/photos/trashed/?offset=${offset}${sessionsParam}${filterParams}`);
+}
+
+async function getFilterOptions() {
+  return await request('GET', '/api/photos/filters/');
 }
 
 export default {
@@ -103,5 +149,6 @@ export default {
   importToLibrary,
   getPhotos,
   getUncuratedPhotos,
-  getTrashedPhotos
+  getTrashedPhotos,
+  getFilterOptions
 };

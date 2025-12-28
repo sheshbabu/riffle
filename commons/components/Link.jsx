@@ -22,6 +22,11 @@ export function updateSearchParams(params) {
   for (const [key, value] of Object.entries(params)) {
     if (value === null || value === undefined || value === '' || value === 0) {
       url.searchParams.delete(key);
+    } else if (Array.isArray(value)) {
+      url.searchParams.delete(key);
+      for (const v of value) {
+        url.searchParams.append(key, v);
+      }
     } else {
       url.searchParams.set(key, value);
     }

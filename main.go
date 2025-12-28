@@ -98,6 +98,7 @@ func newRouter() *http.ServeMux {
 	mux.HandleFunc("GET /api/photos/", photos.HandleGetPhotos)
 	mux.HandleFunc("GET /api/photos/uncurated/", photos.HandleGetUncuratedPhotos)
 	mux.HandleFunc("GET /api/photos/trashed/", photos.HandleGetTrashedPhotos)
+	mux.HandleFunc("GET /api/photos/filters/", photos.HandleGetFilterOptions)
 	mux.HandleFunc("POST /api/photos/curate/", photos.HandleCuratePhoto)
 	mux.HandleFunc("GET /api/photo/", photos.HandleServePhoto)
 	mux.HandleFunc("GET /assets/", handleStaticAssets)

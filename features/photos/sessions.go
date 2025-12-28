@@ -137,7 +137,7 @@ func DetectSessions(photos []Photo) []Session {
 	return sessions
 }
 
-func GetPhotosWithSessions(limit, offset int, filterCurated bool, filterTrashed bool) ([]Photo, []Session, error) {
+func GetPhotosWithSessions(limit, offset int, filterCurated bool, filterTrashed bool, filters *PhotoFilters) ([]Photo, []Session, error) {
 	var whereClause string
 	if filterCurated && !filterTrashed {
 		whereClause = "WHERE is_curated = 1 AND is_trashed = 0"
@@ -146,6 +146,9 @@ func GetPhotosWithSessions(limit, offset int, filterCurated bool, filterTrashed 
 	} else if filterTrashed {
 		whereClause = "WHERE is_trashed = 1"
 	}
+
+	filterConditions, filterArgs := BuildFilterConditions(filters)
+	whereClause += filterConditions
 
 	query := fmt.Sprintf(`
 		SELECT
@@ -166,7 +169,8 @@ func GetPhotosWithSessions(limit, offset int, filterCurated bool, filterTrashed 
 		LIMIT ? OFFSET ?
 	`, whereClause)
 
-	rows, err := sqlite.DB.Query(query, limit, offset)
+	args := append(filterArgs, limit, offset)
+	rows, err := sqlite.DB.Query(query, args...)
 	if err != nil {
 		err = fmt.Errorf("error querying photos with sessions: %w", err)
 		slog.Error(err.Error())

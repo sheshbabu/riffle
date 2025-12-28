@@ -122,6 +122,77 @@ type PhotosResponse struct {
 	Limit            int       `json:"limit"`
 }
 
+func parseFiltersFromQuery(r *http.Request) *PhotoFilters {
+	query := r.URL.Query()
+
+	filters := &PhotoFilters{}
+	hasFilters := false
+
+	if ratings := query["ratings"]; len(ratings) > 0 {
+		for _, rs := range ratings {
+			if r, err := strconv.Atoi(rs); err == nil {
+				filters.Ratings = append(filters.Ratings, r)
+				hasFilters = true
+			}
+		}
+	}
+
+	if mediaType := query.Get("mediaType"); mediaType != "" && mediaType != "all" {
+		filters.MediaType = mediaType
+		hasFilters = true
+	}
+
+	if orientation := query.Get("orientation"); orientation != "" && orientation != "all" {
+		filters.Orientation = orientation
+		hasFilters = true
+	}
+
+	if years := query["years"]; len(years) > 0 {
+		for _, ys := range years {
+			if y, err := strconv.Atoi(ys); err == nil {
+				filters.Years = append(filters.Years, y)
+				hasFilters = true
+			}
+		}
+	}
+
+	if cameraMakes := query["cameraMakes"]; len(cameraMakes) > 0 {
+		filters.CameraMakes = cameraMakes
+		hasFilters = true
+	}
+
+	if cameraModels := query["cameraModels"]; len(cameraModels) > 0 {
+		filters.CameraModels = cameraModels
+		hasFilters = true
+	}
+
+	if countries := query["countries"]; len(countries) > 0 {
+		filters.Countries = countries
+		hasFilters = true
+	}
+
+	if states := query["states"]; len(states) > 0 {
+		filters.States = states
+		hasFilters = true
+	}
+
+	if cities := query["cities"]; len(cities) > 0 {
+		filters.Cities = cities
+		hasFilters = true
+	}
+
+	if fileFormats := query["fileFormats"]; len(fileFormats) > 0 {
+		filters.FileFormats = fileFormats
+		hasFilters = true
+	}
+
+	if !hasFilters {
+		return nil
+	}
+
+	return filters
+}
+
 func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 	offsetStr := r.URL.Query().Get("offset")
 	offset := 0
@@ -132,10 +203,11 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	withSessions := r.URL.Query().Get("sessions") == "true"
+	filters := parseFiltersFromQuery(r)
 	limit := 100
 
 	if withSessions {
-		photos, sessions, err := GetPhotosWithSessions(limit, offset, true, false)
+		photos, sessions, err := GetPhotosWithSessions(limit, offset, true, false, filters)
 		if err != nil {
 			slog.Error("failed to get photos with sessions", "error", err)
 			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
@@ -195,10 +267,11 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	withSessions := r.URL.Query().Get("sessions") == "true"
+	filters := parseFiltersFromQuery(r)
 	limit := 100
 
 	if withSessions {
-		photos, sessions, err := GetPhotosWithSessions(limit, offset, false, false)
+		photos, sessions, err := GetPhotosWithSessions(limit, offset, false, false, filters)
 		if err != nil {
 			slog.Error("failed to get uncurated photos with sessions", "error", err)
 			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
@@ -258,10 +331,11 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	withSessions := r.URL.Query().Get("sessions") == "true"
+	filters := parseFiltersFromQuery(r)
 	limit := 100
 
 	if withSessions {
-		photos, sessions, err := GetPhotosWithSessions(limit, offset, false, true)
+		photos, sessions, err := GetPhotosWithSessions(limit, offset, false, true, filters)
 		if err != nil {
 			slog.Error("failed to get trashed photos with sessions", "error", err)
 			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
@@ -309,6 +383,19 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+}
+
+func HandleGetFilterOptions(w http.ResponseWriter, r *http.Request) {
+	options, err := GetFilterOptions()
+	if err != nil {
+		slog.Error("failed to get filter options", "error", err)
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch filter options")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(options)
 }
 
 type CurateRequest struct {

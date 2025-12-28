@@ -1,8 +1,9 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import PhotoGallery from './PhotoGallery.jsx';
+import FilterPanel from './FilterPanel.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
-import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon } from '../../commons/components/Icon.jsx';
+import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon } from '../../commons/components/Icon.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import ViewPreferences from '../../commons/utils/ViewPreferences.js';
 import useSearchParams from '../../commons/hooks/useSearchParams.js';
@@ -14,24 +15,117 @@ const { useState, useEffect } = React;
 
 const PAGE_CONFIG = {
   library: {
-    fetchPhotos: (offset, withSessions) => ApiClient.getPhotos(offset, withSessions),
+    fetchPhotos: (offset, withSessions, filters) => ApiClient.getPhotos(offset, withSessions, filters),
     emptyMessage: 'No photos found. Import photos from the inbox first.',
     initialSelectedIndex: null,
     fadeOnlyOnTrash: true,
   },
   curate: {
-    fetchPhotos: (offset, withSessions) => ApiClient.getUncuratedPhotos(offset, withSessions),
+    fetchPhotos: (offset, withSessions, filters) => ApiClient.getUncuratedPhotos(offset, withSessions, filters),
     emptyMessage: 'No photos to curate. All photos have been reviewed!',
     initialSelectedIndex: 0,
     fadeOnlyOnTrash: false,
   },
   trash: {
-    fetchPhotos: (offset, withSessions) => ApiClient.getTrashedPhotos(offset, withSessions),
+    fetchPhotos: (offset, withSessions, filters) => ApiClient.getTrashedPhotos(offset, withSessions, filters),
     emptyMessage: 'No trashed photos. Trash is empty.',
     initialSelectedIndex: null,
     fadeOnlyOnTrash: true,
   },
 };
+
+function parseFiltersFromUrl(searchParams) {
+  const filters = {};
+
+  const ratings = searchParams.getAll('ratings');
+  if (ratings.length > 0) {
+    filters.ratings = ratings.map(r => parseInt(r, 10)).filter(r => !isNaN(r));
+  }
+
+  const mediaType = searchParams.get('mediaType');
+  if (mediaType && mediaType !== 'all') {
+    filters.mediaType = mediaType;
+  }
+
+  const orientation = searchParams.get('orientation');
+  if (orientation && orientation !== 'all') {
+    filters.orientation = orientation;
+  }
+
+  const years = searchParams.getAll('years');
+  if (years.length > 0) {
+    filters.years = years.map(y => parseInt(y, 10)).filter(y => !isNaN(y));
+  }
+
+  const cameraMakes = searchParams.getAll('cameraMakes');
+  if (cameraMakes.length > 0) {
+    filters.cameraMakes = cameraMakes;
+  }
+
+  const cameraModels = searchParams.getAll('cameraModels');
+  if (cameraModels.length > 0) {
+    filters.cameraModels = cameraModels;
+  }
+
+  const countries = searchParams.getAll('countries');
+  if (countries.length > 0) {
+    filters.countries = countries;
+  }
+
+  const states = searchParams.getAll('states');
+  if (states.length > 0) {
+    filters.states = states;
+  }
+
+  const cities = searchParams.getAll('cities');
+  if (cities.length > 0) {
+    filters.cities = cities;
+  }
+
+  const fileFormats = searchParams.getAll('fileFormats');
+  if (fileFormats.length > 0) {
+    filters.fileFormats = fileFormats;
+  }
+
+  return filters;
+}
+
+function filtersToUrlParams(filters) {
+  const params = {};
+
+  if (filters.ratings && filters.ratings.length > 0) {
+    params.ratings = filters.ratings;
+  }
+  if (filters.mediaType && filters.mediaType !== 'all') {
+    params.mediaType = filters.mediaType;
+  }
+  if (filters.orientation && filters.orientation !== 'all') {
+    params.orientation = filters.orientation;
+  }
+  if (filters.years && filters.years.length > 0) {
+    params.years = filters.years;
+  }
+  if (filters.cameraMakes && filters.cameraMakes.length > 0) {
+    params.cameraMakes = filters.cameraMakes;
+  }
+  if (filters.cameraModels && filters.cameraModels.length > 0) {
+    params.cameraModels = filters.cameraModels;
+  }
+  if (filters.countries && filters.countries.length > 0) {
+    params.countries = filters.countries;
+  }
+  if (filters.states && filters.states.length > 0) {
+    params.states = filters.states;
+  }
+  if (filters.cities && filters.cities.length > 0) {
+    params.cities = filters.cities;
+  }
+  if (filters.fileFormats && filters.fileFormats.length > 0) {
+    params.fileFormats = filters.fileFormats;
+  }
+
+  return params;
+}
 
 export default function PhotoListPage({ mode = 'library' }) {
   const config = PAGE_CONFIG[mode];
@@ -44,6 +138,8 @@ export default function PhotoListPage({ mode = 'library' }) {
   const viewParam = searchParams.get('view');
   const savedView = ViewPreferences.getPreference(mode);
   const viewMode = (viewParam === 'grid' || viewParam === 'sessions') ? viewParam : savedView;
+
+  const filters = parseFiltersFromUrl(searchParams);
 
   const [photos, setPhotos] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -58,6 +154,9 @@ export default function PhotoListPage({ mode = 'library' }) {
   const [fadingPhotos, setFadingPhotos] = useState(new Set());
   const [undoTimers, setUndoTimers] = useState(new Map());
   const [isCurating, setIsCurating] = useState(false);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+
+  const filtersKey = JSON.stringify(filters);
 
   useEffect(() => {
     async function fetchPhotos() {
@@ -66,7 +165,7 @@ export default function PhotoListPage({ mode = 'library' }) {
 
       try {
         const withSessions = viewMode === 'sessions';
-        const data = await config.fetchPhotos(offset, withSessions);
+        const data = await config.fetchPhotos(offset, withSessions, filters);
         setPhotos(data.photos || []);
         setSessions(data.sessions || []);
         setPageStartRecord(data.pageStartRecord || 0);
@@ -85,7 +184,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     }
 
     fetchPhotos();
-  }, [offset, viewMode]);
+  }, [offset, viewMode, filtersKey]);
 
   useEffect(() => {
     function handleKeyDown(e) {
@@ -158,6 +257,24 @@ export default function PhotoListPage({ mode = 'library' }) {
   function handleViewModeChange(newViewMode) {
     ViewPreferences.setPreference(mode, newViewMode);
     updateSearchParams({ view: newViewMode === savedView ? null : newViewMode });
+  }
+
+  function handleFiltersChange(newFilters) {
+    const filterParams = filtersToUrlParams(newFilters);
+    const clearParams = {
+      ratings: null,
+      mediaType: null,
+      orientation: null,
+      years: null,
+      cameraMakes: null,
+      cameraModels: null,
+      countries: null,
+      states: null,
+      cities: null,
+      fileFormats: null,
+      offset: null,
+    };
+    updateSearchParams({ ...clearParams, ...filterParams });
   }
 
   function handleSelectionChange(indices) {
@@ -393,6 +510,41 @@ export default function PhotoListPage({ mode = 'library' }) {
     );
   }
 
+  function getActiveFilterCount() {
+    let count = 0;
+    if (filters.ratings && filters.ratings.length > 0) count += filters.ratings.length;
+    if (filters.mediaType && filters.mediaType !== 'all') count++;
+    if (filters.orientation && filters.orientation !== 'all') count++;
+    if (filters.years && filters.years.length > 0) count += filters.years.length;
+    if (filters.cameraMakes && filters.cameraMakes.length > 0) count += filters.cameraMakes.length;
+    if (filters.cameraModels && filters.cameraModels.length > 0) count += filters.cameraModels.length;
+    if (filters.countries && filters.countries.length > 0) count += filters.countries.length;
+    if (filters.states && filters.states.length > 0) count += filters.states.length;
+    if (filters.cities && filters.cities.length > 0) count += filters.cities.length;
+    if (filters.fileFormats && filters.fileFormats.length > 0) count += filters.fileFormats.length;
+    return count;
+  }
+
+  const activeFilterCount = getActiveFilterCount();
+
+  let filterButton = null;
+  if (!error && photos.length > 0) {
+    let filterBadge = null;
+    if (activeFilterCount > 0) {
+      filterBadge = <span className="filter-badge">{activeFilterCount}</span>;
+    }
+    filterButton = (
+      <button
+        className={`filter-button ${activeFilterCount > 0 ? 'has-filters' : ''}`}
+        onClick={() => setIsFilterPanelOpen(true)}
+        title="Filters"
+      >
+        <FilterIcon />
+        {filterBadge}
+      </button>
+    );
+  }
+
   let viewToggle = null;
   if (!error && photos.length > 0) {
     const viewModeOptions = [
@@ -466,12 +618,19 @@ export default function PhotoListPage({ mode = 'library' }) {
         <span className="selection-count">{selectedIndices.size} selected</span>
         {actionButtons}
         <div className="right-actions">
+          {filterButton}
           {viewToggle}
           {paginationElement}
         </div>
       </div>
       {content}
       {loadingOverlay}
+      <FilterPanel
+        isOpen={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+      />
     </div>
   );
 }
