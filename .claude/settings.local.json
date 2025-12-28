@@ -25,7 +25,8 @@
       "WebSearch",
       "Bash(brew list:*)",
       "Bash(ffprobe:*)",
-      "Bash(go vet:*)"
+      "Bash(go vet:*)",
+      "Bash(go mod tidy:*)"
     ]
   }
 }
