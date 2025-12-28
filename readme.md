@@ -34,6 +34,20 @@ Import → Curate → Library → Export
 * No immediate file deletion
 * Easy recovery of mistakenly rejected photos
 
+### Docker
+
+```yaml
+services:
+  riffle:
+    image: ghcr.io/sheshbabu/riffle/riffle:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./import:/import
+      - ./library:/library
+    restart: unless-stopped
+```
+
 ### Installation
 
 Install system dependencies:
