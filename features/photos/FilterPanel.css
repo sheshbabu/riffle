@@ -24,6 +24,7 @@
   from {
     transform: translateX(100%);
   }
+
   to {
     transform: translateX(0);
   }
@@ -34,7 +35,6 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-4);
-  border-bottom: 1px solid var(--neutral-700);
   flex-shrink: 0;
 
   h3 {
@@ -61,13 +61,15 @@
   .filter-clear-button {
     background: none;
     border: none;
-    color: var(--blue-400);
-    font-size: 13px;
+    color: var(--red-500);
+    font: var(--sm);
+    font-weight: 600;
     cursor: pointer;
     padding: var(--spacing-2);
+    border-radius: 4px;
 
     &:hover {
-      text-decoration: underline;
+      background: var(--neutral-800);
     }
   }
 
@@ -120,9 +122,11 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-3) var(--spacing-2);
+  /* padding-right: 16px; */
   cursor: pointer;
   user-select: none;
   transition: background-color var(--transition-normal);
+  border-radius: 4px;
 
   &:hover {
     background-color: var(--neutral-800);
@@ -135,6 +139,8 @@
   }
 
   svg {
+    width: 20px;
+    height: 20px;
     color: var(--neutral-400);
   }
 }
@@ -188,7 +194,7 @@
     height: 16px;
     margin: 0;
     cursor: pointer;
-    accent-color: var(--blue-500);
+    accent-color: var(--red-500);
   }
 
   span {
@@ -199,9 +205,9 @@
 
 .filter-button {
   background: none;
-  border: 1px solid var(--neutral-600);
+  border: none;
   border-radius: 4px;
-  padding: var(--spacing-2);
+  padding: 4px 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -216,13 +222,13 @@
   }
 
   &:hover {
-    background-color: var(--neutral-700);
+    background-color: var(--neutral-100);
     border-color: var(--neutral-500);
   }
 
   &.has-filters {
-    border-color: var(--blue-500);
-    color: var(--blue-400);
+    border-color: var(--red-500);
+    color: var(--red-400);
   }
 }
 
@@ -230,7 +236,7 @@
   position: absolute;
   top: -6px;
   right: -6px;
-  background-color: var(--blue-500);
+  background-color: var(--red-500);
   color: white;
   font-size: 10px;
   font-weight: 600;
