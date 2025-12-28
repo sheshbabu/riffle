@@ -1,4 +1,5 @@
 import Lightbox from '../../commons/components/Lightbox.jsx';
+import { StackIcon } from '../../commons/components/Icon.jsx';
 import getPhotoUrl from '../../commons/utils/getPhotoUrl.js';
 import isVideoFile from '../../commons/utils/isVideoFile.js';
 import formatSessionDate from '../../commons/utils/formatSessionDate.js';
@@ -10,6 +11,9 @@ const { useState, useEffect } = React;
 export default function PhotoGallery({
   photos,
   sessions,
+  bursts,
+  expandedBursts,
+  onBurstToggle,
   selectedIndices,
   onSelectionChange,
   fadingPhotos,
@@ -135,7 +139,68 @@ export default function PhotoGallery({
     setLightboxIndex(null);
   }
 
-  function renderPhotoItem(photo, index) {
+  function buildBurstMap() {
+    const map = new Map();
+    if (!bursts || bursts.length === 0) {
+      return map;
+    }
+    for (const burst of bursts) {
+      for (let i = 0; i < burst.count; i++) {
+        const photoIndex = burst.startIndex + i;
+        map.set(photoIndex, {
+          burstId: burst.burstId,
+          isFirst: i === 0,
+          burstCount: burst.count,
+          startIndex: burst.startIndex,
+        });
+      }
+    }
+    return map;
+  }
+
+  const burstMap = buildBurstMap();
+  const expandedSet = expandedBursts || new Set();
+
+  function handleBurstClick(burstId, index, e) {
+    if (e.detail === 2) {
+      setLightboxIndex(index);
+      return;
+    }
+    if (onBurstToggle) {
+      onBurstToggle(burstId);
+    }
+  }
+
+  function renderBurstStack(photo, index, burstInfo) {
+    const thumbnailUrl = getPhotoUrl(photo.filePath, 300, 300);
+    const isSelected = selectedSet.has(index);
+
+    let className = 'gallery-item burst-stack';
+    if (isSelected) {
+      className += ' selected';
+    }
+
+    return (
+      <div
+        key={`burst-${burstInfo.burstId}`}
+        className={className}
+        onClick={(e) => handleBurstClick(burstInfo.burstId, index, e)}
+      >
+        <img
+          src={thumbnailUrl}
+          alt={photo.filePath}
+          className="gallery-media"
+          loading="lazy"
+        />
+        <div className="burst-badge">
+          <StackIcon />
+          <span>{burstInfo.burstCount}</span>
+        </div>
+      </div>
+    );
+  }
+
+  function renderPhotoItem(photo, index, burstContext = null) {
     const isVideo = photo.isVideo || isVideoFile(photo.filePath);
     const thumbnailUrl = getPhotoUrl(photo.filePath, 300, 300);
     const isSelected = selectedSet.has(index);
@@ -147,6 +212,15 @@ export default function PhotoGallery({
     }
     if (isFading) {
       className += ' fading';
+    }
+    if (burstContext) {
+      className += ' burst-photo';
+      if (burstContext.isFirstInBurst) {
+        className += ' burst-first';
+      }
+      if (burstContext.isLastInBurst) {
+        className += ' burst-last';
+      }
     }
 
     let undoButton = null;
@@ -171,6 +245,15 @@ export default function PhotoGallery({
       );
     }
 
+    let burstIndicator = null;
+    if (burstContext) {
+      burstIndicator = (
+        <div className="burst-indicator">
+          {burstContext.positionInBurst}/{burstContext.burstCount}
+        </div>
+      );
+    }
+
     return (
       <div
         key={photo.filePath}
@@ -184,6 +267,7 @@ export default function PhotoGallery({
           loading="lazy"
         />
         {videoIndicator}
+        {burstIndicator}
         {undoButton}
       </div>
     );
@@ -191,17 +275,56 @@ export default function PhotoGallery({
 
   let galleryContent = null;
 
+  function renderPhotosWithBursts(startIndex, endIndex) {
+    const elements = [];
+    let i = startIndex;
+
+    while (i < endIndex) {
+      const burstInfo = burstMap.get(i);
+
+      if (burstInfo && burstInfo.isFirst) {
+        const isExpanded = expandedSet.has(burstInfo.burstId);
+        const burstEndIndex = Math.min(burstInfo.startIndex + burstInfo.burstCount, endIndex);
+        const burstPhotosInRange = burstEndIndex - burstInfo.startIndex;
+
+        if (isExpanded) {
+          for (let j = 0; j < burstPhotosInRange; j++) {
+            const photoIndex = burstInfo.startIndex + j;
+            elements.push(renderPhotoItem(photos[photoIndex], photoIndex, {
+              isBurstPhoto: true,
+              burstId: burstInfo.burstId,
+              isFirstInBurst: j === 0,
+              isLastInBurst: j === burstPhotosInRange - 1,
+              positionInBurst: j + 1,
+              burstCount: burstInfo.burstCount,
+            }));
+          }
+        } else {
+          elements.push(renderBurstStack(photos[i], i, {
+            ...burstInfo,
+            burstCount: burstPhotosInRange,
+          }));
+        }
+        i = burstEndIndex;
+      } else if (!burstInfo) {
+        elements.push(renderPhotoItem(photos[i], i));
+        i++;
+      } else {
+        i++;
+      }
+    }
+
+    return elements;
+  }
+
   if (isSessionView) {
     let photoOffset = 0;
     const sessionElements = sessions.map((session) => {
-      const sessionPhotos = photos.slice(photoOffset, photoOffset + session.photoCount);
       const sessionStartIndex = photoOffset;
-      photoOffset += session.photoCount;
+      const sessionEndIndex = photoOffset + session.photoCount;
+      photoOffset = sessionEndIndex;
 
-      const photoElements = sessionPhotos.map((photo, photoIdx) => {
-        const globalIndex = sessionStartIndex + photoIdx;
-        return renderPhotoItem(photo, globalIndex);
-      });
+      const photoElements = renderPhotosWithBursts(sessionStartIndex, sessionEndIndex);
 
       let locationElement = null;
       if (session.location) {
@@ -228,7 +351,7 @@ export default function PhotoGallery({
       </div>
     );
   } else {
-    const photoElements = photos.map((photo, index) => renderPhotoItem(photo, index));
+    const photoElements = renderPhotosWithBursts(0, photos.length);
 
     galleryContent = (
       <div className="photo-gallery">

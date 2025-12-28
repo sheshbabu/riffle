@@ -115,6 +115,7 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 type PhotosResponse struct {
 	Photos           []Photo   `json:"photos"`
 	Sessions         []Session `json:"sessions,omitempty"`
+	Bursts           []Burst   `json:"bursts,omitempty"`
 	PageStartRecord  int       `json:"pageStartRecord"`
 	PageEndRecord    int       `json:"pageEndRecord"`
 	TotalRecords     int       `json:"totalRecords"`
@@ -214,9 +215,12 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		bursts := DetectBursts(photos)
+
 		response := PhotosResponse{
 			Photos:        photos,
 			Sessions:      sessions,
+			Bursts:        bursts,
 			CurrentOffset: offset,
 			Limit:         limit,
 		}
@@ -278,9 +282,12 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		bursts := DetectBursts(photos)
+
 		response := PhotosResponse{
 			Photos:        photos,
 			Sessions:      sessions,
+			Bursts:        bursts,
 			CurrentOffset: offset,
 			Limit:         limit,
 		}
@@ -342,9 +349,12 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		bursts := DetectBursts(photos)
+
 		response := PhotosResponse{
 			Photos:        photos,
 			Sessions:      sessions,
+			Bursts:        bursts,
 			CurrentOffset: offset,
 			Limit:         limit,
 		}

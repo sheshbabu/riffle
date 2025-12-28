@@ -155,6 +155,8 @@ export default function PhotoListPage({ mode = 'library' }) {
 
   const [photos, setPhotos] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [bursts, setBursts] = useState([]);
+  const [expandedBursts, setExpandedBursts] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pageStartRecord, setPageStartRecord] = useState(0);
@@ -180,6 +182,8 @@ export default function PhotoListPage({ mode = 'library' }) {
         const data = await config.fetchPhotos(offset, withSessions, filters);
         setPhotos(data.photos || []);
         setSessions(data.sessions || []);
+        setBursts(data.bursts || []);
+        setExpandedBursts(new Set());
         setPageStartRecord(data.pageStartRecord || 0);
         setPageEndRecord(data.pageEndRecord || 0);
         setTotalRecords(data.totalRecords || 0);
@@ -269,6 +273,18 @@ export default function PhotoListPage({ mode = 'library' }) {
   function handleViewModeChange(newViewMode) {
     ViewPreferences.setPreference(mode, newViewMode);
     updateSearchParams({ view: newViewMode === savedView ? null : newViewMode });
+  }
+
+  function handleBurstToggle(burstId) {
+    setExpandedBursts(prev => {
+      const next = new Set(prev);
+      if (next.has(burstId)) {
+        next.delete(burstId);
+      } else {
+        next.add(burstId);
+      }
+      return next;
+    });
   }
 
   function handleFiltersChange(newFilters) {
@@ -529,6 +545,9 @@ export default function PhotoListPage({ mode = 'library' }) {
       <PhotoGallery
         photos={photos}
         sessions={sessionsToPass}
+        bursts={bursts}
+        expandedBursts={expandedBursts}
+        onBurstToggle={handleBurstToggle}
         selectedIndices={selectedIndices}
         onSelectionChange={handleSelectionChange}
         fadingPhotos={fadingPhotos}

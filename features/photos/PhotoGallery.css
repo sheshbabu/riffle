@@ -115,6 +115,98 @@
   pointer-events: none;
 }
 
+/* Burst Stack (collapsed) */
+.gallery-item.burst-stack {
+  position: relative;
+}
+
+.gallery-item.burst-stack::before,
+.gallery-item.burst-stack::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 4px;
+  background-color: var(--neutral-200);
+  z-index: -1;
+}
+
+.gallery-item.burst-stack::before {
+  transform: translate(4px, 4px);
+  opacity: 0.6;
+}
+
+.gallery-item.burst-stack::after {
+  transform: translate(2px, 2px);
+  opacity: 0.8;
+}
+
+.burst-badge {
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: rgba(0, 0, 0, 0.75);
+  border-radius: 4px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.burst-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Expanded burst photos */
+.gallery-item.burst-photo {
+  position: relative;
+}
+
+.gallery-item.burst-first::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--blue-500);
+  border-radius: 1px;
+}
+
+.gallery-item.burst-photo::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--blue-200);
+}
+
+.gallery-item.burst-last::after {
+  display: none;
+}
+
+.burst-indicator {
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  padding: 2px 6px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
+}
+
 .page-header {
   display: flex;
   align-items: center;

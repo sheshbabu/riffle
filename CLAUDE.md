@@ -14,6 +14,7 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - go-exiftool (github.com/barasher/go-exiftool) - EXIF metadata extraction
 - goheif (github.com/adrium/goheif) - HEIC/HEIF image format support
 - goimagehash (github.com/corona10/goimagehash) - Perceptual image hashing for near-duplicate detection
+- bimg (github.com/h2non/bimg) - Fast image processing with libvips
 - golang.org/x/image - Image processing (resize, webp support)
 
 ## Development Commands
@@ -42,8 +43,8 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 
 ### 3. Library (Organized Archive)
 - Shows only curated, non-trashed photos (`is_curated=true AND is_trashed=false`)
-- Chronological grid view
-- Future: Session grouping, burst stacking, filters
+- Chronological grid view with session grouping
+- Filters by date range, rating, camera, and location
 
 ### 4. Trash (Safety Net)
 - Virtual trash (files remain in library folder)
@@ -68,6 +69,18 @@ Photos are automatically grouped into sessions using time-gap clustering and loc
 - Location-aware: Uses GPS coordinates when available to split sessions across different locations
 - Time-aware: Prevents sessions from drifting across multiple days
 - Toggle between grid view and session view using the view toggle button
+
+### Burst Detection
+Photos taken in rapid succession with similar content are grouped as bursts.
+
+**Detection criteria (ALL must be met):**
+- **Time window ≤ 3 seconds** between photos
+- **dHash distance ≤ 4** (perceptual similarity using difference hash)
+
+**Display behavior:**
+- Collapsed bursts show as a stack with count badge (e.g., "3")
+- Click to expand and show all photos in the burst
+- Expanded photos show position indicator (e.g., "1/3", "2/3", "3/3")
 
 ### Exact Duplicate Detection
 - **File size pre-filter** (performance optimization):
@@ -183,10 +196,16 @@ Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging
 - **Feature-based Structure**: Each feature has its own directory under `features/`
   - `ingest/` - Import workflow (scanning, deduplication, moving files)
   - `photos/` - Photo library management and serving
+  - `geocoding/` - Reverse geocoding with offline GeoNames data
 - **Commons**: Shared utilities in `commons/`
   - `exif/` - EXIF data extraction and validation
+  - `hash/` - SHA256 file hashing
+  - `media/` - Image/video processing (resize, rotate, thumbnails)
   - `sqlite/` - Database connection and migrations
   - `http/` - API client for frontend communication
+  - `utils/` - HTTP, filesystem, and geo utilities
+  - `hooks/` - React hooks (useSearchParams)
+  - `components/` - Shared React components (Button, Modal, Lightbox, etc.)
 
 ### Frontend (React)
 - **Entry Point**: `index.jsx` - Main app initialization
