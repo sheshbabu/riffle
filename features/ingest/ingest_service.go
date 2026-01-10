@@ -18,7 +18,7 @@ func HandleScanImportFolder(w http.ResponseWriter, r *http.Request) {
 	libraryPath := os.Getenv("LIBRARY_PATH")
 
 	ClearResults()
-	UpdateProgress("scanning", 0, 0)
+	UpdateProgress(StatusScanning, 0, 0)
 
 	go func() {
 		stats, err := ProcessIngest(importPath, libraryPath)
@@ -28,7 +28,7 @@ func HandleScanImportFolder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		SetResults(stats)
-		UpdateProgress("complete", stats.TotalScanned, stats.TotalScanned)
+		UpdateProgress(StatusComplete, stats.TotalScanned, stats.TotalScanned)
 		slog.Info("scan complete", "totalScanned", stats.TotalScanned)
 	}()
 

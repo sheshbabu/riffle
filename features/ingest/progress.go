@@ -4,8 +4,17 @@ import (
 	"sync"
 )
 
+type Status string
+
+const (
+	StatusScanning          Status = "scanning"
+	StatusHashing           Status = "hashing"
+	StatusFindingDuplicates Status = "finding_duplicates"
+	StatusComplete          Status = "complete"
+)
+
 type ProgressStatus struct {
-	Status    string `json:"status"`
+	Status    Status `json:"status"`
 	Completed int    `json:"completed"`
 	Total     int    `json:"total"`
 	Percent   int    `json:"percent"`
@@ -16,7 +25,7 @@ var (
 	currentProgress ProgressStatus
 )
 
-func UpdateProgress(status string, completed, total int) {
+func UpdateProgress(status Status, completed, total int) {
 	progressMutex.Lock()
 	defer progressMutex.Unlock()
 

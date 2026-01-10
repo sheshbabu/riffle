@@ -69,7 +69,7 @@ type AnalysisStats struct {
 func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	slog.Info("starting import analysis")
 
-	UpdateProgress("scanning", 0, 0)
+	UpdateProgress(StatusScanning, 0, 0)
 	photos, err := ScanDirectory(importPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan ingest folder: %w", err)
@@ -84,7 +84,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 		DuplicatesSkipped: make([]FileAction, 0),
 	}
 
-	UpdateProgress("hashing", 0, len(photos))
+	UpdateProgress(StatusHashing, 0, len(photos))
 	workers := runtime.NumCPU()
 	if workers > 16 {
 		workers = 16
@@ -92,7 +92,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	slog.Info("processing files with parallel workers", "workers", workers, "cpus", runtime.NumCPU())
 	processFilesParallel(photos, workers)
 
-	UpdateProgress("finding_duplicates", 0, 0)
+	UpdateProgress(StatusFindingDuplicates, 0, 0)
 	hashGroups := make(map[string][]PhotoFile)
 	for i := range photos {
 		if photos[i].Hash == "" {
@@ -259,7 +259,7 @@ func processFilesParallel(files []PhotoFile, workerCount int) []PhotoFile {
 
 				count := processed.Add(1)
 				if count%100 == 0 || count == total {
-					UpdateProgress("hashing", int(count), int(total))
+					UpdateProgress(StatusHashing, int(count), int(total))
 					slog.Info("processing progress", "completed", count, "total", total, "percent", int(float64(count)/float64(total)*100))
 				}
 			}
