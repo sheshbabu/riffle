@@ -72,8 +72,8 @@ async function getScanResults() {
   return await request('GET', '/api/import/scan/results/');
 }
 
-async function getScanProgress() {
-  return await request('GET', '/api/import/scan/progress/');
+async function getImportProgress() {
+  return await request('GET', '/api/import/progress/');
 }
 
 async function importToLibrary(copyMode = false) {
@@ -145,7 +145,7 @@ export default {
   request,
   scanImportFolder,
   getScanResults,
-  getScanProgress,
+  getImportProgress,
   importToLibrary,
   getPhotos,
   getUncuratedPhotos,

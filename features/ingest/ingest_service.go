@@ -90,7 +90,7 @@ func HandleImport(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func HandleScanProgress(w http.ResponseWriter, r *http.Request) {
+func HandleImportProgress(w http.ResponseWriter, r *http.Request) {
 	progress := GetProgress()
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

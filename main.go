@@ -93,7 +93,7 @@ func newRouter() *http.ServeMux {
 
 	mux.HandleFunc("POST /api/import/scan/", ingest.HandleScanImportFolder)
 	mux.HandleFunc("GET /api/import/scan/results/", ingest.HandleGetScanResults)
-	mux.HandleFunc("GET /api/import/scan/progress/", ingest.HandleScanProgress)
+	mux.HandleFunc("GET /api/import/progress/", ingest.HandleImportProgress)
 	mux.HandleFunc("POST /api/import/move/", ingest.HandleImport)
 	mux.HandleFunc("GET /api/photos/", photos.HandleGetPhotos)
 	mux.HandleFunc("GET /api/photos/uncurated/", photos.HandleGetUncuratedPhotos)

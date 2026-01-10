@@ -22,7 +22,7 @@ export default function ImportPage() {
 
     const pollInterval = setInterval(async () => {
       try {
-        const progressData = await ApiClient.getScanProgress();
+        const progressData = await ApiClient.getImportProgress();
         setProgress(progressData);
 
         if (isScanning && progressData.status === 'scanning_complete') {
