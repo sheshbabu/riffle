@@ -21,7 +21,7 @@ func HandleScanImportFolder(w http.ResponseWriter, r *http.Request) {
 	UpdateProgress("scanning", 0, 0)
 
 	go func() {
-		stats, err := ProcessIngest(importPath, libraryPath, libraryPath)
+		stats, err := ProcessIngest(importPath, libraryPath)
 		if err != nil {
 			slog.Error("import analysis failed", "error", err)
 			return
@@ -73,7 +73,7 @@ func HandleImport(w http.ResponseWriter, r *http.Request) {
 	copyMode := req.CopyMode
 
 	go func() {
-		if err := ExecuteMoves(libraryPath, libraryPath, stats, copyMode); err != nil {
+		if err := ExecuteMoves(libraryPath, stats, copyMode); err != nil {
 			slog.Error("failed to execute moves", "error", err)
 			return
 		}

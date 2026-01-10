@@ -65,7 +65,7 @@ type AnalysisStats struct {
 	FilesToTrash      []FileAction     `json:"filesToTrash"`
 }
 
-func ProcessIngest(importPath, libraryPath, trashPath string) (*AnalysisStats, error) {
+func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	slog.Info("starting import analysis")
 
 	UpdateProgress("scanning", 0, 0)
@@ -285,15 +285,14 @@ func processFilesParallel(files []PhotoFile, workerCount int) []PhotoFile {
 	return files
 }
 
-func ExecuteMoves(libraryPath, trashPath string, stats *AnalysisStats, copyMode bool) error {
+func ExecuteMoves(libraryPath string, stats *AnalysisStats, copyMode bool) error {
 	if copyMode {
 		slog.Info("starting file copies", "toLibrary", len(stats.FilesToLibrary))
 	} else {
-		slog.Info("starting file moves", "toLibrary", len(stats.FilesToLibrary), "toTrash", len(stats.FilesToTrash))
+		slog.Info("starting file moves", "toLibrary", len(stats.FilesToLibrary))
 	}
 
 	movedToLibrary := 0
-	movedToTrash := 0
 
 	for _, action := range stats.FilesToLibrary {
 		photo := PhotoFile{
@@ -328,32 +327,15 @@ func ExecuteMoves(libraryPath, trashPath string, stats *AnalysisStats, copyMode 
 		movedToLibrary++
 	}
 
-	if !copyMode {
-		for _, action := range stats.FilesToTrash {
-			photo := PhotoFile{
-				Path:     action.Path,
-				Hash:     action.Hash,
-				ExifData: action.ExifData,
-				HasExif:  len(action.ExifData) > 0,
-			}
-
-			_, err := transferFile(photo, trashPath, false)
-			if err != nil {
-				slog.Error("failed to move file to trash", "file", photo.Path, "error", err)
-				continue
-			}
-			movedToTrash++
-		}
-	}
-
 	stats.MovedToLibrary = movedToLibrary
-	stats.MovedToTrash = movedToTrash
 
 	if copyMode {
 		slog.Info("file copies completed", "copiedToLibrary", movedToLibrary)
 	} else {
-		slog.Info("file moves completed", "movedToLibrary", movedToLibrary, "movedToTrash", movedToTrash)
+		slog.Info("file moves completed", "movedToLibrary", movedToLibrary)
 	}
+
+	slog.Info("duplicate files skipped", "count", len(stats.FilesToTrash))
 
 	fmt.Println()
 	fmt.Println("=== Execution Summary ===")
@@ -361,8 +343,8 @@ func ExecuteMoves(libraryPath, trashPath string, stats *AnalysisStats, copyMode 
 		fmt.Printf("Files copied to library:  %d\n", movedToLibrary)
 	} else {
 		fmt.Printf("Files moved to library:   %d\n", movedToLibrary)
-		fmt.Printf("Files moved to trash:     %d\n", movedToTrash)
 	}
+	fmt.Printf("Duplicates skipped:       %d\n", len(stats.FilesToTrash))
 	fmt.Println()
 
 	return nil
