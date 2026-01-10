@@ -42,6 +42,8 @@ type Photo struct {
 }
 
 func GetPhotos(limit, offset int) ([]Photo, error) {
+	totalCount := getCount("WHERE is_curated = 1 AND is_trashed = 0")
+
 	query := `
 		SELECT
 			file_path, sha256_hash, dhash, file_size, date_time,
@@ -51,8 +53,7 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 			file_created_at, file_modified_at,
 			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
-			created_at, updated_at,
-			COUNT(*) OVER() AS total_records
+			created_at, updated_at
 		FROM photos
 		WHERE is_curated = 1 AND is_trashed = 0
 		ORDER BY
@@ -81,13 +82,13 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 			&p.City, &p.State, &p.CountryCode,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
-			&p.TotalRecords,
 		)
 		if err != nil {
 			err = fmt.Errorf("error scanning photo row: %w", err)
 			slog.Error(err.Error())
 			continue
 		}
+		p.TotalRecords = totalCount
 		photos = append(photos, p)
 	}
 
@@ -131,6 +132,8 @@ func GetPhoto(filePath string) (*Photo, error) {
 }
 
 func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
+	totalCount := getCount("WHERE is_curated = 0")
+
 	query := `
 		SELECT
 			file_path, sha256_hash, dhash, file_size, date_time,
@@ -140,8 +143,7 @@ func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 			file_created_at, file_modified_at,
 			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
-			created_at, updated_at,
-			COUNT(*) OVER() AS total_records
+			created_at, updated_at
 		FROM photos
 		WHERE is_curated = 0
 		ORDER BY
@@ -170,13 +172,13 @@ func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 			&p.City, &p.State, &p.CountryCode,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
-			&p.TotalRecords,
 		)
 		if err != nil {
 			err = fmt.Errorf("error scanning uncurated photo row: %w", err)
 			slog.Error(err.Error())
 			continue
 		}
+		p.TotalRecords = totalCount
 		photos = append(photos, p)
 	}
 
@@ -184,6 +186,8 @@ func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 }
 
 func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
+	totalCount := getCount("WHERE is_trashed = 1")
+
 	query := `
 		SELECT
 			file_path, sha256_hash, dhash, file_size, date_time,
@@ -193,8 +197,7 @@ func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
 			file_created_at, file_modified_at,
 			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
-			created_at, updated_at,
-			COUNT(*) OVER() AS total_records
+			created_at, updated_at
 		FROM photos
 		WHERE is_trashed = 1
 		ORDER BY
@@ -222,13 +225,13 @@ func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
 			&p.City, &p.State, &p.CountryCode,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
-			&p.TotalRecords,
 		)
 		if err != nil {
 			err = fmt.Errorf("error scanning trashed photo row: %w", err)
 			slog.Error(err.Error())
 			continue
 		}
+		p.TotalRecords = totalCount
 		photos = append(photos, p)
 	}
 
@@ -250,4 +253,16 @@ func UpdatePhotoCuration(filePath string, isCurated, isTrashed bool, rating int)
 	}
 
 	return nil
+}
+
+// To prevent full table scan
+func getCount(whereClause string, args ...any) int {
+	query := fmt.Sprintf("SELECT COUNT(*) FROM photos %s", whereClause)
+	var count int
+	err := sqlite.DB.QueryRow(query, args...).Scan(&count)
+	if err != nil {
+		slog.Error("error getting count", "error", err)
+		return 0
+	}
+	return count
 }

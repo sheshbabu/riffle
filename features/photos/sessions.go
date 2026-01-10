@@ -150,6 +150,8 @@ func GetPhotosWithSessions(limit, offset int, filterCurated bool, filterTrashed 
 	filterConditions, filterArgs := BuildFilterConditions(filters)
 	whereClause += filterConditions
 
+	totalCount := getCount(whereClause, filterArgs...)
+
 	query := fmt.Sprintf(`
 		SELECT
 			file_path, sha256_hash, dhash, file_size, date_time,
@@ -159,8 +161,7 @@ func GetPhotosWithSessions(limit, offset int, filterCurated bool, filterTrashed 
 			file_created_at, file_modified_at,
 			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
-			created_at, updated_at,
-			COUNT(*) OVER() AS total_records
+			created_at, updated_at
 		FROM photos
 		%s
 		ORDER BY
@@ -190,13 +191,13 @@ func GetPhotosWithSessions(limit, offset int, filterCurated bool, filterTrashed 
 			&p.City, &p.State, &p.CountryCode,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
-			&p.TotalRecords,
 		)
 		if err != nil {
 			err = fmt.Errorf("error scanning photo row: %w", err)
 			slog.Error(err.Error())
 			continue
 		}
+		p.TotalRecords = totalCount
 		photos = append(photos, p)
 	}
 
