@@ -276,11 +276,15 @@ func processFilesParallel(files []PhotoFile, workerCount int) []PhotoFile {
 }
 
 func ExecuteMoves(libraryPath string, stats *AnalysisStats, copyMode bool) error {
+	total := len(stats.FilesToImport)
+
 	if copyMode {
-		slog.Info("starting file copies", "toLibrary", len(stats.FilesToImport))
+		slog.Info("starting file copies", "toLibrary", total)
 	} else {
-		slog.Info("starting file moves", "toLibrary", len(stats.FilesToImport))
+		slog.Info("starting file moves", "toLibrary", total)
 	}
+
+	UpdateProgress(StatusImporting, 0, total)
 
 	movedToLibrary := 0
 
@@ -315,9 +319,12 @@ func ExecuteMoves(libraryPath string, stats *AnalysisStats, copyMode bool) error
 		}
 
 		movedToLibrary++
+		UpdateProgress(StatusImporting, movedToLibrary, total)
 	}
 
 	stats.MovedToLibrary = movedToLibrary
+
+	UpdateProgress(StatusImportingComplete, movedToLibrary, total)
 
 	if copyMode {
 		slog.Info("file copies completed", "copiedToLibrary", movedToLibrary)

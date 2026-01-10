@@ -1,7 +1,7 @@
 import { TaskDoneIcon, TaskInProgressIcon, TaskNotStartedIcon } from '../../commons/components/Icon.jsx'
 import './ScanProgressCard.css';
 
-const stepOrder = ["scanning", "hashing", "finding_duplicates", "complete"]
+const stepOrder = ["scanning", "hashing", "finding_duplicates", "scanning_complete"]
 
 export default function ScanProgressCard({ isScanning, progress }) {
   if (!isScanning || progress === null) {
@@ -17,7 +17,7 @@ export default function ScanProgressCard({ isScanning, progress }) {
           <StatusLine stepStatus="scanning" progress={progress} />
           <StatusLine stepStatus="hashing" progress={progress} />
           <StatusLine stepStatus="finding_duplicates" progress={progress} />
-          <StatusLine stepStatus="complete" progress={progress} />
+          <StatusLine stepStatus="scanning_complete" progress={progress} />
         </div>
       </div>
     </div>
@@ -63,7 +63,7 @@ function StatusLine({ stepStatus, progress }) {
     }
   }
 
-  if (stepStatus === "complete") {
+  if (stepStatus === "scanning_complete") {
     stepName = "Complete scanning"
   }
 

@@ -41,4 +41,10 @@
   .button {
     margin-top: 16px;
   }
+
+  .import-progress {
+    margin-top: 12px;
+    font: var(--sm);
+    color: var(--neutral-500);
+  }
 }

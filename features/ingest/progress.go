@@ -10,7 +10,9 @@ const (
 	StatusScanning          Status = "scanning"
 	StatusHashing           Status = "hashing"
 	StatusFindingDuplicates Status = "finding_duplicates"
-	StatusComplete          Status = "complete"
+	StatusScanningComplete  Status = "scanning_complete"
+	StatusImporting         Status = "importing"
+	StatusImportingComplete Status = "importing_complete"
 )
 
 type ProgressStatus struct {

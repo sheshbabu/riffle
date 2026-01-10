@@ -1,7 +1,7 @@
 import Button from '../../commons/components/Button.jsx';
 import './ScanResultsCard.css';
 
-export default function ScanResultsCard({ results, isImporting, copyMode, onCopyModeChange, onImportClick }) {
+export default function ScanResultsCard({ results, isImporting, copyMode, onCopyModeChange, onImportClick, progress }) {
   if (results === null) {
     return null
   }
@@ -16,6 +16,15 @@ export default function ScanResultsCard({ results, isImporting, copyMode, onCopy
   let helpText = `Found ${filesToImport.toLocaleString()} files to import.`;
   if (results.duplicatesRemoved > 0) {
     helpText += ` ${results.duplicatesRemoved.toLocaleString()} duplicates will be skipped.`;
+  }
+
+  let progressText = null;
+  if (isImporting && progress && progress.status === 'importing') {
+    progressText = (
+      <div className="import-progress">
+        {copyMode ? 'Copying' : 'Importing'} {progress.completed.toLocaleString()} / {progress.total.toLocaleString()} ({progress.percent}%)
+      </div>
+    );
   }
 
   return (
@@ -36,6 +45,7 @@ export default function ScanResultsCard({ results, isImporting, copyMode, onCopy
       <Button className='primary' onClick={onImportClick} isLoading={isImporting}>
         {buttonText}
       </Button>
+      {progressText}
     </div>
   );
 }

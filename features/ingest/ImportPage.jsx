@@ -21,34 +21,26 @@ export default function ImportPage() {
     }
 
     const pollInterval = setInterval(async () => {
-      if (isScanning) {
-        try {
-          const progressData = await ApiClient.getScanProgress();
-          setProgress(progressData);
+      try {
+        const progressData = await ApiClient.getScanProgress();
+        setProgress(progressData);
 
-          if (progressData.status === 'complete') {
-            const resultsData = await ApiClient.getScanResults();
-            setResults(resultsData);
-            setIsScanning(false);
-            setProgress(null);
-          }
-        } catch (error) {
-          // Progress not ready yet, keep polling
-        }
-      } else if (isImporting) {
-        try {
+        if (isScanning && progressData.status === 'scanning_complete') {
           const resultsData = await ApiClient.getScanResults();
           setResults(resultsData);
-
-          if (resultsData.movedToLibrary > 0) {
-            setIsImporting(false);
-            const action = copyMode ? 'Copied' : 'Imported';
-            showToast(`${action} ${resultsData.movedToLibrary.toLocaleString()} files to library`);
-            navigateTo('/curate');
-          }
-        } catch (error) {
-          // Results not ready yet, keep polling
+          setIsScanning(false);
         }
+
+        if (isImporting && progressData.status === 'importing_complete') {
+          const resultsData = await ApiClient.getScanResults();
+          setIsImporting(false);
+          setProgress(null);
+          const action = copyMode ? 'Copied' : 'Imported';
+          showToast(`${action} ${resultsData.movedToLibrary.toLocaleString()} files to library`);
+          navigateTo('/curate');
+        }
+      } catch (error) {
+        // Progress not ready yet, keep polling
       }
     }, 1000);
 
@@ -86,7 +78,7 @@ export default function ImportPage() {
     <div className="page-container">
       <ScanImportCard isScanning={isScanning} results={results} onScanClick={handleScanClick} />
       <ScanProgressCard isScanning={isScanning} progress={progress} />
-      <ScanResultsCard results={results} isImporting={isImporting} copyMode={copyMode} onCopyModeChange={handleCopyModeChange} onImportClick={handleImportClick} />
+      <ScanResultsCard results={results} isImporting={isImporting} copyMode={copyMode} onCopyModeChange={handleCopyModeChange} onImportClick={handleImportClick} progress={progress} />
       <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} hasResults={results != null} />
     </div>
   );

@@ -28,7 +28,7 @@ func HandleScanImportFolder(w http.ResponseWriter, r *http.Request) {
 		}
 
 		SetResults(stats)
-		UpdateProgress(StatusComplete, stats.TotalScanned, stats.TotalScanned)
+		UpdateProgress(StatusScanningComplete, stats.TotalScanned, stats.TotalScanned)
 		slog.Info("scan complete", "totalScanned", stats.TotalScanned)
 	}()
 
