@@ -85,9 +85,6 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 		FilesToTrash:   make([]FileAction, 0),
 	}
 
-	sizeGroups := GroupBySize(photos)
-	slog.Info("grouped by size", "groups", len(sizeGroups))
-
 	UpdateProgress("hashing", 0, len(photos))
 	workers := runtime.NumCPU()
 	if workers > 16 {
@@ -222,14 +219,6 @@ func ScanDirectory(path string) ([]PhotoFile, error) {
 	}
 
 	return photos, nil
-}
-
-func GroupBySize(photos []PhotoFile) map[int64][]PhotoFile {
-	groups := make(map[int64][]PhotoFile)
-	for _, photo := range photos {
-		groups[photo.Size] = append(groups[photo.Size], photo)
-	}
-	return groups
 }
 
 func processFile(photo *PhotoFile) {

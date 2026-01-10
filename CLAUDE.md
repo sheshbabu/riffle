@@ -83,11 +83,9 @@ Photos taken in rapid succession with similar content are grouped as bursts.
 - Expanded photos show position indicator (e.g., "1/3", "2/3", "3/3")
 
 ### Exact Duplicate Detection
-- **File size pre-filter** (performance optimization):
-  - Group files by size first (cheap metadata read)
-  - Only compute hashes for files in groups with 2+ members
 - **SHA256 file hash** to identify exact duplicates
 - **EXIF extraction** for all files to aid candidate selection
+- **Duplicate handling**: Only the best candidate is moved to library; duplicates are left in the import folder for manual cleanup
 
 ### Candidate Selection Strategy
 When multiple files share the same hash (exact duplicates), select one to keep:
@@ -140,6 +138,7 @@ When multiple files share the same hash (exact duplicates), select one to keep:
 - `IMPORT_PATH` - Source folder containing photos to process
 - Scanned recursively for media files
 - Files are moved (not copied) during import
+- Cross-device moves supported (e.g., Docker volumes on different mounts)
 
 **Library** (organized by date):
 ```
