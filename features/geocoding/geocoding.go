@@ -10,16 +10,11 @@ import (
 	"strings"
 )
 
-const defaultGeonamesPath = ".geonames"
+const geonamesPath = ".geonames"
 const admin1FileName = "admin1CodesASCII.txt"
 const citiesFileName = "cities1000.txt"
 
 func Init() error {
-	path := os.Getenv("GEONAMES_PATH")
-	if path == "" {
-		path = defaultGeonamesPath
-	}
-
 	count, err := getCitiesCount()
 	if err != nil {
 		return fmt.Errorf("error checking cities count: %w", err)
@@ -30,8 +25,8 @@ func Init() error {
 		return nil
 	}
 
-	admin1Path := path + "/" + admin1FileName
-	citiesPath := path + "/" + citiesFileName
+	admin1Path := geonamesPath + "/" + admin1FileName
+	citiesPath := geonamesPath + "/" + citiesFileName
 
 	if _, err := os.Stat(admin1Path); os.IsNotExist(err) {
 		slog.Warn("geonames admin1 file not found, geocoding disabled", "path", admin1Path)
