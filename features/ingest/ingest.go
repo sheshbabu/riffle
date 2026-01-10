@@ -1,6 +1,7 @@
 package ingest
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -13,6 +14,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 )
 
@@ -422,7 +424,7 @@ func transferFile(photo PhotoFile, destDir string, copyMode bool) (string, error
 			return "", fmt.Errorf("failed to copy file: %w", err)
 		}
 	} else {
-		if err := os.Rename(photo.Path, destPath); err != nil {
+		if err := moveFile(photo.Path, destPath); err != nil {
 			return "", fmt.Errorf("failed to move file: %w", err)
 		}
 	}
@@ -457,6 +459,23 @@ func copyFile(src, dst string) error {
 	}
 
 	return dstFile.Sync()
+}
+
+func moveFile(src, dst string) error {
+	err := os.Rename(src, dst)
+	if err == nil {
+		return nil
+	}
+
+	var linkErr *os.LinkError
+	if errors.As(err, &linkErr) && errors.Is(linkErr.Err, syscall.EXDEV) {
+		if err := copyFile(src, dst); err != nil {
+			return err
+		}
+		return os.Remove(src)
+	}
+
+	return err
 }
 
 func SelectCandidate(duplicates []PhotoFile) PhotoFile {
