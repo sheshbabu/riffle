@@ -40,7 +40,7 @@ export default function ImportPage() {
           const resultsData = await ApiClient.getScanResults();
           setResults(resultsData);
 
-          if (resultsData.movedToLibrary > 0 || resultsData.movedToTrash > 0) {
+          if (resultsData.movedToLibrary > 0) {
             setIsImporting(false);
             const action = copyMode ? 'Copied' : 'Imported';
             showToast(`${action} ${resultsData.movedToLibrary.toLocaleString()} files to library`);

@@ -61,10 +61,9 @@ type AnalysisStats struct {
 	DuplicateGroups   int              `json:"duplicateGroups"`
 	DuplicatesRemoved int              `json:"duplicatesRemoved"`
 	MovedToLibrary    int              `json:"movedToLibrary"`
-	MovedToTrash      int              `json:"movedToTrash"`
 	Duplicates        []DuplicateGroup `json:"duplicates"`
-	FilesToLibrary    []FileAction     `json:"filesToLibrary"`
-	FilesToTrash      []FileAction     `json:"filesToTrash"`
+	FilesToImport     []FileAction     `json:"filesToImport"`
+	DuplicatesSkipped []FileAction     `json:"duplicatesSkipped"`
 }
 
 func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
@@ -79,10 +78,10 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	slog.Info("scanned ingest folder", "count", len(photos))
 
 	stats := &AnalysisStats{
-		ImportPath:     importPath,
-		TotalScanned:   len(photos),
-		FilesToLibrary: make([]FileAction, 0),
-		FilesToTrash:   make([]FileAction, 0),
+		ImportPath:        importPath,
+		TotalScanned:      len(photos),
+		FilesToImport:     make([]FileAction, 0),
+		DuplicatesSkipped: make([]FileAction, 0),
 	}
 
 	UpdateProgress("hashing", 0, len(photos))
@@ -109,7 +108,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 			candidate := duplicates[0]
 			stats.UniqueFiles++
 
-			stats.FilesToLibrary = append(stats.FilesToLibrary, FileAction{
+			stats.FilesToImport = append(stats.FilesToImport, FileAction{
 				Path:           candidate.Path,
 				Hash:           candidate.Hash,
 				Dhash:          candidate.Dhash,
@@ -139,7 +138,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 			duplicateGroup.Files = append(duplicateGroup.Files, duplicateFile)
 
 			if photo.Path == candidate.Path {
-				stats.FilesToLibrary = append(stats.FilesToLibrary, FileAction{
+				stats.FilesToImport = append(stats.FilesToImport, FileAction{
 					Path:           photo.Path,
 					Hash:           photo.Hash,
 					Dhash:          photo.Dhash,
@@ -149,7 +148,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 				})
 			} else {
 				stats.DuplicatesRemoved++
-				stats.FilesToTrash = append(stats.FilesToTrash, FileAction{
+				stats.DuplicatesSkipped = append(stats.DuplicatesSkipped, FileAction{
 					Path:           photo.Path,
 					Hash:           photo.Hash,
 					Dhash:          photo.Dhash,
@@ -171,8 +170,8 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	fmt.Printf("Unique files:             %d\n", stats.UniqueFiles)
 	fmt.Printf("Duplicate groups found:   %d\n", stats.DuplicateGroups)
 	fmt.Printf("Duplicates to remove:     %d\n", stats.DuplicatesRemoved)
-	fmt.Printf("Files to move to library: %d\n", len(stats.FilesToLibrary))
-	fmt.Printf("Files to move to trash:   %d\n", len(stats.FilesToTrash))
+	fmt.Printf("Files to move to library: %d\n", len(stats.FilesToImport))
+	fmt.Printf("Files to move to trash:   %d\n", len(stats.DuplicatesSkipped))
 	fmt.Println()
 
 	return stats, nil
@@ -278,14 +277,14 @@ func processFilesParallel(files []PhotoFile, workerCount int) []PhotoFile {
 
 func ExecuteMoves(libraryPath string, stats *AnalysisStats, copyMode bool) error {
 	if copyMode {
-		slog.Info("starting file copies", "toLibrary", len(stats.FilesToLibrary))
+		slog.Info("starting file copies", "toLibrary", len(stats.FilesToImport))
 	} else {
-		slog.Info("starting file moves", "toLibrary", len(stats.FilesToLibrary))
+		slog.Info("starting file moves", "toLibrary", len(stats.FilesToImport))
 	}
 
 	movedToLibrary := 0
 
-	for _, action := range stats.FilesToLibrary {
+	for _, action := range stats.FilesToImport {
 		photo := PhotoFile{
 			Path:           action.Path,
 			Hash:           action.Hash,
@@ -326,7 +325,7 @@ func ExecuteMoves(libraryPath string, stats *AnalysisStats, copyMode bool) error
 		slog.Info("file moves completed", "movedToLibrary", movedToLibrary)
 	}
 
-	slog.Info("duplicate files skipped", "count", len(stats.FilesToTrash))
+	slog.Info("duplicate files skipped", "count", len(stats.DuplicatesSkipped))
 
 	fmt.Println()
 	fmt.Println("=== Execution Summary ===")
@@ -335,7 +334,7 @@ func ExecuteMoves(libraryPath string, stats *AnalysisStats, copyMode bool) error
 	} else {
 		fmt.Printf("Files moved to library:   %d\n", movedToLibrary)
 	}
-	fmt.Printf("Duplicates skipped:       %d\n", len(stats.FilesToTrash))
+	fmt.Printf("Duplicates skipped:       %d\n", len(stats.DuplicatesSkipped))
 	fmt.Println()
 
 	return nil
