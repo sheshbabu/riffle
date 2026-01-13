@@ -42,7 +42,9 @@ function StatusLine({ stepStatus, progress }) {
 
   if (stepStatus === "scanning") {
     stepName = "Discovering files"
-    if (currentStepIndex < progressingStepIndex) {
+    if (currentStepIndex === progressingStepIndex) {
+      subText = <div className="subtext">Scanning...</div>
+    } else if (currentStepIndex < progressingStepIndex) {
       subText = <div className="subtext">{`Found ${progress.total.toLocaleString()} photos and videos`}</div>
     }
   }
