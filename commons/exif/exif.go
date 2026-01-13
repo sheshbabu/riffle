@@ -16,11 +16,6 @@ func init() {
 	}
 }
 
-func HasExif(filePath string) bool {
-	data, err := ExtractExif(filePath)
-	return err == nil && len(data) > 0
-}
-
 func ExtractExif(filePath string) (map[string]any, error) {
 	fileInfos := et.ExtractMetadata(filePath)
 	if len(fileInfos) == 0 {

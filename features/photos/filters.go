@@ -39,12 +39,6 @@ var (
 	filterOptionsCacheTTL  = 5 * time.Minute
 )
 
-func InvalidateFilterOptionsCache() {
-	filterOptionsCacheMu.Lock()
-	defer filterOptionsCacheMu.Unlock()
-	filterOptionsCache = nil
-}
-
 func BuildFilterConditions(filters *PhotoFilters) (string, []any) {
 	if filters == nil {
 		return "", nil

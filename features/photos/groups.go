@@ -26,70 +26,6 @@ const (
 	MaxGroupDurationHours   = 12
 )
 
-func AssignGroupToPhoto(photoTime time.Time, fileSize int64, lat, lon *float64, city, state, countryCode *string) (int64, error) {
-	adjacent, err := GetAdjacentPhotos(photoTime)
-	if err != nil {
-		slog.Error("failed to get adjacent photos", "error", err)
-	}
-
-	if adjacent.Before != nil && adjacent.Before.GroupID != nil {
-		beforeGroup, err := GetGroupByID(*adjacent.Before.GroupID)
-		if err == nil && canJoinGroup(photoTime, lat, lon, beforeGroup, adjacent.Before) {
-			return *adjacent.Before.GroupID, nil
-		}
-	}
-
-	if adjacent.After != nil && adjacent.After.GroupID != nil {
-		afterGroup, err := GetGroupByID(*adjacent.After.GroupID)
-		if err == nil && canJoinGroup(photoTime, lat, lon, afterGroup, adjacent.After) {
-			return *adjacent.After.GroupID, nil
-		}
-	}
-
-	groupID, err := CreateGroup(photoTime, photoTime, lat, lon, city, state, countryCode)
-	if err != nil {
-		return 0, fmt.Errorf("failed to create group: %w", err)
-	}
-	return groupID, nil
-}
-
-func canJoinGroup(photoTime time.Time, lat, lon *float64, group *GroupRecord, adjacentPhoto *Photo) bool {
-	if adjacentPhoto == nil {
-		return false
-	}
-
-	adjacentTime := parsePhotoDateTime(*adjacentPhoto)
-	if adjacentTime == nil {
-		return false
-	}
-
-	timeDiff := math.Abs(photoTime.Sub(*adjacentTime).Minutes())
-	if timeDiff > TimeGapThresholdMinutes {
-		return false
-	}
-
-	newStartTime := group.StartTime
-	newEndTime := group.EndTime
-	if photoTime.Before(newStartTime) {
-		newStartTime = photoTime
-	}
-	if photoTime.After(newEndTime) {
-		newEndTime = photoTime
-	}
-	if newEndTime.Sub(newStartTime).Hours() > MaxGroupDurationHours {
-		return false
-	}
-
-	if group.Latitude != nil && group.Longitude != nil && lat != nil && lon != nil {
-		distance := haversineDistance(*group.Latitude, *group.Longitude, *lat, *lon)
-		if distance > LocationRadiusKm {
-			return false
-		}
-	}
-
-	return true
-}
-
 func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bool, filters *PhotoFilters) ([]Photo, []Group, error) {
 	var whereClause string
 	if filterCurated && !filterTrashed {
@@ -359,22 +295,6 @@ func updatePhotoGroupID(filePath string, groupID int64) error {
 	query := `UPDATE photos SET group_id = ?, updated_at = CURRENT_TIMESTAMP WHERE file_path = ?`
 	_, err := sqlite.DB.Exec(query, groupID, filePath)
 	return err
-}
-
-func ParsePhotoDateTimeValue(photo Photo) *time.Time {
-	return parsePhotoDateTime(photo)
-}
-
-func ParsePhotoLocation(photo Photo) (*float64, *float64) {
-	if photo.Latitude == nil || photo.Longitude == nil {
-		return nil, nil
-	}
-	lat := utils.ParseDMSOrDecimal(*photo.Latitude)
-	lon := utils.ParseDMSOrDecimal(*photo.Longitude)
-	if lat == 0 && lon == 0 {
-		return nil, nil
-	}
-	return &lat, &lon
 }
 
 func parsePhotoDateTime(photo Photo) *time.Time {

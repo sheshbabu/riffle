@@ -45,34 +45,6 @@ func CreateGroup(startTime, endTime time.Time, lat, lon *float64, city, state, c
 	return groupID, nil
 }
 
-func GetGroupByID(groupID int64) (*GroupRecord, error) {
-	query := `
-		SELECT group_id, start_time, end_time, photo_count, total_size,
-		       latitude, longitude, city, state, country_code,
-		       created_at, updated_at
-		FROM photo_groups
-		WHERE group_id = ?
-	`
-
-	var g GroupRecord
-	var startTime, endTime string
-	err := sqlite.DB.QueryRow(query, groupID).Scan(
-		&g.GroupID, &startTime, &endTime, &g.PhotoCount, &g.TotalSize,
-		&g.Latitude, &g.Longitude, &g.City, &g.State, &g.CountryCode,
-		&g.CreatedAt, &g.UpdatedAt,
-	)
-	if err != nil {
-		err = fmt.Errorf("error getting group: %w", err)
-		slog.Error(err.Error())
-		return nil, err
-	}
-
-	g.StartTime = parseGroupTime(startTime)
-	g.EndTime = parseGroupTime(endTime)
-
-	return &g, nil
-}
-
 func GetGroupsByIDs(groupIDs []int64) ([]GroupRecord, error) {
 	if len(groupIDs) == 0 {
 		return []GroupRecord{}, nil
@@ -150,82 +122,4 @@ func UpdateGroupMetadata(groupID int64) error {
 		return err
 	}
 	return nil
-}
-
-type AdjacentPhotos struct {
-	Before *Photo
-	After  *Photo
-}
-
-func GetAdjacentPhotos(photoTime time.Time) (*AdjacentPhotos, error) {
-	result := &AdjacentPhotos{}
-
-	// Format time as RFC3339 for consistent SQLite comparison
-	photoTimeStr := photoTime.Format(time.RFC3339)
-
-	beforeQuery := `
-		SELECT file_path, sha256_hash, dhash, file_size, date_time,
-		       camera_make, camera_model, width, height, orientation,
-		       latitude, longitude, iso, f_number, exposure_time, focal_length,
-		       file_format, mime_type, is_video, duration,
-		       file_created_at, file_modified_at,
-		       city, state, country_code,
-		       is_curated, is_trashed, rating, notes,
-		       created_at, updated_at,
-		       thumbnail_path, group_id
-		FROM photos
-		WHERE date_time < ?
-		ORDER BY date_time DESC
-		LIMIT 1
-	`
-
-	var before Photo
-	err := sqlite.DB.QueryRow(beforeQuery, photoTimeStr).Scan(
-		&before.FilePath, &before.Sha256Hash, &before.Dhash, &before.FileSize, &before.DateTime,
-		&before.CameraMake, &before.CameraModel, &before.Width, &before.Height, &before.Orientation,
-		&before.Latitude, &before.Longitude, &before.ISO, &before.FNumber, &before.ExposureTime, &before.FocalLength,
-		&before.FileFormat, &before.MimeType, &before.IsVideo, &before.Duration,
-		&before.FileCreatedAt, &before.FileModifiedAt,
-		&before.City, &before.State, &before.CountryCode,
-		&before.IsCurated, &before.IsTrashed, &before.Rating, &before.Notes,
-		&before.CreatedAt, &before.UpdatedAt,
-		&before.ThumbnailPath, &before.GroupID,
-	)
-	if err == nil {
-		result.Before = &before
-	}
-
-	afterQuery := `
-		SELECT file_path, sha256_hash, dhash, file_size, date_time,
-		       camera_make, camera_model, width, height, orientation,
-		       latitude, longitude, iso, f_number, exposure_time, focal_length,
-		       file_format, mime_type, is_video, duration,
-		       file_created_at, file_modified_at,
-		       city, state, country_code,
-		       is_curated, is_trashed, rating, notes,
-		       created_at, updated_at,
-		       thumbnail_path, group_id
-		FROM photos
-		WHERE date_time > ?
-		ORDER BY date_time ASC
-		LIMIT 1
-	`
-
-	var after Photo
-	err = sqlite.DB.QueryRow(afterQuery, photoTimeStr).Scan(
-		&after.FilePath, &after.Sha256Hash, &after.Dhash, &after.FileSize, &after.DateTime,
-		&after.CameraMake, &after.CameraModel, &after.Width, &after.Height, &after.Orientation,
-		&after.Latitude, &after.Longitude, &after.ISO, &after.FNumber, &after.ExposureTime, &after.FocalLength,
-		&after.FileFormat, &after.MimeType, &after.IsVideo, &after.Duration,
-		&after.FileCreatedAt, &after.FileModifiedAt,
-		&after.City, &after.State, &after.CountryCode,
-		&after.IsCurated, &after.IsTrashed, &after.Rating, &after.Notes,
-		&after.CreatedAt, &after.UpdatedAt,
-		&after.ThumbnailPath, &after.GroupID,
-	)
-	if err == nil {
-		result.After = &after
-	}
-
-	return result, nil
 }

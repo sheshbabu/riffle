@@ -97,44 +97,6 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 	return photos, nil
 }
 
-func GetPhoto(filePath string) (*Photo, error) {
-	query := `
-		SELECT
-			file_path, sha256_hash, dhash, file_size, date_time,
-			camera_make, camera_model, width, height, orientation,
-			latitude, longitude, iso, f_number, exposure_time, focal_length,
-			file_format, mime_type, is_video, duration,
-			file_created_at, file_modified_at,
-			city, state, country_code,
-			is_curated, is_trashed, rating, notes,
-			created_at, updated_at,
-			thumbnail_path, group_id
-		FROM photos
-		WHERE file_path = ?
-	`
-
-	var p Photo
-	err := sqlite.DB.QueryRow(query, filePath).Scan(
-		&p.FilePath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
-		&p.CameraMake, &p.CameraModel, &p.Width, &p.Height, &p.Orientation,
-		&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
-		&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
-		&p.FileCreatedAt, &p.FileModifiedAt,
-		&p.City, &p.State, &p.CountryCode,
-		&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
-		&p.CreatedAt, &p.UpdatedAt,
-		&p.ThumbnailPath, &p.GroupID,
-	)
-
-	if err != nil {
-		err = fmt.Errorf("error getting photo: %w", err)
-		slog.Error(err.Error())
-		return nil, err
-	}
-
-	return &p, nil
-}
-
 func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 	totalCount := getCount("WHERE is_curated = 0")
 

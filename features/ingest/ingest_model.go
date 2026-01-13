@@ -161,13 +161,3 @@ func UpdatePhotoThumbnail(filePath, thumbnailPath string) error {
 	return nil
 }
 
-func UpdatePhotoGroup(filePath string, groupID int64) error {
-	query := `UPDATE photos SET group_id = ?, updated_at = CURRENT_TIMESTAMP WHERE file_path = ?`
-	_, err := sqlite.DB.Exec(query, groupID, filePath)
-	if err != nil {
-		err = fmt.Errorf("error updating photo group: %w", err)
-		slog.Error(err.Error())
-		return err
-	}
-	return nil
-}
