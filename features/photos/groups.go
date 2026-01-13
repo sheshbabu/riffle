@@ -189,127 +189,7 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 		}
 	}
 
-	if len(groups) == 0 && len(photos) > 0 {
-		groups = detectGroupsFromPhotos(photos)
-	}
-
 	return photos, groups, nil
-}
-
-func detectGroupsFromPhotos(photos []Photo) []Group {
-	if len(photos) == 0 {
-		return []Group{}
-	}
-
-	var groups []Group
-	var currentGroup *Group
-	var groupStartLat *float64
-	var groupStartLon *float64
-	var lastPhotoTime *time.Time
-
-	for i, photo := range photos {
-		photoTime := parsePhotoDateTime(photo)
-		if photoTime == nil {
-			continue
-		}
-
-		if currentGroup == nil {
-			currentGroup = &Group{
-				GroupID:    int64(len(groups) + 1),
-				StartTime:  *photoTime,
-				EndTime:    *photoTime,
-				PhotoCount: 1,
-				TotalSize:  photo.FileSize,
-				Location:   formatPhotoLocation(photo),
-			}
-			lastPhotoTime = photoTime
-
-			if photo.Latitude != nil && photo.Longitude != nil {
-				lat := parseFloat(photo.Latitude)
-				lon := parseFloat(photo.Longitude)
-				groupStartLat = &lat
-				groupStartLon = &lon
-				currentGroup.Latitude = &lat
-				currentGroup.Longitude = &lon
-			}
-			continue
-		}
-
-		timeSinceLastPhoto := math.Abs(photoTime.Sub(*lastPhotoTime).Minutes())
-		groupDuration := math.Abs(photoTime.Sub(currentGroup.StartTime).Hours())
-		shouldSplit := false
-
-		if timeSinceLastPhoto > TimeGapThresholdMinutes {
-			shouldSplit = true
-		}
-
-		if !shouldSplit && groupDuration > MaxGroupDurationHours {
-			shouldSplit = true
-		}
-
-		if !shouldSplit && groupStartLat != nil && groupStartLon != nil {
-			if photo.Latitude != nil && photo.Longitude != nil {
-				photoLat := parseFloat(photo.Latitude)
-				photoLon := parseFloat(photo.Longitude)
-				distance := haversineDistance(*groupStartLat, *groupStartLon, photoLat, photoLon)
-				if distance > LocationRadiusKm {
-					shouldSplit = true
-				}
-			}
-		}
-
-		if shouldSplit {
-			groups = append(groups, *currentGroup)
-			currentGroup = &Group{
-				GroupID:    int64(len(groups) + 1),
-				StartTime:  *photoTime,
-				EndTime:    *photoTime,
-				PhotoCount: 1,
-				TotalSize:  photo.FileSize,
-				Location:   formatPhotoLocation(photo),
-			}
-			lastPhotoTime = photoTime
-
-			if photo.Latitude != nil && photo.Longitude != nil {
-				lat := parseFloat(photo.Latitude)
-				lon := parseFloat(photo.Longitude)
-				groupStartLat = &lat
-				groupStartLon = &lon
-				currentGroup.Latitude = &lat
-				currentGroup.Longitude = &lon
-			} else {
-				groupStartLat = nil
-				groupStartLon = nil
-			}
-		} else {
-			if photoTime.Before(currentGroup.StartTime) {
-				currentGroup.StartTime = *photoTime
-			}
-			if photoTime.After(currentGroup.EndTime) {
-				currentGroup.EndTime = *photoTime
-			}
-			currentGroup.PhotoCount++
-			currentGroup.TotalSize += photo.FileSize
-			lastPhotoTime = photoTime
-
-			if groupStartLat != nil && photo.Latitude != nil && photo.Longitude != nil {
-				avgLat := (*currentGroup.Latitude + parseFloat(photo.Latitude)) / 2
-				avgLon := (*currentGroup.Longitude + parseFloat(photo.Longitude)) / 2
-				currentGroup.Latitude = &avgLat
-				currentGroup.Longitude = &avgLon
-			}
-		}
-
-		if i == len(photos)-1 && currentGroup != nil {
-			groups = append(groups, *currentGroup)
-		}
-	}
-
-	if currentGroup != nil && len(groups) == 0 {
-		groups = append(groups, *currentGroup)
-	}
-
-	return groups
 }
 
 func AssignGroupsToUngroupedPhotos() error {
@@ -538,10 +418,6 @@ func haversineDistance(lat1, lon1, lat2, lon2 float64) float64 {
 
 func degreesToRadians(degrees float64) float64 {
 	return degrees * math.Pi / 180
-}
-
-func formatPhotoLocation(photo Photo) *string {
-	return formatGroupLocation(photo.City, photo.State, photo.CountryCode)
 }
 
 func formatGroupLocation(city, state, countryCode *string) *string {
