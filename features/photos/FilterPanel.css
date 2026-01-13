@@ -103,8 +103,11 @@
 }
 
 .filter-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
   padding: var(--spacing-4);
-  text-align: center;
   color: var(--neutral-400);
 }
 

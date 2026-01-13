@@ -595,7 +595,7 @@ export default function PhotoListPage({ mode = 'library' }) {
   }
 
   let viewToggle = null;
-  if (!error && photos.length > 0) {
+  if (!error) {
     const viewModeOptions = [
       { value: 'sessions', label: 'Grouped' },
       { value: 'grid', label: 'Grid' },
@@ -605,6 +605,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         options={viewModeOptions}
         value={viewMode}
         onChange={handleViewModeChange}
+        isDisabled={photos.length === 0}
       />
     );
   }
@@ -661,10 +662,15 @@ export default function PhotoListPage({ mode = 'library' }) {
     );
   }
 
+  let selectionCountElement = null;
+  if (!isLoading && !error && photos.length > 0) {
+    selectionCountElement = <span className="selection-count">{selectedIndices.size} selected</span>;
+  }
+
   return (
     <div className="page-container">
       <div className="page-header">
-        <span className="selection-count">{selectedIndices.size} selected</span>
+        {selectionCountElement}
         {actionButtons}
         <div className="right-actions">
           {filterButton}

@@ -1,5 +1,5 @@
 import ApiClient from '../../commons/http/ApiClient.js';
-import { CloseIcon, ChevronDownIcon, ChevronUpIcon } from '../../commons/components/Icon.jsx';
+import { CloseIcon, ChevronDownIcon, ChevronUpIcon, LoadingSpinner } from '../../commons/components/Icon.jsx';
 import './FilterPanel.css';
 
 const { useState, useEffect } = React;
@@ -109,7 +109,12 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
 
   let content = null;
   if (isLoading) {
-    content = <div className="filter-loading">Loading filters...</div>;
+    content = (
+      <div className="filter-loading">
+        <LoadingSpinner size={20} />
+        <span>Loading filters...</span>
+      </div>
+    );
   } else {
     content = (
       <div className="filter-sections">

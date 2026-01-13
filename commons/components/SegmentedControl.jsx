@@ -1,22 +1,31 @@
 import './SegmentedControl.css';
 
-export default function SegmentedControl({ options, value, onChange }) {
+export default function SegmentedControl({ options, value, onChange, isDisabled = false }) {
   const optionElements = options.map(option => {
     const isSelected = option.value === value;
-    const className = isSelected ? 'segment selected' : 'segment';
+    let className = isSelected ? 'segment selected' : 'segment';
+    if (isDisabled) {
+      className += ' is-disabled';
+    }
     return (
       <button
         key={option.value}
         className={className}
-        onClick={() => onChange(option.value)}
+        onClick={() => !isDisabled && onChange(option.value)}
+        disabled={isDisabled}
       >
         {option.label}
       </button>
     );
   });
 
+  let containerClassName = 'segmented-control';
+  if (isDisabled) {
+    containerClassName += ' is-disabled';
+  }
+
   return (
-    <div className="segmented-control">
+    <div className={containerClassName}>
       {optionElements}
     </div>
   );

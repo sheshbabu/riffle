@@ -39,3 +39,16 @@
 .segment.selected:hover {
   background-color: var(--bg-primary);
 }
+
+.segmented-control.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+
+  .segment {
+    cursor: not-allowed;
+
+    &:hover {
+      background: none;
+    }
+  }
+}

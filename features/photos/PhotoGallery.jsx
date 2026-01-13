@@ -242,10 +242,10 @@ export default function PhotoGallery({
 
     let videoIndicator = null;
     if (isVideo) {
-      const duration = formatDuration(photo.duration, true);
+      const duration = formatDuration(photo.duration, true) || '0:00';
       videoIndicator = (
         <div className="video-indicator">
-          {duration || 'Video'}
+          {duration}
         </div>
       );
     }
