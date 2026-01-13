@@ -13,6 +13,55 @@ import (
 	"strings"
 )
 
+func HandleServeThumbnail(w http.ResponseWriter, r *http.Request) {
+	encodedPath := r.URL.Query().Get("path")
+	if encodedPath == "" {
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATH", "Path parameter required")
+		return
+	}
+
+	decodedPath, err := base64.URLEncoding.DecodeString(encodedPath)
+	if err != nil {
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_PATH", "Invalid path encoding")
+		return
+	}
+
+	filePath := string(decodedPath)
+	libraryPath := os.Getenv("LIBRARY_PATH")
+	thumbnailsPath := os.Getenv("THUMBNAILS_PATH")
+
+	if !strings.HasPrefix(filePath, libraryPath) {
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_PATH", "File not in library")
+		return
+	}
+
+	thumbnailPath := strings.Replace(filePath, libraryPath, thumbnailsPath, 1)
+	ext := filepath.Ext(thumbnailPath)
+	thumbnailPath = strings.TrimSuffix(thumbnailPath, ext) + ".jpg"
+
+	thumbnailInfo, err := os.Stat(thumbnailPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			utils.SendErrorResponse(w, http.StatusNotFound, "NOT_FOUND", "Thumbnail not found")
+			return
+		}
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "STAT_ERROR", "Failed to access thumbnail")
+		return
+	}
+
+	thumbnailFile, err := os.Open(thumbnailPath)
+	if err != nil {
+		slog.Error("failed to open thumbnail", "path", thumbnailPath, "error", err)
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to read thumbnail")
+		return
+	}
+	defer thumbnailFile.Close()
+
+	w.Header().Set("Content-Type", "image/jpeg")
+	w.Header().Set("Cache-Control", "public, max-age=3600")
+	http.ServeContent(w, r, filepath.Base(thumbnailPath), thumbnailInfo.ModTime(), thumbnailFile)
+}
+
 func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 	encodedPath := r.URL.Query().Get("path")
 	if encodedPath == "" {
@@ -43,60 +92,8 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	widthStr := r.URL.Query().Get("width")
-	heightStr := r.URL.Query().Get("height")
-
 	ext := strings.ToLower(filepath.Ext(filePath))
 	contentType := media.GetContentType(ext)
-
-	shouldResize := (widthStr != "" || heightStr != "") && (media.IsImageFile(filePath) || media.IsVideoFile(filePath))
-
-	if shouldResize {
-		width, _ := strconv.Atoi(widthStr)
-		height, _ := strconv.Atoi(heightStr)
-
-		if width <= 0 {
-			width = 4000
-		}
-		if height <= 0 {
-			height = 4000
-		}
-
-		if media.IsVideoFile(filePath) {
-			thumbnailData, thumbnailContentType, err := media.GenerateVideoThumbnail(filePath, width, height)
-			if err != nil {
-				slog.Error("failed to generate video thumbnail, serving placeholder", "path", filePath, "error", err)
-				utils.SendErrorResponse(w, http.StatusInternalServerError, "THUMBNAIL_ERROR", "Failed to generate video thumbnail")
-				return
-			}
-
-			w.Header().Set("Content-Type", thumbnailContentType)
-			w.Header().Set("Cache-Control", "public, max-age=3600")
-			w.Write(thumbnailData)
-			return
-		}
-
-		fileData, err := os.ReadFile(filePath)
-		if err != nil {
-			slog.Error("failed to read file for resizing", "path", filePath, "error", err)
-			utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to read file")
-			return
-		}
-
-		resizedData, resizedContentType, err := media.ResizeImage(fileData, filePath, width, height)
-		if err != nil {
-			slog.Error("failed to resize image, serving original", "path", filePath, "error", err)
-			w.Header().Set("Content-Type", contentType)
-			w.Header().Set("Cache-Control", "public, max-age=3600")
-			w.Write(fileData)
-			return
-		}
-
-		w.Header().Set("Content-Type", resizedContentType)
-		w.Header().Set("Cache-Control", "public, max-age=3600")
-		w.Write(resizedData)
-		return
-	}
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -113,14 +110,14 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 }
 
 type PhotosResponse struct {
-	Photos           []Photo   `json:"photos"`
-	Sessions         []Session `json:"sessions,omitempty"`
-	Bursts           []Burst   `json:"bursts,omitempty"`
-	PageStartRecord  int       `json:"pageStartRecord"`
-	PageEndRecord    int       `json:"pageEndRecord"`
-	TotalRecords     int       `json:"totalRecords"`
-	CurrentOffset    int       `json:"currentOffset"`
-	Limit            int       `json:"limit"`
+	Photos          []Photo `json:"photos"`
+	Groups          []Group `json:"groups,omitempty"`
+	Bursts          []Burst `json:"bursts,omitempty"`
+	PageStartRecord int     `json:"pageStartRecord"`
+	PageEndRecord   int     `json:"pageEndRecord"`
+	TotalRecords    int     `json:"totalRecords"`
+	CurrentOffset   int     `json:"currentOffset"`
+	Limit           int     `json:"limit"`
 }
 
 func parseFiltersFromQuery(r *http.Request) *PhotoFilters {
@@ -203,14 +200,14 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	withSessions := r.URL.Query().Get("sessions") == "true"
+	withGroups := r.URL.Query().Get("groups") == "true" || r.URL.Query().Get("sessions") == "true"
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	if withSessions {
-		photos, sessions, err := GetPhotosWithSessions(limit, offset, true, false, filters)
+	if withGroups {
+		photos, groups, err := GetPhotosWithGroups(limit, offset, true, false, filters)
 		if err != nil {
-			slog.Error("failed to get photos with sessions", "error", err)
+			slog.Error("failed to get photos with groups", "error", err)
 			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
 			return
 		}
@@ -219,7 +216,7 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 
 		response := PhotosResponse{
 			Photos:        photos,
-			Sessions:      sessions,
+			Groups:        groups,
 			Bursts:        bursts,
 			CurrentOffset: offset,
 			Limit:         limit,
@@ -270,14 +267,14 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	withSessions := r.URL.Query().Get("sessions") == "true"
+	withGroups := r.URL.Query().Get("groups") == "true" || r.URL.Query().Get("sessions") == "true"
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	if withSessions {
-		photos, sessions, err := GetPhotosWithSessions(limit, offset, false, false, filters)
+	if withGroups {
+		photos, groups, err := GetPhotosWithGroups(limit, offset, false, false, filters)
 		if err != nil {
-			slog.Error("failed to get uncurated photos with sessions", "error", err)
+			slog.Error("failed to get uncurated photos with groups", "error", err)
 			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
 			return
 		}
@@ -286,7 +283,7 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 
 		response := PhotosResponse{
 			Photos:        photos,
-			Sessions:      sessions,
+			Groups:        groups,
 			Bursts:        bursts,
 			CurrentOffset: offset,
 			Limit:         limit,
@@ -337,14 +334,14 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	withSessions := r.URL.Query().Get("sessions") == "true"
+	withGroups := r.URL.Query().Get("groups") == "true" || r.URL.Query().Get("sessions") == "true"
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	if withSessions {
-		photos, sessions, err := GetPhotosWithSessions(limit, offset, false, true, filters)
+	if withGroups {
+		photos, groups, err := GetPhotosWithGroups(limit, offset, false, true, filters)
 		if err != nil {
-			slog.Error("failed to get trashed photos with sessions", "error", err)
+			slog.Error("failed to get trashed photos with groups", "error", err)
 			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
 			return
 		}
@@ -353,7 +350,7 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 
 		response := PhotosResponse{
 			Photos:        photos,
-			Sessions:      sessions,
+			Groups:        groups,
 			Bursts:        bursts,
 			CurrentOffset: offset,
 			Limit:         limit,

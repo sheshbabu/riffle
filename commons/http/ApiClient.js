@@ -119,22 +119,22 @@ function buildFilterParams(filters) {
   return params.length > 0 ? '&' + params.join('&') : '';
 }
 
-async function getPhotos(offset, withSessions, filters) {
-  const sessionsParam = withSessions ? '&sessions=true' : '';
+async function getPhotos(offset, withGroups, filters) {
+  const groupsParam = withGroups ? '&groups=true' : '';
   const filterParams = buildFilterParams(filters);
-  return await request('GET', `/api/photos/?offset=${offset}${sessionsParam}${filterParams}`);
+  return await request('GET', `/api/photos/?offset=${offset}${groupsParam}${filterParams}`);
 }
 
-async function getUncuratedPhotos(offset, withSessions, filters) {
-  const sessionsParam = withSessions ? '&sessions=true' : '';
+async function getUncuratedPhotos(offset, withGroups, filters) {
+  const groupsParam = withGroups ? '&groups=true' : '';
   const filterParams = buildFilterParams(filters);
-  return await request('GET', `/api/photos/uncurated/?offset=${offset}${sessionsParam}${filterParams}`);
+  return await request('GET', `/api/photos/uncurated/?offset=${offset}${groupsParam}${filterParams}`);
 }
 
-async function getTrashedPhotos(offset, withSessions, filters) {
-  const sessionsParam = withSessions ? '&sessions=true' : '';
+async function getTrashedPhotos(offset, withGroups, filters) {
+  const groupsParam = withGroups ? '&groups=true' : '';
   const filterParams = buildFilterParams(filters);
-  return await request('GET', `/api/photos/trashed/?offset=${offset}${sessionsParam}${filterParams}`);
+  return await request('GET', `/api/photos/trashed/?offset=${offset}${groupsParam}${filterParams}`);
 }
 
 async function getFilterOptions() {

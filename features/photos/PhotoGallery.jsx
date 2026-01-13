@@ -1,16 +1,17 @@
 import Lightbox from '../../commons/components/Lightbox.jsx';
 import { StackIcon } from '../../commons/components/Icon.jsx';
-import getPhotoUrl from '../../commons/utils/getPhotoUrl.js';
+import getThumbnailUrl from '../../commons/utils/getThumbnailUrl.js';
 import isVideoFile from '../../commons/utils/isVideoFile.js';
 import formatSessionDate from '../../commons/utils/formatSessionDate.js';
 import formatDuration from '../../commons/utils/formatDuration.js';
+import formatFileSize from '../../commons/utils/formatFileSize.js';
 import './PhotoGallery.css';
 
 const { useState, useEffect } = React;
 
 export default function PhotoGallery({
   photos,
-  sessions,
+  groups,
   bursts,
   expandedBursts,
   onBurstToggle,
@@ -24,7 +25,7 @@ export default function PhotoGallery({
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const fadingSet = fadingPhotos || new Set();
   const selectedSet = selectedIndices || new Set();
-  const isSessionView = sessions && sessions.length > 0;
+  const isGroupView = groups && groups.length > 0;
 
   const selectedIndex = selectedSet.size > 0 ? Array.from(selectedSet)[0] : null;
 
@@ -71,8 +72,8 @@ export default function PhotoGallery({
           break;
         case 'ArrowDown':
           e.preventDefault();
-          if (isSessionView) {
-            const newIndex = getNextRowIndex(selectedIndex, cols, sessions, photos.length);
+          if (isGroupView) {
+            const newIndex = getNextRowIndex(selectedIndex, cols, groups, photos.length);
             onSelectionChange(new Set([newIndex]));
           } else {
             onSelectionChange(new Set([Math.min(lastIndex, selectedIndex + cols)]));
@@ -80,8 +81,8 @@ export default function PhotoGallery({
           break;
         case 'ArrowUp':
           e.preventDefault();
-          if (isSessionView) {
-            const newIndex = getPrevRowIndex(selectedIndex, cols, sessions);
+          if (isGroupView) {
+            const newIndex = getPrevRowIndex(selectedIndex, cols, groups);
             onSelectionChange(new Set([newIndex]));
           } else {
             onSelectionChange(new Set([Math.max(0, selectedIndex - cols)]));
@@ -100,7 +101,7 @@ export default function PhotoGallery({
   }, [selectedIndex, photos, lightboxIndex, fadingSet, isCurateMode]);
 
   function getGridColumns() {
-    const gridSelector = isSessionView ? '.session-grid' : '.photo-gallery';
+    const gridSelector = isGroupView ? '.group-grid' : '.photo-gallery';
     const gridElement = document.querySelector(gridSelector);
     if (!gridElement) {
       return 5;
@@ -172,7 +173,7 @@ export default function PhotoGallery({
   }
 
   function renderBurstStack(photo, index, burstInfo) {
-    const thumbnailUrl = getPhotoUrl(photo.filePath, 300, 300);
+    const thumbnailUrl = getThumbnailUrl(photo.filePath);
     const isSelected = selectedSet.has(index);
 
     let className = 'gallery-item burst-stack';
@@ -201,8 +202,12 @@ export default function PhotoGallery({
   }
 
   function renderPhotoItem(photo, index, burstContext = null) {
+    if (photo === undefined) {
+      return null
+    }
+
     const isVideo = photo.isVideo || isVideoFile(photo.filePath);
-    const thumbnailUrl = getPhotoUrl(photo.filePath, 300, 300);
+    const thumbnailUrl = getThumbnailUrl(photo.filePath);
     const isSelected = selectedSet.has(index);
     const isFading = fadingSet.has(photo.filePath);
 
@@ -317,28 +322,34 @@ export default function PhotoGallery({
     return elements;
   }
 
-  if (isSessionView) {
+  if (isGroupView) {
     let photoOffset = 0;
-    const sessionElements = sessions.map((session) => {
-      const sessionStartIndex = photoOffset;
-      const sessionEndIndex = photoOffset + session.photoCount;
-      photoOffset = sessionEndIndex;
+    const groupElements = groups.map((group) => {
+      const groupStartIndex = photoOffset;
+      const groupEndIndex = photoOffset + group.photoCount;
+      photoOffset = groupEndIndex;
 
-      const photoElements = renderPhotosWithBursts(sessionStartIndex, sessionEndIndex);
+      const photoElements = renderPhotosWithBursts(groupStartIndex, groupEndIndex);
 
       let locationElement = null;
-      if (session.location) {
-        locationElement = <span className="session-location">{session.location}</span>;
+      if (group.location) {
+        locationElement = <span className="group-location">{group.location}</span>;
+      }
+
+      let sizeElement = null;
+      if (group.totalSize) {
+        sizeElement = <span className="group-size">{formatFileSize(group.totalSize)}</span>;
       }
 
       return (
-        <div key={session.sessionId} className="session-group">
-          <div className="session-header">
-            <span className="session-date">{formatSessionDate(session.startTime, session.endTime)}</span>
+        <div key={group.groupId} className="group-container">
+          <div className="group-header">
+            <span className="group-date">{formatSessionDate(group.startTime, group.endTime)}</span>
             {locationElement}
-            <span className="session-count">{session.photoCount} {session.photoCount === 1 ? 'photo' : 'photos'}</span>
+            <span className="group-count">{group.photoCount} {group.photoCount === 1 ? 'photo' : 'photos'}</span>
+            {sizeElement}
           </div>
-          <div className="session-grid">
+          <div className="group-grid">
             {photoElements}
           </div>
         </div>
@@ -346,8 +357,8 @@ export default function PhotoGallery({
     });
 
     galleryContent = (
-      <div className="session-gallery">
-        {sessionElements}
+      <div className="group-gallery">
+        {groupElements}
       </div>
     );
   } else {
@@ -391,81 +402,81 @@ function createRangeSet(start, end) {
   return set;
 }
 
-function getSessionInfo(index, sessions) {
+function getGroupInfo(index, groups) {
   let photoOffset = 0;
-  for (let i = 0; i < sessions.length; i++) {
-    const session = sessions[i];
-    const sessionStart = photoOffset;
-    const sessionEnd = photoOffset + session.photoCount;
-    if (index >= sessionStart && index < sessionEnd) {
+  for (let i = 0; i < groups.length; i++) {
+    const group = groups[i];
+    const groupStart = photoOffset;
+    const groupEnd = photoOffset + group.photoCount;
+    if (index >= groupStart && index < groupEnd) {
       return {
-        sessionIndex: i,
-        sessionStart,
-        sessionEnd,
-        indexInSession: index - sessionStart,
-        photoCount: session.photoCount,
+        groupIndex: i,
+        groupStart,
+        groupEnd,
+        indexInGroup: index - groupStart,
+        photoCount: group.photoCount,
       };
     }
-    photoOffset = sessionEnd;
+    photoOffset = groupEnd;
   }
   return null;
 }
 
-function getNextRowIndex(currentIndex, cols, sessions, totalPhotos) {
-  const info = getSessionInfo(currentIndex, sessions);
+function getNextRowIndex(currentIndex, cols, groups, totalPhotos) {
+  const info = getGroupInfo(currentIndex, groups);
   if (!info) {
     return Math.min(totalPhotos - 1, currentIndex + cols);
   }
 
-  const currentRow = Math.floor(info.indexInSession / cols);
-  const currentCol = info.indexInSession % cols;
-  const totalRowsInSession = Math.ceil(info.photoCount / cols);
+  const currentRow = Math.floor(info.indexInGroup / cols);
+  const currentCol = info.indexInGroup % cols;
+  const totalRowsInGroup = Math.ceil(info.photoCount / cols);
   const nextRow = currentRow + 1;
 
-  if (nextRow < totalRowsInSession) {
-    const nextIndexInSession = nextRow * cols + currentCol;
-    if (nextIndexInSession < info.photoCount) {
-      return info.sessionStart + nextIndexInSession;
+  if (nextRow < totalRowsInGroup) {
+    const nextIndexInGroup = nextRow * cols + currentCol;
+    if (nextIndexInGroup < info.photoCount) {
+      return info.groupStart + nextIndexInGroup;
     }
-    return info.sessionEnd - 1;
+    return info.groupEnd - 1;
   }
 
-  if (info.sessionIndex + 1 < sessions.length) {
-    let nextSessionStart = info.sessionEnd;
-    const nextSession = sessions[info.sessionIndex + 1];
-    const targetIndexInNextSession = Math.min(currentCol, nextSession.photoCount - 1);
-    return nextSessionStart + targetIndexInNextSession;
+  if (info.groupIndex + 1 < groups.length) {
+    let nextGroupStart = info.groupEnd;
+    const nextGroup = groups[info.groupIndex + 1];
+    const targetIndexInNextGroup = Math.min(currentCol, nextGroup.photoCount - 1);
+    return nextGroupStart + targetIndexInNextGroup;
   }
 
   return currentIndex;
 }
 
-function getPrevRowIndex(currentIndex, cols, sessions) {
-  const info = getSessionInfo(currentIndex, sessions);
+function getPrevRowIndex(currentIndex, cols, groups) {
+  const info = getGroupInfo(currentIndex, groups);
   if (!info) {
     return Math.max(0, currentIndex - cols);
   }
 
-  const currentRow = Math.floor(info.indexInSession / cols);
-  const currentCol = info.indexInSession % cols;
+  const currentRow = Math.floor(info.indexInGroup / cols);
+  const currentCol = info.indexInGroup % cols;
   const prevRow = currentRow - 1;
 
   if (prevRow >= 0) {
-    const prevIndexInSession = prevRow * cols + currentCol;
-    return info.sessionStart + prevIndexInSession;
+    const prevIndexInGroup = prevRow * cols + currentCol;
+    return info.groupStart + prevIndexInGroup;
   }
 
-  if (info.sessionIndex > 0) {
-    let prevSessionStart = 0;
-    for (let i = 0; i < info.sessionIndex - 1; i++) {
-      prevSessionStart += sessions[i].photoCount;
+  if (info.groupIndex > 0) {
+    let prevGroupStart = 0;
+    for (let i = 0; i < info.groupIndex - 1; i++) {
+      prevGroupStart += groups[i].photoCount;
     }
-    const prevSession = sessions[info.sessionIndex - 1];
-    const totalRowsInPrevSession = Math.ceil(prevSession.photoCount / cols);
-    const lastRowStart = (totalRowsInPrevSession - 1) * cols;
-    const targetCol = Math.min(currentCol, prevSession.photoCount - 1 - lastRowStart);
-    const targetIndexInPrevSession = lastRowStart + targetCol;
-    return prevSessionStart + Math.min(targetIndexInPrevSession, prevSession.photoCount - 1);
+    const prevGroup = groups[info.groupIndex - 1];
+    const totalRowsInPrevGroup = Math.ceil(prevGroup.photoCount / cols);
+    const lastRowStart = (totalRowsInPrevGroup - 1) * cols;
+    const targetCol = Math.min(currentCol, prevGroup.photoCount - 1 - lastRowStart);
+    const targetIndexInPrevGroup = lastRowStart + targetCol;
+    return prevGroupStart + Math.min(targetIndexInPrevGroup, prevGroup.photoCount - 1);
   }
 
   return currentIndex;

@@ -38,6 +38,8 @@ type Photo struct {
 	Notes          *string `json:"notes,omitempty"`
 	CreatedAt      string  `json:"createdAt"`
 	UpdatedAt      string  `json:"updatedAt"`
+	ThumbnailPath  *string `json:"thumbnailPath,omitempty"`
+	GroupID        *int64  `json:"groupId,omitempty"`
 	TotalRecords   int     `json:"totalRecords,omitempty"`
 }
 
@@ -53,12 +55,11 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 			file_created_at, file_modified_at,
 			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
-			created_at, updated_at
+			created_at, updated_at,
+			thumbnail_path, group_id
 		FROM photos
 		WHERE is_curated = 1 AND is_trashed = 0
-		ORDER BY
-			COALESCE(date_time, file_modified_at, created_at) DESC,
-			created_at DESC
+		ORDER BY date_time DESC, created_at DESC
 		LIMIT ? OFFSET ?
 	`
 
@@ -82,6 +83,7 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 			&p.City, &p.State, &p.CountryCode,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
+			&p.ThumbnailPath, &p.GroupID,
 		)
 		if err != nil {
 			err = fmt.Errorf("error scanning photo row: %w", err)
@@ -105,7 +107,8 @@ func GetPhoto(filePath string) (*Photo, error) {
 			file_created_at, file_modified_at,
 			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
-			created_at, updated_at
+			created_at, updated_at,
+			thumbnail_path, group_id
 		FROM photos
 		WHERE file_path = ?
 	`
@@ -120,6 +123,7 @@ func GetPhoto(filePath string) (*Photo, error) {
 		&p.City, &p.State, &p.CountryCode,
 		&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 		&p.CreatedAt, &p.UpdatedAt,
+		&p.ThumbnailPath, &p.GroupID,
 	)
 
 	if err != nil {
@@ -143,12 +147,11 @@ func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 			file_created_at, file_modified_at,
 			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
-			created_at, updated_at
+			created_at, updated_at,
+			thumbnail_path, group_id
 		FROM photos
 		WHERE is_curated = 0
-		ORDER BY
-			COALESCE(date_time, file_modified_at, created_at) DESC,
-			created_at DESC
+		ORDER BY date_time DESC, created_at DESC
 		LIMIT ? OFFSET ?
 	`
 
@@ -172,6 +175,7 @@ func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 			&p.City, &p.State, &p.CountryCode,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
+			&p.ThumbnailPath, &p.GroupID,
 		)
 		if err != nil {
 			err = fmt.Errorf("error scanning uncurated photo row: %w", err)
@@ -197,7 +201,8 @@ func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
 			file_created_at, file_modified_at,
 			city, state, country_code,
 			is_curated, is_trashed, rating, notes,
-			created_at, updated_at
+			created_at, updated_at,
+			thumbnail_path, group_id
 		FROM photos
 		WHERE is_trashed = 1
 		ORDER BY
@@ -225,6 +230,7 @@ func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
 			&p.City, &p.State, &p.CountryCode,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
+			&p.ThumbnailPath, &p.GroupID,
 		)
 		if err != nil {
 			err = fmt.Errorf("error scanning trashed photo row: %w", err)

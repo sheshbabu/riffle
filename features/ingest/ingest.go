@@ -10,6 +10,7 @@ import (
 	"riffle/commons/exif"
 	"riffle/commons/hash"
 	"riffle/commons/media"
+	"riffle/features/photos"
 	"runtime"
 	"strings"
 	"sync"
@@ -275,7 +276,7 @@ func processFilesParallel(files []PhotoFile, workerCount int) []PhotoFile {
 	return files
 }
 
-func ExecuteMoves(libraryPath string, stats *AnalysisStats, copyMode bool) error {
+func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copyMode bool) error {
 	total := len(stats.FilesToImport)
 
 	if copyMode {
@@ -318,11 +319,24 @@ func ExecuteMoves(libraryPath string, stats *AnalysisStats, copyMode bool) error
 			slog.Error("failed to insert photo to database", "file", photo.Path, "error", err)
 		}
 
+		thumbnailPath := media.GetThumbnailPath(libraryPath, thumbnailsPath, photo.Path)
+		if err := media.GenerateThumbnail(photo.Path, thumbnailPath); err != nil {
+			slog.Error("failed to generate thumbnail", "file", photo.Path, "error", err)
+		} else {
+			if err := UpdatePhotoThumbnail(photo.Path, thumbnailPath); err != nil {
+				slog.Error("failed to update photo thumbnail path", "file", photo.Path, "error", err)
+			}
+		}
+
 		movedToLibrary++
 		UpdateProgress(StatusImporting, movedToLibrary, total)
 	}
 
 	stats.MovedToLibrary = movedToLibrary
+
+	if err := photos.AssignGroupsToUngroupedPhotos(); err != nil {
+		slog.Error("failed to assign groups to photos", "error", err)
+	}
 
 	UpdateProgress(StatusImportingComplete, movedToLibrary, total)
 

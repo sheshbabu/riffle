@@ -58,6 +58,7 @@ type ImportRequest struct {
 
 func HandleImport(w http.ResponseWriter, r *http.Request) {
 	libraryPath := os.Getenv("LIBRARY_PATH")
+	thumbnailsPath := os.Getenv("THUMBNAILS_PATH")
 
 	var req ImportRequest
 	if r.Body != nil {
@@ -73,7 +74,7 @@ func HandleImport(w http.ResponseWriter, r *http.Request) {
 	copyMode := req.CopyMode
 
 	go func() {
-		if err := ExecuteMoves(libraryPath, stats, copyMode); err != nil {
+		if err := ExecuteMoves(libraryPath, thumbnailsPath, stats, copyMode); err != nil {
 			slog.Error("failed to execute moves", "error", err)
 			return
 		}

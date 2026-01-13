@@ -23,11 +23,13 @@ COPY --from=builder /app/.geonames /.geonames
 VOLUME /data
 VOLUME /import
 VOLUME /library
+VOLUME /thumbnails
 VOLUME /export
 
 ENV DATA_FOLDER=/data
 ENV IMPORT_PATH=/import
 ENV LIBRARY_PATH=/library
+ENV THUMBNAILS_PATH=/thumbnails
 ENV EXPORT_PATH=/export
 
 CMD ["/riffle"]

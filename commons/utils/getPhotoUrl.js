@@ -1,11 +1,4 @@
-export default function getPhotoUrl(filePath, width = null, height = null) {
+export default function getPhotoUrl(filePath) {
   const encoded = btoa(filePath);
-  let url = `/api/photo/?path=${encoded}`;
-  if (width) {
-    url += `&width=${width}`;
-  }
-  if (height) {
-    url += `&height=${height}`;
-  }
-  return url;
+  return `/api/photo/?path=${encoded}`;
 }

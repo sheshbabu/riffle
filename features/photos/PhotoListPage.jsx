@@ -15,7 +15,7 @@ const { useState, useEffect } = React;
 
 const PAGE_CONFIG = {
   library: {
-    fetchPhotos: (offset, withSessions, filters) => ApiClient.getPhotos(offset, withSessions, filters),
+    fetchPhotos: (offset, withGroups, filters) => ApiClient.getPhotos(offset, withGroups, filters),
     emptyState: {
       icon: ImageIcon,
       title: 'No photos yet',
@@ -25,7 +25,7 @@ const PAGE_CONFIG = {
     fadeOnlyOnTrash: true,
   },
   curate: {
-    fetchPhotos: (offset, withSessions, filters) => ApiClient.getUncuratedPhotos(offset, withSessions, filters),
+    fetchPhotos: (offset, withGroups, filters) => ApiClient.getUncuratedPhotos(offset, withGroups, filters),
     emptyState: {
       icon: SparklesIcon,
       title: 'Nothing to review',
@@ -35,7 +35,7 @@ const PAGE_CONFIG = {
     fadeOnlyOnTrash: false,
   },
   trash: {
-    fetchPhotos: (offset, withSessions, filters) => ApiClient.getTrashedPhotos(offset, withSessions, filters),
+    fetchPhotos: (offset, withGroups, filters) => ApiClient.getTrashedPhotos(offset, withGroups, filters),
     emptyState: {
       icon: TrashEmptyIcon,
       title: 'Nothing here',
@@ -154,7 +154,7 @@ export default function PhotoListPage({ mode = 'library' }) {
   const filters = parseFiltersFromUrl(searchParams);
 
   const [photos, setPhotos] = useState([]);
-  const [sessions, setSessions] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [bursts, setBursts] = useState([]);
   const [expandedBursts, setExpandedBursts] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
@@ -178,10 +178,10 @@ export default function PhotoListPage({ mode = 'library' }) {
       setError(null);
 
       try {
-        const withSessions = viewMode === 'sessions';
-        const data = await config.fetchPhotos(offset, withSessions, filters);
+        const withGroups = viewMode === 'sessions';
+        const data = await config.fetchPhotos(offset, withGroups, filters);
         setPhotos(data.photos || []);
-        setSessions(data.sessions || []);
+        setGroups(data.groups || []);
         setBursts(data.bursts || []);
         setExpandedBursts(new Set());
         setPageStartRecord(data.pageStartRecord || 0);
@@ -315,18 +315,18 @@ export default function PhotoListPage({ mode = 'library' }) {
       const newPhotos = prevPhotos.filter(p => p.filePath !== filePath);
 
       if (removedIndex !== -1 && viewMode === 'sessions') {
-        setSessions(prevSessions => {
+        setGroups(prevGroups => {
           let photoOffset = 0;
-          return prevSessions.map(session => {
-            const sessionStart = photoOffset;
-            const sessionEnd = photoOffset + session.photoCount;
-            photoOffset = sessionEnd;
+          return prevGroups.map(group => {
+            const groupStart = photoOffset;
+            const groupEnd = photoOffset + group.photoCount;
+            photoOffset = groupEnd;
 
-            if (removedIndex >= sessionStart && removedIndex < sessionEnd) {
-              return { ...session, photoCount: session.photoCount - 1 };
+            if (removedIndex >= groupStart && removedIndex < groupEnd) {
+              return { ...group, photoCount: group.photoCount - 1 };
             }
-            return session;
-          }).filter(session => session.photoCount > 0);
+            return group;
+          }).filter(group => group.photoCount > 0);
         });
       }
 
@@ -540,11 +540,11 @@ export default function PhotoListPage({ mode = 'library' }) {
       );
     }
   } else if (photos.length > 0) {
-    const sessionsToPass = viewMode === 'sessions' ? sessions : null;
+    const groupsToPass = viewMode === 'sessions' ? groups : null;
     content = (
       <PhotoGallery
         photos={photos}
-        sessions={sessionsToPass}
+        groups={groupsToPass}
         bursts={bursts}
         expandedBursts={expandedBursts}
         onBurstToggle={handleBurstToggle}

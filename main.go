@@ -75,7 +75,7 @@ func loadEnv() {
 		slog.Warn("no .env file found, using env vars only")
 	}
 
-	for _, pathVar := range []string{"IMPORT_PATH", "LIBRARY_PATH", "EXPORT_PATH"} {
+	for _, pathVar := range []string{"IMPORT_PATH", "LIBRARY_PATH", "EXPORT_PATH", "THUMBNAILS_PATH"} {
 		pathVal := os.Getenv(pathVar)
 		if pathVal == "" {
 			slog.Error("missing env var", "name", pathVar)
@@ -101,6 +101,7 @@ func newRouter() *http.ServeMux {
 	mux.HandleFunc("GET /api/photos/filters/", photos.HandleGetFilterOptions)
 	mux.HandleFunc("POST /api/photos/curate/", photos.HandleCuratePhoto)
 	mux.HandleFunc("GET /api/photo/", photos.HandleServePhoto)
+	mux.HandleFunc("GET /api/thumbnail/", photos.HandleServeThumbnail)
 	mux.HandleFunc("GET /assets/", handleStaticAssets)
 	mux.HandleFunc("GET /", handleRoot)
 

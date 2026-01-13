@@ -84,7 +84,7 @@ func BuildFilterConditions(filters *PhotoFilters) (string, []any) {
 			placeholders[i] = "?"
 			args = append(args, y)
 		}
-		conditions = append(conditions, fmt.Sprintf("CAST(strftime('%%Y', COALESCE(date_time, file_modified_at, created_at)) AS INTEGER) IN (%s)", strings.Join(placeholders, ",")))
+		conditions = append(conditions, fmt.Sprintf("CAST(strftime('%%Y', date_time) AS INTEGER) IN (%s)", strings.Join(placeholders, ",")))
 	}
 
 	if len(filters.CameraMakes) > 0 {
@@ -256,9 +256,9 @@ func getDistinctStrings(column string) ([]string, error) {
 
 func getDistinctYears() ([]int, error) {
 	query := `
-		SELECT DISTINCT CAST(strftime('%Y', COALESCE(date_time, file_modified_at, created_at)) AS INTEGER) as year
+		SELECT DISTINCT CAST(strftime('%Y', date_time) AS INTEGER) as year
 		FROM photos
-		WHERE COALESCE(date_time, file_modified_at, created_at) IS NOT NULL
+		WHERE date_time IS NOT NULL
 		ORDER BY year DESC
 	`
 

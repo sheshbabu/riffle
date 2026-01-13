@@ -30,6 +30,8 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - Run exact duplicate detection using SHA256 hashing
 - Move unique files and best candidates to Library folder
 - Organize into `Year/Month` structure with renamed files
+- Generate 300x300 thumbnails in `THUMBNAILS_PATH` (mirrors library structure)
+- Assign photos to groups based on time/location clustering
 - Store metadata in SQLite database
 
 ### 2. Curate (The Culling - IN PROGRESS)
@@ -43,7 +45,7 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 
 ### 3. Library (Organized Archive)
 - Shows only curated, non-trashed photos (`is_curated=true AND is_trashed=false`)
-- Chronological grid view with session grouping
+- Chronological grid view with group headers showing date range, location, photo count, and total size
 - Filters by date range, rating, camera, and location
 
 ### 4. Trash (Safety Net)
@@ -53,22 +55,36 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - Future: Physical deletion or move to OS trash
 
 ### 5. Export (Delivery - PLANNED)
-- Filter by rating, date, session
+- Filter by rating, date, group
 - Export to local folder or cloud (S3, Google Drive)
 
-### Session Detection Algorithm
-Photos are automatically grouped into sessions using time-gap clustering and location-based analysis.
+### Photo Groups
+Photos are automatically grouped during import using time-gap clustering and location-based analysis. Groups are persisted in the database to ensure consistent display across paginated views.
 
-**A new session starts when ANY of these conditions are met:**
+**A new group starts when ANY of these conditions are met:**
 - **Time gap > 120 minutes** between consecutive photos
-- **Total session duration > 12 hours** (prevents multi-day sessions)
-- **Distance > 1km** from the session's starting location (using Haversine distance)
+- **Total group duration > 12 hours** (prevents multi-day groups)
+- **Distance > 1km** from the group's starting location (using Haversine distance)
 
 **Key Features:**
-- Sessions are displayed with date/time range headers in both Library and Curate views
-- Location-aware: Uses GPS coordinates when available to split sessions across different locations
-- Time-aware: Prevents sessions from drifting across multiple days
-- Toggle between grid view and session view using the view toggle button
+- Groups are assigned during import and stored in `photo_groups` table
+- Each group tracks: time range, photo count, total size (bytes), and location
+- Groups are displayed with headers showing date/time range, location, photo count, and storage size
+- Location-aware: Uses GPS coordinates when available to split groups across different locations
+- Time-aware: Prevents groups from drifting across multiple days
+- Toggle between grid view and grouped view using the view toggle button
+
+### Thumbnail Generation
+Thumbnails are pre-generated during import for faster gallery loading.
+
+**Storage:**
+- Thumbnails stored in `THUMBNAILS_PATH` mirroring the library folder structure
+- Size: 300x300 pixels (JPEG format)
+- Path derived by replacing `LIBRARY_PATH` prefix with `THUMBNAILS_PATH`
+
+**Serving:**
+- `HandleServePhoto()` checks for pre-generated thumbnails first
+- Falls back to on-demand generation if thumbnail is missing
 
 ### Burst Detection
 Photos taken in rapid succession with similar content are grouped as bursts.
@@ -159,6 +175,11 @@ Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
 - Hash is first 16 characters of SHA256 file hash
 - Files without any date information go to `Unknown/` folder
 
+**Thumbnails** (mirrors library structure):
+- `THUMBNAILS_PATH` - Pre-generated 300x300 thumbnails
+- Same folder structure as library (Year/Month)
+- Generated during import for faster gallery loading
+
 **Trash** (virtual only):
 - No physical trash folder
 - Photos flagged with `is_trashed=true` in database
@@ -171,14 +192,24 @@ Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
 
 Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging, albums, and curation.
 
-**Tables:** photos, tags, photo_tags, albums, album_photos
+**Tables:** photos, photo_groups, tags, photo_tags, albums, album_photos
 
-**Key Fields:**
+**Key Fields (photos):**
 - `is_curated` (boolean) - Whether user has reviewed the photo
 - `is_trashed` (boolean) - Virtual trash flag
 - `rating` (int 0-5) - User rating (0 = unrated)
 - `sha256_hash` and `dhash` - For duplicate/near-duplicate detection
+- `thumbnail_path` (text) - Path to pre-generated thumbnail
+- `group_id` (int) - Foreign key to photo_groups table
 - `notes` (text) - User notes
+
+**Key Fields (photo_groups):**
+- `group_id` (int) - Primary key
+- `start_time`, `end_time` (timestamp) - Time range of photos in group
+- `photo_count` (int) - Number of photos in group
+- `total_size` (int) - Total bytes of all photos in group
+- `latitude`, `longitude` (real) - Group location
+- `city`, `state`, `country_code` (text) - Reverse geocoded location
 
 **Features:**
 - Tag photos for organization
@@ -228,6 +259,7 @@ Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging
 - `PORT` - Server port (default: 8080)
 - `IMPORT_PATH` - Source folder for importing photos
 - `LIBRARY_PATH` - Organized photo library destination
+- `THUMBNAILS_PATH` - Pre-generated thumbnails (mirrors library structure)
 - `EXPORT_PATH` - Export destination (future use)
 
 ## Development Conventions
