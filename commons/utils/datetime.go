@@ -5,9 +5,21 @@ import (
 	"time"
 )
 
+// Converts datetime string to UTC in RFC3339 format.
+//
+// Photos taken across different timezones need UTC normalization for correct chronological
+// sorting. For example, a photo at 20:09+05:30 (India) is actually later than one at
+// 20:34+08:00 (Singapore) - but SQLite text sorting would order them wrong since "20:09" < "20:34".
+// Converting to UTC (14:39Z vs 12:34Z) makes text sorting work correctly.
+//
+// Stages:
+//  1. If the input already has a timezone, parse and convert to UTC
+//  2. If no timezone, try OffsetTimeOriginal from EXIF (e.g., "+05:30")
+//  3. If no offset, try calculating from GPSDateTime (which is always UTC)
+//  4. Fallback: assume local timezone
 func NormalizeDateTime(dtStr string, exifData map[string]any) string {
 	if t := parseWithTimezone(dtStr); t != nil {
-		return t.Format(time.RFC3339)
+		return t.UTC().Format(time.RFC3339)
 	}
 
 	parsedTime := parseWithoutTimezone(dtStr)
@@ -17,8 +29,9 @@ func NormalizeDateTime(dtStr string, exifData map[string]any) string {
 
 	if offsetStr, ok := exifData["OffsetTimeOriginal"].(string); ok && offsetStr != "" {
 		if loc := parseTimezoneOffset(offsetStr); loc != nil {
-			return time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(),
-				parsedTime.Hour(), parsedTime.Minute(), parsedTime.Second(), 0, loc).Format(time.RFC3339)
+			t := time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(),
+				parsedTime.Hour(), parsedTime.Minute(), parsedTime.Second(), 0, loc)
+			return t.UTC().Format(time.RFC3339)
 		}
 	}
 
@@ -26,13 +39,15 @@ func NormalizeDateTime(dtStr string, exifData map[string]any) string {
 		if gpsTime := parseGPSDateTime(gpsDateTimeStr); gpsTime != nil {
 			offsetSeconds := int(parsedTime.Sub(*gpsTime).Seconds())
 			loc := time.FixedZone("", offsetSeconds)
-			return time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(),
-				parsedTime.Hour(), parsedTime.Minute(), parsedTime.Second(), 0, loc).Format(time.RFC3339)
+			t := time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(),
+				parsedTime.Hour(), parsedTime.Minute(), parsedTime.Second(), 0, loc)
+			return t.UTC().Format(time.RFC3339)
 		}
 	}
 
-	return time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(),
-		parsedTime.Hour(), parsedTime.Minute(), parsedTime.Second(), 0, time.Local).Format(time.RFC3339)
+	t := time.Date(parsedTime.Year(), parsedTime.Month(), parsedTime.Day(),
+		parsedTime.Hour(), parsedTime.Minute(), parsedTime.Second(), 0, time.Local)
+	return t.UTC().Format(time.RFC3339)
 }
 
 func ParseDateTime(dtStr string) *time.Time {
