@@ -12,14 +12,15 @@ import (
 func CreatePhoto(photo PhotoFile) error {
 	query := `
 		INSERT INTO photos (
-			file_path, sha256_hash, dhash, file_size, date_time,
+			file_path, original_filepath, sha256_hash, dhash, file_size, date_time,
 			camera_make, camera_model, width, height, orientation,
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
 			city, state, country_code
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(file_path) DO UPDATE SET
+			original_filepath = excluded.original_filepath,
 			sha256_hash = excluded.sha256_hash,
 			dhash = excluded.dhash,
 			file_size = excluded.file_size,
@@ -133,7 +134,7 @@ func CreatePhoto(photo PhotoFile) error {
 
 	_, err := sqlite.DB.Exec(
 		query,
-		photo.Path, photo.Hash, dhashStr, photo.Size, dateTime,
+		photo.Path, photo.OriginalFilepath, photo.Hash, dhashStr, photo.Size, dateTime,
 		cameraMake, cameraModel, width, height, orientation,
 		latitude, longitude, iso, fNumber, exposureTime, focalLength,
 		photo.FileFormat, photo.MimeType, photo.IsVideo, duration,

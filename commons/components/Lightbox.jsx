@@ -172,6 +172,10 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
       metadataItems.push({ label: 'File Modified', value: formatDateTime(currentPhoto.fileModifiedAt) });
     }
 
+    if (currentPhoto.originalFilepath) {
+      metadataItems.push({ label: 'Original Path', value: currentPhoto.originalFilepath });
+    }
+
     const metadataElements = metadataItems.map((item, index) => (
       <div key={index} className="metadata-item">
         <div className="metadata-label">{item.label}</div>

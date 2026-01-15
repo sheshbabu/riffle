@@ -43,7 +43,7 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 
 	query := fmt.Sprintf(`
 		SELECT
-			file_path, sha256_hash, dhash, file_size, date_time,
+			file_path, original_filepath, sha256_hash, dhash, file_size, date_time,
 			camera_make, camera_model, width, height, orientation,
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
@@ -74,7 +74,7 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 	for rows.Next() {
 		var p Photo
 		err := rows.Scan(
-			&p.FilePath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
+			&p.FilePath, &p.OriginalFilepath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
 			&p.CameraMake, &p.CameraModel, &p.Width, &p.Height, &p.Orientation,
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
@@ -130,7 +130,7 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 
 func AssignGroupsToUngroupedPhotos() error {
 	query := `
-		SELECT file_path, sha256_hash, dhash, file_size, date_time,
+		SELECT file_path, original_filepath, sha256_hash, dhash, file_size, date_time,
 		       camera_make, camera_model, width, height, orientation,
 		       latitude, longitude, iso, f_number, exposure_time, focal_length,
 		       file_format, mime_type, is_video, duration,
@@ -154,7 +154,7 @@ func AssignGroupsToUngroupedPhotos() error {
 	for rows.Next() {
 		var p Photo
 		err := rows.Scan(
-			&p.FilePath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
+			&p.FilePath, &p.OriginalFilepath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
 			&p.CameraMake, &p.CameraModel, &p.Width, &p.Height, &p.Orientation,
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,

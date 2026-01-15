@@ -20,17 +20,18 @@ import (
 )
 
 type PhotoFile struct {
-	Path           string
-	Size           int64
-	Hash           string
-	Dhash          uint64
-	HasExif        bool
-	ExifData       map[string]any
-	FileFormat     string
-	MimeType       string
-	IsVideo        bool
-	FileCreatedAt  time.Time
-	FileModifiedAt time.Time
+	Path             string
+	Size             int64
+	Hash             string
+	Dhash            uint64
+	HasExif          bool
+	ExifData         map[string]any
+	FileFormat       string
+	MimeType         string
+	IsVideo          bool
+	FileCreatedAt    time.Time
+	FileModifiedAt   time.Time
+	OriginalFilepath string
 }
 
 type DuplicateFile struct {
@@ -47,12 +48,13 @@ type DuplicateGroup struct {
 }
 
 type FileAction struct {
-	Path           string         `json:"path"`
-	Hash           string         `json:"hash"`
-	Dhash          uint64         `json:"dhash,omitempty"`
-	ExifData       map[string]any `json:"exifData,omitempty"`
-	FileCreatedAt  time.Time      `json:"fileCreatedAt,omitempty"`
-	FileModifiedAt time.Time      `json:"fileModifiedAt,omitempty"`
+	Path             string         `json:"path"`
+	Hash             string         `json:"hash"`
+	Dhash            uint64         `json:"dhash,omitempty"`
+	ExifData         map[string]any `json:"exifData,omitempty"`
+	FileCreatedAt    time.Time      `json:"fileCreatedAt,omitempty"`
+	FileModifiedAt   time.Time      `json:"fileModifiedAt,omitempty"`
+	OriginalFilepath string         `json:"originalFilepath"`
 }
 
 type AnalysisStats struct {
@@ -110,12 +112,13 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 			stats.UniqueFiles++
 
 			stats.FilesToImport = append(stats.FilesToImport, FileAction{
-				Path:           candidate.Path,
-				Hash:           candidate.Hash,
-				Dhash:          candidate.Dhash,
-				ExifData:       candidate.ExifData,
-				FileCreatedAt:  candidate.FileCreatedAt,
-				FileModifiedAt: candidate.FileModifiedAt,
+				Path:             candidate.Path,
+				Hash:             candidate.Hash,
+				Dhash:            candidate.Dhash,
+				ExifData:         candidate.ExifData,
+				FileCreatedAt:    candidate.FileCreatedAt,
+				FileModifiedAt:   candidate.FileModifiedAt,
+				OriginalFilepath: candidate.OriginalFilepath,
 			})
 			continue
 		}
@@ -140,22 +143,24 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 
 			if photo.Path == candidate.Path {
 				stats.FilesToImport = append(stats.FilesToImport, FileAction{
-					Path:           photo.Path,
-					Hash:           photo.Hash,
-					Dhash:          photo.Dhash,
-					ExifData:       photo.ExifData,
-					FileCreatedAt:  photo.FileCreatedAt,
-					FileModifiedAt: photo.FileModifiedAt,
+					Path:             photo.Path,
+					Hash:             photo.Hash,
+					Dhash:            photo.Dhash,
+					ExifData:         photo.ExifData,
+					FileCreatedAt:    photo.FileCreatedAt,
+					FileModifiedAt:   photo.FileModifiedAt,
+					OriginalFilepath: photo.OriginalFilepath,
 				})
 			} else {
 				stats.DuplicatesRemoved++
 				stats.DuplicatesSkipped = append(stats.DuplicatesSkipped, FileAction{
-					Path:           photo.Path,
-					Hash:           photo.Hash,
-					Dhash:          photo.Dhash,
-					ExifData:       photo.ExifData,
-					FileCreatedAt:  photo.FileCreatedAt,
-					FileModifiedAt: photo.FileModifiedAt,
+					Path:             photo.Path,
+					Hash:             photo.Hash,
+					Dhash:            photo.Dhash,
+					ExifData:         photo.ExifData,
+					FileCreatedAt:    photo.FileCreatedAt,
+					FileModifiedAt:   photo.FileModifiedAt,
+					OriginalFilepath: photo.OriginalFilepath,
 				})
 			}
 		}
@@ -205,10 +210,11 @@ func ScanDirectory(path string) ([]PhotoFile, error) {
 		fileCreatedAt := getFileCreatedAt(info)
 
 		photos = append(photos, PhotoFile{
-			Path:           filePath,
-			Size:           info.Size(),
-			FileModifiedAt: fileModifiedAt,
-			FileCreatedAt:  fileCreatedAt,
+			Path:             filePath,
+			Size:             info.Size(),
+			FileModifiedAt:   fileModifiedAt,
+			FileCreatedAt:    fileCreatedAt,
+			OriginalFilepath: filePath,
 		})
 
 		return nil
@@ -291,14 +297,15 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copy
 
 	for _, action := range stats.FilesToImport {
 		photo := PhotoFile{
-			Path:           action.Path,
-			Hash:           action.Hash,
-			Dhash:          action.Dhash,
-			ExifData:       action.ExifData,
-			HasExif:        len(action.ExifData) > 0,
-			Size:           0,
-			FileCreatedAt:  action.FileCreatedAt,
-			FileModifiedAt: action.FileModifiedAt,
+			Path:             action.Path,
+			Hash:             action.Hash,
+			Dhash:            action.Dhash,
+			ExifData:         action.ExifData,
+			HasExif:          len(action.ExifData) > 0,
+			Size:             0,
+			FileCreatedAt:    action.FileCreatedAt,
+			FileModifiedAt:   action.FileModifiedAt,
+			OriginalFilepath: action.OriginalFilepath,
 		}
 
 		if fileInfo, err := os.Stat(photo.Path); err == nil {

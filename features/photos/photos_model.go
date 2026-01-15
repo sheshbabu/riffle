@@ -7,40 +7,41 @@ import (
 )
 
 type Photo struct {
-	FilePath       string  `json:"filePath"`
-	Sha256Hash     string  `json:"sha256Hash"`
-	Dhash          *string `json:"dhash,omitempty"`
-	FileSize       int64   `json:"fileSize"`
-	DateTime       *string `json:"dateTime,omitempty"`
-	CameraMake     *string `json:"cameraMake,omitempty"`
-	CameraModel    *string `json:"cameraModel,omitempty"`
-	Width          *string `json:"width,omitempty"`
-	Height         *string `json:"height,omitempty"`
-	Orientation    *string `json:"orientation,omitempty"`
-	Latitude       *string `json:"latitude,omitempty"`
-	Longitude      *string `json:"longitude,omitempty"`
-	ISO            *string `json:"iso,omitempty"`
-	FNumber        *string `json:"fNumber,omitempty"`
-	ExposureTime   *string `json:"exposureTime,omitempty"`
-	FocalLength    *string `json:"focalLength,omitempty"`
-	FileFormat     string  `json:"fileFormat"`
-	MimeType       string  `json:"mimeType"`
-	IsVideo        bool    `json:"isVideo"`
-	Duration       *string `json:"duration,omitempty"`
-	FileCreatedAt  *string `json:"fileCreatedAt,omitempty"`
-	FileModifiedAt *string `json:"fileModifiedAt,omitempty"`
-	City           *string `json:"city,omitempty"`
-	State          *string `json:"state,omitempty"`
-	CountryCode    *string `json:"countryCode,omitempty"`
-	IsCurated      bool    `json:"isCurated"`
-	IsTrashed      bool    `json:"isTrashed"`
-	Rating         int     `json:"rating"`
-	Notes          *string `json:"notes,omitempty"`
-	CreatedAt      string  `json:"createdAt"`
-	UpdatedAt      string  `json:"updatedAt"`
-	ThumbnailPath  *string `json:"thumbnailPath,omitempty"`
-	GroupID        *int64  `json:"groupId,omitempty"`
-	TotalRecords   int     `json:"totalRecords,omitempty"`
+	FilePath         string  `json:"filePath"`
+	OriginalFilepath *string `json:"originalFilepath,omitempty"`
+	Sha256Hash       string  `json:"sha256Hash"`
+	Dhash            *string `json:"dhash,omitempty"`
+	FileSize         int64   `json:"fileSize"`
+	DateTime         *string `json:"dateTime,omitempty"`
+	CameraMake       *string `json:"cameraMake,omitempty"`
+	CameraModel      *string `json:"cameraModel,omitempty"`
+	Width            *string `json:"width,omitempty"`
+	Height           *string `json:"height,omitempty"`
+	Orientation      *string `json:"orientation,omitempty"`
+	Latitude         *string `json:"latitude,omitempty"`
+	Longitude        *string `json:"longitude,omitempty"`
+	ISO              *string `json:"iso,omitempty"`
+	FNumber          *string `json:"fNumber,omitempty"`
+	ExposureTime     *string `json:"exposureTime,omitempty"`
+	FocalLength      *string `json:"focalLength,omitempty"`
+	FileFormat       string  `json:"fileFormat"`
+	MimeType         string  `json:"mimeType"`
+	IsVideo          bool    `json:"isVideo"`
+	Duration         *string `json:"duration,omitempty"`
+	FileCreatedAt    *string `json:"fileCreatedAt,omitempty"`
+	FileModifiedAt   *string `json:"fileModifiedAt,omitempty"`
+	City             *string `json:"city,omitempty"`
+	State            *string `json:"state,omitempty"`
+	CountryCode      *string `json:"countryCode,omitempty"`
+	IsCurated        bool    `json:"isCurated"`
+	IsTrashed        bool    `json:"isTrashed"`
+	Rating           int     `json:"rating"`
+	Notes            *string `json:"notes,omitempty"`
+	CreatedAt        string  `json:"createdAt"`
+	UpdatedAt        string  `json:"updatedAt"`
+	ThumbnailPath    *string `json:"thumbnailPath,omitempty"`
+	GroupID          *int64  `json:"groupId,omitempty"`
+	TotalRecords     int     `json:"totalRecords,omitempty"`
 }
 
 func GetPhotos(limit, offset int) ([]Photo, error) {
@@ -48,7 +49,7 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 
 	query := `
 		SELECT
-			file_path, sha256_hash, dhash, file_size, date_time,
+			file_path, original_filepath, sha256_hash, dhash, file_size, date_time,
 			camera_make, camera_model, width, height, orientation,
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
@@ -75,7 +76,7 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 	for rows.Next() {
 		var p Photo
 		err := rows.Scan(
-			&p.FilePath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
+			&p.FilePath, &p.OriginalFilepath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
 			&p.CameraMake, &p.CameraModel, &p.Width, &p.Height, &p.Orientation,
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
@@ -102,7 +103,7 @@ func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 
 	query := `
 		SELECT
-			file_path, sha256_hash, dhash, file_size, date_time,
+			file_path, original_filepath, sha256_hash, dhash, file_size, date_time,
 			camera_make, camera_model, width, height, orientation,
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
@@ -129,7 +130,7 @@ func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 	for rows.Next() {
 		var p Photo
 		err := rows.Scan(
-			&p.FilePath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
+			&p.FilePath, &p.OriginalFilepath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
 			&p.CameraMake, &p.CameraModel, &p.Width, &p.Height, &p.Orientation,
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
@@ -156,7 +157,7 @@ func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
 
 	query := `
 		SELECT
-			file_path, sha256_hash, dhash, file_size, date_time,
+			file_path, original_filepath, sha256_hash, dhash, file_size, date_time,
 			camera_make, camera_model, width, height, orientation,
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
@@ -184,7 +185,7 @@ func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
 	for rows.Next() {
 		var p Photo
 		err := rows.Scan(
-			&p.FilePath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
+			&p.FilePath, &p.OriginalFilepath, &p.Sha256Hash, &p.Dhash, &p.FileSize, &p.DateTime,
 			&p.CameraMake, &p.CameraModel, &p.Width, &p.Height, &p.Orientation,
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,

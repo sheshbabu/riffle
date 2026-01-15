@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS photo_groups (
 
 CREATE TABLE IF NOT EXISTS photos (
     file_path        TEXT PRIMARY KEY,
+    original_filepath TEXT,
     sha256_hash      TEXT NOT NULL,
     dhash            TEXT,
     file_size        INTEGER NOT NULL,
