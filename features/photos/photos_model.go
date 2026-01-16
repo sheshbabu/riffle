@@ -32,7 +32,7 @@ type Photo struct {
 	FileModifiedAt   *string  `json:"fileModifiedAt,omitempty"`
 	City             *string  `json:"city,omitempty"`
 	State            *string  `json:"state,omitempty"`
-	CountryCode      *string  `json:"countryCode,omitempty"`
+	CountryName      *string  `json:"countryCode,omitempty"`
 	IsCurated        bool     `json:"isCurated"`
 	IsTrashed        bool     `json:"isTrashed"`
 	Rating           int      `json:"rating"`
@@ -54,7 +54,7 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
-			city, state, country_code,
+			city, state, country_name,
 			is_curated, is_trashed, rating, notes,
 			created_at, updated_at,
 			thumbnail_path, group_id
@@ -81,7 +81,7 @@ func GetPhotos(limit, offset int) ([]Photo, error) {
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 			&p.FileCreatedAt, &p.FileModifiedAt,
-			&p.City, &p.State, &p.CountryCode,
+			&p.City, &p.State, &p.CountryName,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
 			&p.ThumbnailPath, &p.GroupID,
@@ -108,7 +108,7 @@ func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
-			city, state, country_code,
+			city, state, country_name,
 			is_curated, is_trashed, rating, notes,
 			created_at, updated_at,
 			thumbnail_path, group_id
@@ -135,7 +135,7 @@ func GetUncuratedPhotos(limit, offset int) ([]Photo, error) {
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 			&p.FileCreatedAt, &p.FileModifiedAt,
-			&p.City, &p.State, &p.CountryCode,
+			&p.City, &p.State, &p.CountryName,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
 			&p.ThumbnailPath, &p.GroupID,
@@ -162,7 +162,7 @@ func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
-			city, state, country_code,
+			city, state, country_name,
 			is_curated, is_trashed, rating, notes,
 			created_at, updated_at,
 			thumbnail_path, group_id
@@ -190,7 +190,7 @@ func GetTrashedPhotos(limit, offset int) ([]Photo, error) {
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 			&p.FileCreatedAt, &p.FileModifiedAt,
-			&p.City, &p.State, &p.CountryCode,
+			&p.City, &p.State, &p.CountryName,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
 			&p.ThumbnailPath, &p.GroupID,

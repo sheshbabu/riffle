@@ -18,7 +18,7 @@ func CreatePhoto(photo PhotoFile) error {
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
-			city, state, country_code
+			city, state, country_name
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(file_path) DO UPDATE SET
 			original_filepath = excluded.original_filepath,
@@ -45,7 +45,7 @@ func CreatePhoto(photo PhotoFile) error {
 			file_modified_at = excluded.file_modified_at,
 			city = excluded.city,
 			state = excluded.state,
-			country_code = excluded.country_code,
+			country_name = excluded.country_name,
 			updated_at = CURRENT_TIMESTAMP
 	`
 
@@ -117,7 +117,7 @@ func CreatePhoto(photo PhotoFile) error {
 		fileModifiedAt = photo.FileModifiedAt
 	}
 
-	var city, state, countryCode interface{}
+	var city, state, countryName interface{}
 	if lat, ok := photo.ExifData["Latitude"].(float64); ok {
 		if lon, ok := photo.ExifData["Longitude"].(float64); ok {
 			if lat != 0 && lon != 0 {
@@ -125,7 +125,7 @@ func CreatePhoto(photo PhotoFile) error {
 				if err == nil && location != nil {
 					city = location.City
 					state = location.State
-					countryCode = location.CountryCode
+					countryName = location.CountryName
 				}
 			}
 		}
@@ -138,7 +138,7 @@ func CreatePhoto(photo PhotoFile) error {
 		latitude, longitude, iso, fNumber, exposureTime, focalLength,
 		photo.FileFormat, photo.MimeType, photo.IsVideo, duration,
 		fileCreatedAt, fileModifiedAt,
-		city, state, countryCode,
+		city, state, countryName,
 	)
 
 	if err != nil {

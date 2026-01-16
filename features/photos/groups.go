@@ -48,7 +48,7 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 			latitude, longitude, iso, f_number, exposure_time, focal_length,
 			file_format, mime_type, is_video, duration,
 			file_created_at, file_modified_at,
-			city, state, country_code,
+			city, state, country_name,
 			is_curated, is_trashed, rating, notes,
 			created_at, updated_at,
 			thumbnail_path, group_id
@@ -79,7 +79,7 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 			&p.FileCreatedAt, &p.FileModifiedAt,
-			&p.City, &p.State, &p.CountryCode,
+			&p.City, &p.State, &p.CountryName,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
 			&p.ThumbnailPath, &p.GroupID,
@@ -110,7 +110,7 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 			slog.Error("failed to get groups by ids", "error", err)
 		} else {
 			for _, gr := range groupRecords {
-				location := formatGroupLocation(gr.City, gr.State, gr.CountryCode)
+				location := formatGroupLocation(gr.City, gr.State, gr.CountryName)
 				groups = append(groups, Group{
 					GroupID:    gr.GroupID,
 					StartTime:  gr.StartTime,
@@ -135,7 +135,7 @@ func AssignGroupsToUngroupedPhotos() error {
 		       latitude, longitude, iso, f_number, exposure_time, focal_length,
 		       file_format, mime_type, is_video, duration,
 		       file_created_at, file_modified_at,
-		       city, state, country_code,
+		       city, state, country_name,
 		       is_curated, is_trashed, rating, notes,
 		       created_at, updated_at,
 		       thumbnail_path, group_id
@@ -159,7 +159,7 @@ func AssignGroupsToUngroupedPhotos() error {
 			&p.Latitude, &p.Longitude, &p.ISO, &p.FNumber, &p.ExposureTime, &p.FocalLength,
 			&p.FileFormat, &p.MimeType, &p.IsVideo, &p.Duration,
 			&p.FileCreatedAt, &p.FileModifiedAt,
-			&p.City, &p.State, &p.CountryCode,
+			&p.City, &p.State, &p.CountryName,
 			&p.IsCurated, &p.IsTrashed, &p.Rating, &p.Notes,
 			&p.CreatedAt, &p.UpdatedAt,
 			&p.ThumbnailPath, &p.GroupID,
@@ -190,7 +190,7 @@ func AssignGroupsToUngroupedPhotos() error {
 		realGroupID, exists := groupIDMap[tempGroupID]
 		if !exists {
 			newGroupID, err := CreateGroup(time.Now(), time.Now(), nil, nil,
-				photo.City, photo.State, photo.CountryCode)
+				photo.City, photo.State, photo.CountryName)
 			if err != nil {
 				slog.Error("failed to create group", "error", err)
 				continue
@@ -325,8 +325,8 @@ func degreesToRadians(degrees float64) float64 {
 	return degrees * math.Pi / 180
 }
 
-func formatGroupLocation(city, state, countryCode *string) *string {
-	if city == nil && state == nil && countryCode == nil {
+func formatGroupLocation(city, state, countryName *string) *string {
+	if city == nil && state == nil && countryName == nil {
 		return nil
 	}
 
@@ -337,8 +337,8 @@ func formatGroupLocation(city, state, countryCode *string) *string {
 	if state != nil && *state != "" {
 		parts = append(parts, *state)
 	}
-	if countryCode != nil && *countryCode != "" {
-		parts = append(parts, *countryCode)
+	if countryName != nil && *countryName != "" {
+		parts = append(parts, *countryName)
 	}
 
 	if len(parts) == 0 {

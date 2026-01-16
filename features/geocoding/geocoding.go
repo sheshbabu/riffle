@@ -11,6 +11,7 @@ import (
 )
 
 const geonamesPath = ".geonames"
+const countryInfoFileName = "countryInfo.txt"
 const admin1FileName = "admin1CodesASCII.txt"
 const citiesFileName = "cities1000.txt"
 
@@ -25,8 +26,14 @@ func Init() error {
 		return nil
 	}
 
+	countryInfoPath := geonamesPath + "/" + countryInfoFileName
 	admin1Path := geonamesPath + "/" + admin1FileName
 	citiesPath := geonamesPath + "/" + citiesFileName
+
+	if _, err := os.Stat(countryInfoPath); os.IsNotExist(err) {
+		slog.Warn("geonames country info file not found, geocoding disabled", "path", countryInfoPath)
+		return nil
+	}
 
 	if _, err := os.Stat(admin1Path); os.IsNotExist(err) {
 		slog.Warn("geonames admin1 file not found, geocoding disabled", "path", admin1Path)
@@ -40,12 +47,17 @@ func Init() error {
 
 	slog.Info("loading geocoding data from geonames files")
 
+	countryMap, err := parseCountryInfo(countryInfoPath)
+	if err != nil {
+		return fmt.Errorf("error parsing country info: %w", err)
+	}
+
 	adminMap, err := parseAdmin1Codes(admin1Path)
 	if err != nil {
 		return fmt.Errorf("error parsing admin1 codes: %w", err)
 	}
 
-	err = loadCities(citiesPath, adminMap)
+	err = loadCities(citiesPath, adminMap, countryMap)
 	if err != nil {
 		return fmt.Errorf("error loading cities: %w", err)
 	}
@@ -54,6 +66,42 @@ func Init() error {
 	slog.Info("geocoding data loaded successfully", "cities", count)
 
 	return nil
+}
+
+func parseCountryInfo(path string) (map[string]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("error opening country info file: %w", err)
+	}
+	defer file.Close()
+
+	countryMap := make(map[string]string)
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if strings.HasPrefix(line, "#") || strings.TrimSpace(line) == "" {
+			continue
+		}
+
+		fields := strings.Split(line, "\t")
+		if len(fields) < 5 {
+			continue
+		}
+
+		countryCode := fields[0]
+		countryName := fields[4]
+
+		countryMap[countryCode] = countryName
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error scanning country info file: %w", err)
+	}
+
+	slog.Info("parsed country info", "count", len(countryMap))
+	return countryMap, nil
 }
 
 func parseAdmin1Codes(path string) (map[string]string, error) {
@@ -82,7 +130,7 @@ func parseAdmin1Codes(path string) (map[string]string, error) {
 	return adminMap, nil
 }
 
-func loadCities(path string, adminMap map[string]string) error {
+func loadCities(path string, adminMap, countryMap map[string]string) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("error opening cities file: %w", err)
@@ -94,7 +142,7 @@ func loadCities(path string, adminMap map[string]string) error {
 		return fmt.Errorf("error starting transaction: %w", err)
 	}
 
-	cityStmt, err := tx.Prepare("INSERT INTO cities (geoname_id, name, state, country_code, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?)")
+	cityStmt, err := tx.Prepare("INSERT INTO cities (geoname_id, name, state, country_code, country_name, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("error preparing city statement: %w", err)
@@ -144,7 +192,12 @@ func loadCities(path string, adminMap map[string]string) error {
 			state = adminMap[adminKey]
 		}
 
-		_, err = cityStmt.Exec(geonameID, name, state, countryCode, lat, lon)
+		countryName := countryMap[countryCode]
+		if countryName == "" {
+			countryName = countryCode
+		}
+
+		_, err = cityStmt.Exec(geonameID, name, state, countryCode, countryName, lat, lon)
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("error inserting city: %w", err)

@@ -153,8 +153,8 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
       metadataItems.push({ label: 'Focal Length', value: formatFocalLength(currentPhoto.focalLength) });
     }
 
-    if (currentPhoto.city || currentPhoto.state || currentPhoto.countryCode) {
-      const locationParts = [currentPhoto.city, currentPhoto.state, currentPhoto.countryCode].filter(Boolean);
+    if (currentPhoto.city || currentPhoto.state || currentPhoto.countryName) {
+      const locationParts = [currentPhoto.city, currentPhoto.state, currentPhoto.countryName].filter(Boolean);
       metadataItems.push({ label: 'Location', value: locationParts.join(', ') });
     }
 

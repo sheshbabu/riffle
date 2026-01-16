@@ -209,7 +209,7 @@ Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging
 - `photo_count` (int) - Number of photos in group
 - `total_size` (int) - Total bytes of all photos in group
 - `latitude`, `longitude` (real) - Group location
-- `city`, `state`, `country_code` (text) - Reverse geocoded location
+- `city`, `state`, `country_name` (text) - Reverse geocoded location (full country names, not codes)
 
 **Features:**
 - Tag photos for organization

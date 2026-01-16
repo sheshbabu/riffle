@@ -18,17 +18,17 @@ type GroupRecord struct {
 	Longitude   *float64  `json:"longitude,omitempty"`
 	City        *string   `json:"city,omitempty"`
 	State       *string   `json:"state,omitempty"`
-	CountryCode *string   `json:"countryCode,omitempty"`
+	CountryName *string   `json:"countryName,omitempty"`
 	CreatedAt   string    `json:"createdAt"`
 	UpdatedAt   string    `json:"updatedAt"`
 }
 
-func CreateGroup(startTime, endTime time.Time, lat, lon *float64, city, state, countryCode *string) (int64, error) {
+func CreateGroup(startTime, endTime time.Time, lat, lon *float64, city, state, countryName *string) (int64, error) {
 	query := `
-		INSERT INTO photo_groups (start_time, end_time, photo_count, total_size, latitude, longitude, city, state, country_code)
+		INSERT INTO photo_groups (start_time, end_time, photo_count, total_size, latitude, longitude, city, state, country_name)
 		VALUES (?, ?, 0, 0, ?, ?, ?, ?, ?)
 	`
-	result, err := sqlite.DB.Exec(query, startTime, endTime, lat, lon, city, state, countryCode)
+	result, err := sqlite.DB.Exec(query, startTime, endTime, lat, lon, city, state, countryName)
 	if err != nil {
 		err = fmt.Errorf("error creating group: %w", err)
 		slog.Error(err.Error())
@@ -62,7 +62,7 @@ func GetGroupsByIDs(groupIDs []int64) ([]GroupRecord, error) {
 
 	query := fmt.Sprintf(`
 		SELECT group_id, start_time, end_time, photo_count, total_size,
-		       latitude, longitude, city, state, country_code,
+		       latitude, longitude, city, state, country_name,
 		       created_at, updated_at
 		FROM photo_groups
 		WHERE group_id IN (%s)
@@ -83,7 +83,7 @@ func GetGroupsByIDs(groupIDs []int64) ([]GroupRecord, error) {
 		var startTime, endTime string
 		err := rows.Scan(
 			&g.GroupID, &startTime, &endTime, &g.PhotoCount, &g.TotalSize,
-			&g.Latitude, &g.Longitude, &g.City, &g.State, &g.CountryCode,
+			&g.Latitude, &g.Longitude, &g.City, &g.State, &g.CountryName,
 			&g.CreatedAt, &g.UpdatedAt,
 		)
 		if err != nil {

@@ -105,7 +105,7 @@ func BuildFilterConditions(filters *PhotoFilters) (string, []any) {
 			placeholders[i] = "?"
 			args = append(args, c)
 		}
-		conditions = append(conditions, fmt.Sprintf("country_code IN (%s)", strings.Join(placeholders, ",")))
+		conditions = append(conditions, fmt.Sprintf("country_name IN (%s)", strings.Join(placeholders, ",")))
 	}
 
 	if len(filters.States) > 0 {
@@ -180,7 +180,7 @@ func GetFilterOptions() (*FilterOptions, error) {
 	}
 	options.CameraModels = cameraModels
 
-	countries, err := getDistinctStrings("country_code")
+	countries, err := getDistinctStrings("country_name")
 	if err != nil {
 		return nil, err
 	}

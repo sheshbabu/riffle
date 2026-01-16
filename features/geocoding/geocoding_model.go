@@ -11,7 +11,7 @@ import (
 type Location struct {
 	City        string
 	State       string
-	CountryCode string
+	CountryName string
 }
 
 const defaultEpsilon = 0.1
@@ -22,7 +22,7 @@ func ReverseGeocode(latitude, longitude float64) (*Location, error) {
 
 func reverseGeocodeWithEpsilon(latitude, longitude, epsilon float64) (*Location, error) {
 	query := `
-		SELECT c.name, c.state, c.country_code,
+		SELECT c.name, c.state, c.country_name,
 			((c.latitude - ?) * (c.latitude - ?) + (c.longitude - ?) * (c.longitude - ?)) AS dist
 		FROM cities_rtree r
 		JOIN cities c ON r.id = c.geoname_id
@@ -42,7 +42,7 @@ func reverseGeocodeWithEpsilon(latitude, longitude, epsilon float64) (*Location,
 	err := sqlite.DB.QueryRow(query,
 		latitude, latitude, longitude, longitude,
 		minLat, maxLat, minLon, maxLon,
-	).Scan(&location.City, &location.State, &location.CountryCode, &dist)
+	).Scan(&location.City, &location.State, &location.CountryName, &dist)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		if epsilon < 1.0 {

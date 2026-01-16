@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS photo_groups (
     longitude      REAL,
     city           TEXT,
     state          TEXT,
-    country_code   TEXT,
+    country_name   TEXT,
     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS photos (
     focal_length     REAL,
     city             TEXT,
     state            TEXT,
-    country_code     TEXT,
+    country_name     TEXT,
     is_curated       BOOLEAN DEFAULT 0,
     is_trashed       BOOLEAN DEFAULT 0,
     rating           INTEGER DEFAULT 0,
@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS cities (
     name          TEXT NOT NULL,
     state         TEXT,
     country_code  TEXT NOT NULL,
+    country_name  TEXT NOT NULL,
     latitude      REAL NOT NULL,
     longitude     REAL NOT NULL
 );
