@@ -3,6 +3,7 @@ package ingest
 import (
 	"fmt"
 	"log/slog"
+	"riffle/commons/normalization"
 	"riffle/commons/sqlite"
 	"riffle/commons/utils"
 	"riffle/features/geocoding"
@@ -67,16 +68,16 @@ func CreatePhoto(photo PhotoFile) error {
 
 	var width, height, orientation, iso interface{}
 	if w, ok := photo.ExifData["Width"].(string); ok {
-		width = w
+		width = normalization.NormalizeWidth(w)
 	}
 	if h, ok := photo.ExifData["Height"].(string); ok {
-		height = h
+		height = normalization.NormalizeHeight(h)
 	}
 	if o, ok := photo.ExifData["Orientation"].(string); ok {
-		orientation = o
+		orientation = normalization.NormalizeOrientation(o)
 	}
 	if i, ok := photo.ExifData["ISO"].(string); ok {
-		iso = i
+		iso = normalization.NormalizeISO(i)
 	}
 
 	var latitude, longitude interface{}
@@ -89,18 +90,18 @@ func CreatePhoto(photo PhotoFile) error {
 
 	var fNumber, exposureTime, focalLength interface{}
 	if fn, ok := photo.ExifData["FNumber"].(string); ok {
-		fNumber = fn
+		fNumber = normalization.NormalizeFNumber(fn)
 	}
 	if et, ok := photo.ExifData["ExposureTime"].(string); ok {
-		exposureTime = et
+		exposureTime = normalization.NormalizeExposureTime(et)
 	}
 	if fl, ok := photo.ExifData["FocalLength"].(string); ok {
-		focalLength = fl
+		focalLength = normalization.NormalizeFocalLength(fl)
 	}
 
 	var duration interface{}
 	if d, ok := photo.ExifData["Duration"].(string); ok {
-		duration = d
+		duration = normalization.NormalizeDuration(d)
 	}
 
 	var dhashStr interface{}

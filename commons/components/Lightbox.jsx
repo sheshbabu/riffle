@@ -4,6 +4,8 @@ import getPhotoUrl from '../utils/getPhotoUrl.js';
 import formatDateTime from '../utils/formatDateTime.js';
 import formatFileSize from '../utils/formatFileSize.js';
 import formatExposureTime from '../utils/formatExposureTime.js';
+import formatDuration from '../utils/formatDuration.js';
+import formatFocalLength from '../utils/formatFocalLength.js';
 import getFileName from '../utils/getFileName.js';
 import './Lightbox.css';
 
@@ -148,7 +150,7 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
     }
 
     if (currentPhoto.focalLength) {
-      metadataItems.push({ label: 'Focal Length', value: currentPhoto.focalLength });
+      metadataItems.push({ label: 'Focal Length', value: formatFocalLength(currentPhoto.focalLength) });
     }
 
     if (currentPhoto.city || currentPhoto.state || currentPhoto.countryCode) {
@@ -157,13 +159,11 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
     }
 
     if (currentPhoto.latitude && currentPhoto.longitude) {
-      const lat = parseFloat(currentPhoto.latitude);
-      const lon = parseFloat(currentPhoto.longitude);
-      metadataItems.push({ label: 'GPS', value: `${lat.toFixed(5)}, ${lon.toFixed(5)}`, });
+      metadataItems.push({ label: 'GPS', value: `${currentPhoto.latitude.toFixed(5)}, ${currentPhoto.longitude.toFixed(5)}`, });
     }
 
     if (currentPhoto.duration) {
-      metadataItems.push({ label: 'Duration', value: currentPhoto.duration });
+      metadataItems.push({ label: 'Duration', value: formatDuration(currentPhoto.duration) });
     }
 
     if (currentPhoto.fileCreatedAt) {

@@ -7,41 +7,41 @@ import (
 )
 
 type Photo struct {
-	FilePath         string  `json:"filePath"`
-	OriginalFilepath *string `json:"originalFilepath,omitempty"`
-	Sha256Hash       string  `json:"sha256Hash"`
-	Dhash            *string `json:"dhash,omitempty"`
-	FileSize         int64   `json:"fileSize"`
-	DateTime         *string `json:"dateTime,omitempty"`
-	CameraMake       *string `json:"cameraMake,omitempty"`
-	CameraModel      *string `json:"cameraModel,omitempty"`
-	Width            *string  `json:"width,omitempty"`
-	Height           *string  `json:"height,omitempty"`
-	Orientation      *string  `json:"orientation,omitempty"`
+	FilePath         string   `json:"filePath"`
+	OriginalFilepath *string  `json:"originalFilepath,omitempty"`
+	Sha256Hash       string   `json:"sha256Hash"`
+	Dhash            *string  `json:"dhash,omitempty"`
+	FileSize         int64    `json:"fileSize"`
+	DateTime         *string  `json:"dateTime,omitempty"`
+	CameraMake       *string  `json:"cameraMake,omitempty"`
+	CameraModel      *string  `json:"cameraModel,omitempty"`
+	Width            *int     `json:"width,omitempty"`
+	Height           *int     `json:"height,omitempty"`
+	Orientation      *int     `json:"orientation,omitempty"`
 	Latitude         *float64 `json:"latitude,omitempty"`
 	Longitude        *float64 `json:"longitude,omitempty"`
-	ISO              *string  `json:"iso,omitempty"`
-	FNumber          *string `json:"fNumber,omitempty"`
-	ExposureTime     *string `json:"exposureTime,omitempty"`
-	FocalLength      *string `json:"focalLength,omitempty"`
-	FileFormat       string  `json:"fileFormat"`
-	MimeType         string  `json:"mimeType"`
-	IsVideo          bool    `json:"isVideo"`
-	Duration         *string `json:"duration,omitempty"`
-	FileCreatedAt    *string `json:"fileCreatedAt,omitempty"`
-	FileModifiedAt   *string `json:"fileModifiedAt,omitempty"`
-	City             *string `json:"city,omitempty"`
-	State            *string `json:"state,omitempty"`
-	CountryCode      *string `json:"countryCode,omitempty"`
-	IsCurated        bool    `json:"isCurated"`
-	IsTrashed        bool    `json:"isTrashed"`
-	Rating           int     `json:"rating"`
-	Notes            *string `json:"notes,omitempty"`
-	CreatedAt        string  `json:"createdAt"`
-	UpdatedAt        string  `json:"updatedAt"`
-	ThumbnailPath    *string `json:"thumbnailPath,omitempty"`
-	GroupID          *int64  `json:"groupId,omitempty"`
-	TotalRecords     int     `json:"totalRecords,omitempty"`
+	ISO              *int     `json:"iso,omitempty"`
+	FNumber          *float64 `json:"fNumber,omitempty"`
+	ExposureTime     *float64 `json:"exposureTime,omitempty"`
+	FocalLength      *float64 `json:"focalLength,omitempty"`
+	FileFormat       string   `json:"fileFormat"`
+	MimeType         string   `json:"mimeType"`
+	IsVideo          bool     `json:"isVideo"`
+	Duration         *int     `json:"duration,omitempty"`
+	FileCreatedAt    *string  `json:"fileCreatedAt,omitempty"`
+	FileModifiedAt   *string  `json:"fileModifiedAt,omitempty"`
+	City             *string  `json:"city,omitempty"`
+	State            *string  `json:"state,omitempty"`
+	CountryCode      *string  `json:"countryCode,omitempty"`
+	IsCurated        bool     `json:"isCurated"`
+	IsTrashed        bool     `json:"isTrashed"`
+	Rating           int      `json:"rating"`
+	Notes            *string  `json:"notes,omitempty"`
+	CreatedAt        string   `json:"createdAt"`
+	UpdatedAt        string   `json:"updatedAt"`
+	ThumbnailPath    *string  `json:"thumbnailPath,omitempty"`
+	GroupID          *int64   `json:"groupId,omitempty"`
+	TotalRecords     int      `json:"totalRecords,omitempty"`
 }
 
 func GetPhotos(limit, offset int) ([]Photo, error) {
