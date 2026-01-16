@@ -2,8 +2,6 @@ package exif
 
 import (
 	"fmt"
-	"riffle/commons/utils"
-	"strconv"
 
 	"github.com/barasher/go-exiftool"
 )
@@ -57,54 +55,27 @@ func ExtractExif(filePath string) (map[string]any, error) {
 	}
 
 	fieldMap := map[string]string{
-		"Make":         "Make",
-		"Model":        "Model",
-		"Width":        "ImageWidth",
-		"Height":       "ImageHeight",
-		"Orientation":  "Orientation",
-		"Software":     "Software",
-		"ISO":          "ISO",
-		"FNumber":      "FNumber",
-		"ExposureTime": "ExposureTime",
-		"FocalLength":  "FocalLength",
-		"Flash":        "Flash",
-		"ColorSpace":   "ColorSpace",
-		"Duration":     "Duration",
+		"Make":           "Make",
+		"Model":          "Model",
+		"Width":          "ImageWidth",
+		"Height":         "ImageHeight",
+		"Orientation":    "Orientation",
+		"Software":       "Software",
+		"ISO":            "ISO",
+		"FNumber":        "FNumber",
+		"ExposureTime":   "ExposureTime",
+		"FocalLength":    "FocalLength",
+		"Flash":          "Flash",
+		"ColorSpace":     "ColorSpace",
+		"Duration":       "Duration",
+		"GPSLatitude":    "GPSLatitude",
+		"GPSLongitude":   "GPSLongitude",
+		"GPSCoordinates": "GPSCoordinates",
 	}
 
 	for key, exifKey := range fieldMap {
 		if val, err := fileInfo.GetString(exifKey); err == nil && val != "" {
 			data[key] = val
-		}
-	}
-
-	// GPS coordinates: photos use GPSLatitude/GPSLongitude, videos use GPSCoordinates
-	// Normalize DMS format to decimal degrees for consistent storage
-	if val, err := fileInfo.GetString("GPSLatitude"); err == nil && val != "" {
-		decVal := utils.ParseDMSOrDecimal(val)
-		if decVal != 0 {
-			data["Latitude"] = decVal
-		}
-	}
-	if val, err := fileInfo.GetString("GPSLongitude"); err == nil && val != "" {
-		decVal := utils.ParseDMSOrDecimal(val)
-		if decVal != 0 {
-			data["Longitude"] = decVal
-		}
-	}
-
-	// For videos: GPSCoordinates contains both lat/lon in ISO 6709 format (e.g., "+37.7749-122.4194/")
-	if _, hasLat := data["Latitude"]; !hasLat {
-		if coords, err := fileInfo.GetString("GPSCoordinates"); err == nil && coords != "" {
-			lat, lon := utils.ParseISO6709Coordinates(coords)
-			if lat != "" && lon != "" {
-				if latFloat, err := strconv.ParseFloat(lat, 64); err == nil {
-					data["Latitude"] = latFloat
-				}
-				if lonFloat, err := strconv.ParseFloat(lon, 64); err == nil {
-					data["Longitude"] = lonFloat
-				}
-			}
 		}
 	}
 

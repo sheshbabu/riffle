@@ -1,6 +1,7 @@
 package normalization
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -159,6 +160,11 @@ func NormalizeFocalLength(focalLength string) *float64 {
 
 // Normalize duration string to total seconds
 // "0:01:23", "00:00:05", "1:30", "45" -> 83, 5, 90, 45
+// "12.68 s" -> 12
+//
+// ExifTool outputs duration in two formats based on video length:
+// - Videos < 30 seconds: decimal format "12.68 s"
+// - Videos >= 30 seconds: time format "0:05:17" (H:MM:SS or MM:SS)
 func NormalizeDuration(duration string) *int {
 	if duration == "" {
 		return nil
@@ -166,10 +172,23 @@ func NormalizeDuration(duration string) *int {
 
 	duration = strings.TrimSpace(duration)
 
+	// Handle EXIF decimal format: "12.68 s" (videos < 30 seconds)
+	duration = strings.TrimSuffix(duration, " s")
+	duration = strings.TrimSuffix(duration, "s")
+	duration = strings.TrimSpace(duration)
+
+	// Try parsing as a decimal number (will truncate to int)
+	if val, err := strconv.ParseFloat(duration, 64); err == nil {
+		seconds := int(val)
+		return &seconds
+	}
+
+	// Try parsing as integer
 	if val, err := strconv.Atoi(duration); err == nil {
 		return &val
 	}
 
+	// Handle EXIF time format: "0:05:17" (videos >= 30 seconds)
 	parts := strings.Split(duration, ":")
 	if len(parts) == 0 || len(parts) > 3 {
 		return nil
@@ -195,4 +214,72 @@ func NormalizeDuration(duration string) *int {
 	}
 
 	return &totalSeconds
+}
+
+// Normalize GPS coordinate (latitude or longitude) from DMS or decimal string to decimal float64
+// "37 deg 46' 29.64\" N" -> 37.7749
+// "122 deg 25' 9.84\" W" -> -122.4194
+// "37.7749" -> 37.7749
+func NormalizeGPSCoordinate(coordinate string) *float64 {
+	if coordinate == "" {
+		return nil
+	}
+
+	if val, err := strconv.ParseFloat(coordinate, 64); err == nil {
+		return &val
+	}
+
+	dmsRegex := regexp.MustCompile(`(\d+)\s*deg\s*(\d+)'\s*([\d.]+)"\s*([NSEW])`)
+	matches := dmsRegex.FindStringSubmatch(coordinate)
+	if len(matches) != 5 {
+		return nil
+	}
+
+	deg, _ := strconv.ParseFloat(matches[1], 64)
+	min, _ := strconv.ParseFloat(matches[2], 64)
+	sec, _ := strconv.ParseFloat(matches[3], 64)
+	dir := matches[4]
+
+	decimal := deg + min/60 + sec/3600
+
+	if dir == "S" || dir == "W" {
+		decimal = -decimal
+	}
+
+	return &decimal
+}
+
+// Normalize ISO 6709 coordinates (used in video files) to separate lat/lon
+// "+37.7749-122.4194/", "+37.7749-122.4194+10.5/" -> (37.7749, -122.4194)
+// "37.7749 N, 122.4194 W" -> (37.7749, -122.4194)
+func NormalizeISO6709Coordinates(coords string) (*float64, *float64) {
+	if coords == "" {
+		return nil, nil
+	}
+
+	iso6709Pattern := regexp.MustCompile(`^([+-]?\d+\.?\d*)\s*([+-]\d+\.?\d*)`)
+	if matches := iso6709Pattern.FindStringSubmatch(coords); len(matches) >= 3 {
+		lat, err1 := strconv.ParseFloat(matches[1], 64)
+		lon, err2 := strconv.ParseFloat(matches[2], 64)
+		if err1 == nil && err2 == nil {
+			return &lat, &lon
+		}
+	}
+
+	dmsPattern := regexp.MustCompile(`(\d+\.?\d*)\s*([NS]),?\s*(\d+\.?\d*)\s*([EW])`)
+	if matches := dmsPattern.FindStringSubmatch(coords); len(matches) >= 5 {
+		lat, err1 := strconv.ParseFloat(matches[1], 64)
+		lon, err2 := strconv.ParseFloat(matches[3], 64)
+		if err1 == nil && err2 == nil {
+			if matches[2] == "S" {
+				lat = -lat
+			}
+			if matches[4] == "W" {
+				lon = -lon
+			}
+			return &lat, &lon
+		}
+	}
+
+	return nil, nil
 }

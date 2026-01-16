@@ -244,7 +244,7 @@ func processFile(photo *PhotoFile) {
 		}
 	}
 
-	exifData, err := exif.ExtractExif(photo.Path)
+	exifData, err := exif.ProcessExifData(photo.Path)
 	if err == nil && len(exifData) > 0 {
 		photo.HasExif = true
 		photo.ExifData = exifData

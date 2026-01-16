@@ -3,7 +3,6 @@ package ingest
 import (
 	"fmt"
 	"log/slog"
-	"riffle/commons/normalization"
 	"riffle/commons/sqlite"
 	"riffle/commons/utils"
 	"riffle/features/geocoding"
@@ -67,41 +66,41 @@ func CreatePhoto(photo PhotoFile) error {
 	}
 
 	var width, height, orientation, iso interface{}
-	if w, ok := photo.ExifData["Width"].(string); ok {
-		width = normalization.NormalizeWidth(w)
+	if w, ok := photo.ExifData["Width"]; ok {
+		width = w
 	}
-	if h, ok := photo.ExifData["Height"].(string); ok {
-		height = normalization.NormalizeHeight(h)
+	if h, ok := photo.ExifData["Height"]; ok {
+		height = h
 	}
-	if o, ok := photo.ExifData["Orientation"].(string); ok {
-		orientation = normalization.NormalizeOrientation(o)
+	if o, ok := photo.ExifData["Orientation"]; ok {
+		orientation = o
 	}
-	if i, ok := photo.ExifData["ISO"].(string); ok {
-		iso = normalization.NormalizeISO(i)
+	if i, ok := photo.ExifData["ISO"]; ok {
+		iso = i
 	}
 
 	var latitude, longitude interface{}
-	if lat, ok := photo.ExifData["Latitude"].(float64); ok {
+	if lat, ok := photo.ExifData["Latitude"]; ok {
 		latitude = lat
 	}
-	if lon, ok := photo.ExifData["Longitude"].(float64); ok {
+	if lon, ok := photo.ExifData["Longitude"]; ok {
 		longitude = lon
 	}
 
 	var fNumber, exposureTime, focalLength interface{}
-	if fn, ok := photo.ExifData["FNumber"].(string); ok {
-		fNumber = normalization.NormalizeFNumber(fn)
+	if fn, ok := photo.ExifData["FNumber"]; ok {
+		fNumber = fn
 	}
-	if et, ok := photo.ExifData["ExposureTime"].(string); ok {
-		exposureTime = normalization.NormalizeExposureTime(et)
+	if et, ok := photo.ExifData["ExposureTime"]; ok {
+		exposureTime = et
 	}
-	if fl, ok := photo.ExifData["FocalLength"].(string); ok {
-		focalLength = normalization.NormalizeFocalLength(fl)
+	if fl, ok := photo.ExifData["FocalLength"]; ok {
+		focalLength = fl
 	}
 
 	var duration interface{}
-	if d, ok := photo.ExifData["Duration"].(string); ok {
-		duration = normalization.NormalizeDuration(d)
+	if d, ok := photo.ExifData["Duration"]; ok {
+		duration = d
 	}
 
 	var dhashStr interface{}
@@ -160,4 +159,3 @@ func UpdatePhotoThumbnail(filePath, thumbnailPath string) error {
 	}
 	return nil
 }
-
