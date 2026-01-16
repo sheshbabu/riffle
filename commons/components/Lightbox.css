@@ -1,13 +1,12 @@
 .lightbox {
-  max-width: 95vw;
-  max-height: 95vh;
+  max-width: 100vw;
+  max-height: 100vh;
   background-color: transparent;
   border: none;
   box-shadow: none;
   animation-duration: 0.1s;
   display: flex;
   flex-direction: row;
-  gap: 16px;
   overflow-y: auto;
   overflow-x: hidden;
 
@@ -21,11 +20,10 @@
 
     .lightbox-image {
       max-width: 100%;
-      max-height: calc(95vh - 48px);
+      max-height: 100%;
       width: auto;
       height: auto;
       object-fit: contain;
-      border-radius: 4px;
 
       &.zoomable {
         cursor: zoom-in;
@@ -98,10 +96,9 @@
 
   .lightbox-metadata {
     background-color: var(--neutral-800);
-    border-radius: 8px;
     padding: var(--spacing-4);
-    width: 400px;
-    max-height: calc(95vh - 32px);
+    width: 360px;
+    max-height: 100%;
     overflow-y: auto;
     flex-shrink: 0;
 
@@ -169,7 +166,7 @@
         .metadata-value {
           font: var(--code);
           color: var(--neutral-100);
-          word-break: break-word;
+          word-break: break-all;
         }
       }
     }
