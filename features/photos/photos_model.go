@@ -15,12 +15,12 @@ type Photo struct {
 	DateTime         *string `json:"dateTime,omitempty"`
 	CameraMake       *string `json:"cameraMake,omitempty"`
 	CameraModel      *string `json:"cameraModel,omitempty"`
-	Width            *string `json:"width,omitempty"`
-	Height           *string `json:"height,omitempty"`
-	Orientation      *string `json:"orientation,omitempty"`
-	Latitude         *string `json:"latitude,omitempty"`
-	Longitude        *string `json:"longitude,omitempty"`
-	ISO              *string `json:"iso,omitempty"`
+	Width            *string  `json:"width,omitempty"`
+	Height           *string  `json:"height,omitempty"`
+	Orientation      *string  `json:"orientation,omitempty"`
+	Latitude         *float64 `json:"latitude,omitempty"`
+	Longitude        *float64 `json:"longitude,omitempty"`
+	ISO              *string  `json:"iso,omitempty"`
 	FNumber          *string `json:"fNumber,omitempty"`
 	ExposureTime     *string `json:"exposureTime,omitempty"`
 	FocalLength      *string `json:"focalLength,omitempty"`

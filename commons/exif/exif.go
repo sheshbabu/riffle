@@ -2,7 +2,8 @@ package exif
 
 import (
 	"fmt"
-	"regexp"
+	"riffle/commons/utils"
+	"strconv"
 
 	"github.com/barasher/go-exiftool"
 )
@@ -78,20 +79,31 @@ func ExtractExif(filePath string) (map[string]any, error) {
 	}
 
 	// GPS coordinates: photos use GPSLatitude/GPSLongitude, videos use GPSCoordinates
+	// Normalize DMS format to decimal degrees for consistent storage
 	if val, err := fileInfo.GetString("GPSLatitude"); err == nil && val != "" {
-		data["Latitude"] = val
+		decVal := utils.ParseDMSOrDecimal(val)
+		if decVal != 0 {
+			data["Latitude"] = decVal
+		}
 	}
 	if val, err := fileInfo.GetString("GPSLongitude"); err == nil && val != "" {
-		data["Longitude"] = val
+		decVal := utils.ParseDMSOrDecimal(val)
+		if decVal != 0 {
+			data["Longitude"] = decVal
+		}
 	}
 
 	// For videos: GPSCoordinates contains both lat/lon in ISO 6709 format (e.g., "+37.7749-122.4194/")
 	if _, hasLat := data["Latitude"]; !hasLat {
 		if coords, err := fileInfo.GetString("GPSCoordinates"); err == nil && coords != "" {
-			lat, lon := parseISO6709Coordinates(coords)
+			lat, lon := utils.ParseISO6709Coordinates(coords)
 			if lat != "" && lon != "" {
-				data["Latitude"] = lat
-				data["Longitude"] = lon
+				if latFloat, err := strconv.ParseFloat(lat, 64); err == nil {
+					data["Latitude"] = latFloat
+				}
+				if lonFloat, err := strconv.ParseFloat(lon, 64); err == nil {
+					data["Longitude"] = lonFloat
+				}
 			}
 		}
 	}
@@ -103,29 +115,4 @@ func Close() {
 	if et != nil {
 		et.Close()
 	}
-}
-
-func parseISO6709Coordinates(coords string) (latitude, longitude string) {
-	// Pattern for ISO 6709: +/-latitude+/-longitude (optionally followed by altitude and /)
-	// Examples: "+37.7749-122.4194/", "+37.7749-122.4194+10.5/"
-	iso6709Pattern := regexp.MustCompile(`^([+-]?\d+\.?\d*)\s*([+-]\d+\.?\d*)`)
-	if matches := iso6709Pattern.FindStringSubmatch(coords); len(matches) >= 3 {
-		return matches[1], matches[2]
-	}
-
-	// Pattern for "lat N/S, lon E/W" format (e.g., "37.7749 N, 122.4194 W")
-	dmsPattern := regexp.MustCompile(`(\d+\.?\d*)\s*([NS]),?\s*(\d+\.?\d*)\s*([EW])`)
-	if matches := dmsPattern.FindStringSubmatch(coords); len(matches) >= 5 {
-		lat := matches[1]
-		if matches[2] == "S" {
-			lat = "-" + lat
-		}
-		lon := matches[3]
-		if matches[4] == "W" {
-			lon = "-" + lon
-		}
-		return lat, lon
-	}
-
-	return "", ""
 }

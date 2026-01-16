@@ -157,7 +157,9 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
     }
 
     if (currentPhoto.latitude && currentPhoto.longitude) {
-      metadataItems.push({ label: 'GPS', value: `${currentPhoto.latitude}, ${currentPhoto.longitude}` });
+      const lat = parseFloat(currentPhoto.latitude);
+      const lon = parseFloat(currentPhoto.longitude);
+      metadataItems.push({ label: 'GPS', value: `${lat.toFixed(5)}, ${lon.toFixed(5)}`, });
     }
 
     if (currentPhoto.duration) {

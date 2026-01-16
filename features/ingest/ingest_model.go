@@ -80,10 +80,10 @@ func CreatePhoto(photo PhotoFile) error {
 	}
 
 	var latitude, longitude interface{}
-	if lat, ok := photo.ExifData["Latitude"].(string); ok {
+	if lat, ok := photo.ExifData["Latitude"].(float64); ok {
 		latitude = lat
 	}
-	if lon, ok := photo.ExifData["Longitude"].(string); ok {
+	if lon, ok := photo.ExifData["Longitude"].(float64); ok {
 		longitude = lon
 	}
 
@@ -117,10 +117,8 @@ func CreatePhoto(photo PhotoFile) error {
 	}
 
 	var city, state, countryCode interface{}
-	if latStr, ok := photo.ExifData["Latitude"].(string); ok {
-		if lonStr, ok := photo.ExifData["Longitude"].(string); ok {
-			lat := utils.ParseDMSOrDecimal(latStr)
-			lon := utils.ParseDMSOrDecimal(lonStr)
+	if lat, ok := photo.ExifData["Latitude"].(float64); ok {
+		if lon, ok := photo.ExifData["Longitude"].(float64); ok {
 			if lat != 0 && lon != 0 {
 				location, err := geocoding.ReverseGeocode(lat, lon)
 				if err == nil && location != nil {

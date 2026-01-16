@@ -30,3 +30,28 @@ func ParseDMSOrDecimal(s string) float64 {
 
 	return decimal
 }
+
+func ParseISO6709Coordinates(coords string) (latitude, longitude string) {
+	// Pattern for ISO 6709: +/-latitude+/-longitude (optionally followed by altitude and /)
+	// Examples: "+37.7749-122.4194/", "+37.7749-122.4194+10.5/"
+	iso6709Pattern := regexp.MustCompile(`^([+-]?\d+\.?\d*)\s*([+-]\d+\.?\d*)`)
+	if matches := iso6709Pattern.FindStringSubmatch(coords); len(matches) >= 3 {
+		return matches[1], matches[2]
+	}
+
+	// Pattern for "lat N/S, lon E/W" format (e.g., "37.7749 N, 122.4194 W")
+	dmsPattern := regexp.MustCompile(`(\d+\.?\d*)\s*([NS]),?\s*(\d+\.?\d*)\s*([EW])`)
+	if matches := dmsPattern.FindStringSubmatch(coords); len(matches) >= 5 {
+		lat := matches[1]
+		if matches[2] == "S" {
+			lat = "-" + lat
+		}
+		lon := matches[3]
+		if matches[4] == "W" {
+			lon = "-" + lon
+		}
+		return lat, lon
+	}
+
+	return "", ""
+}

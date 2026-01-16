@@ -239,10 +239,8 @@ func detectGroupAssignments(photos []Photo) map[int]int64 {
 			groupStartTime = photoTime
 
 			if photo.Latitude != nil && photo.Longitude != nil {
-				lat := parseFloat(photo.Latitude)
-				lon := parseFloat(photo.Longitude)
-				groupStartLat = &lat
-				groupStartLon = &lon
+				groupStartLat = photo.Latitude
+				groupStartLon = photo.Longitude
 			}
 			continue
 		}
@@ -261,9 +259,7 @@ func detectGroupAssignments(photos []Photo) map[int]int64 {
 
 		if !shouldSplit && groupStartLat != nil && groupStartLon != nil {
 			if photo.Latitude != nil && photo.Longitude != nil {
-				photoLat := parseFloat(photo.Latitude)
-				photoLon := parseFloat(photo.Longitude)
-				distance := haversineDistance(*groupStartLat, *groupStartLon, photoLat, photoLon)
+				distance := haversineDistance(*groupStartLat, *groupStartLon, *photo.Latitude, *photo.Longitude)
 				if distance > LocationRadiusKm {
 					shouldSplit = true
 				}
@@ -274,10 +270,8 @@ func detectGroupAssignments(photos []Photo) map[int]int64 {
 			currentGroupID++
 			groupStartTime = photoTime
 			if photo.Latitude != nil && photo.Longitude != nil {
-				lat := parseFloat(photo.Latitude)
-				lon := parseFloat(photo.Longitude)
-				groupStartLat = &lat
-				groupStartLon = &lon
+				groupStartLat = photo.Latitude
+				groupStartLon = photo.Longitude
 			} else {
 				groupStartLat = nil
 				groupStartLon = nil
@@ -309,15 +303,6 @@ func parsePhotoDateTime(photo Photo) *time.Time {
 
 func parseDateTimeString(dtStr string) *time.Time {
 	return utils.ParseDateTime(dtStr)
-}
-
-func parseFloat(s *string) float64 {
-	if s == nil {
-		return 0
-	}
-	var f float64
-	fmt.Sscanf(*s, "%f", &f)
-	return f
 }
 
 func haversineDistance(lat1, lon1, lat2, lon2 float64) float64 {
