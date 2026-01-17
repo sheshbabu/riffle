@@ -7,6 +7,7 @@ import { ToastProvider } from './commons/components/Toast.jsx';
 import ImportPage from './features/ingest/ImportPage.jsx';
 import PhotoListPage from './features/photos/PhotoListPage.jsx';
 import CalendarPage from './features/calendar/CalendarPage.jsx';
+import SettingsPage from './features/settings/SettingsPage.jsx';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/library" component={LibraryPage} />
             <Route path="/calendar" component={CalendarPage} />
             <Route path="/trash" component={TrashPage} />
+            <Route path="/settings" component={SettingsPage} />
           </Router>
         </div>
       </div>

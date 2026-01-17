@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"riffle/commons/utils"
+	"riffle/features/settings"
 )
 
 type IngestResponse struct {
@@ -52,18 +53,9 @@ func HandleGetScanResults(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(results)
 }
 
-type ImportRequest struct {
-	CopyMode bool `json:"copyMode"`
-}
-
 func HandleImport(w http.ResponseWriter, r *http.Request) {
 	libraryPath := os.Getenv("LIBRARY_PATH")
 	thumbnailsPath := os.Getenv("THUMBNAILS_PATH")
-
-	var req ImportRequest
-	if r.Body != nil {
-		json.NewDecoder(r.Body).Decode(&req)
-	}
 
 	stats := GetResults()
 	if stats == nil {
@@ -71,7 +63,12 @@ func HandleImport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	copyMode := req.CopyMode
+	importMode, err := settings.GetSetting("import_mode")
+	if err != nil {
+		slog.Error("failed to get import mode setting, using default (move)", "error", err)
+		importMode = "move"
+	}
+	copyMode := importMode == "copy"
 
 	go func() {
 		if err := ExecuteMoves(libraryPath, thumbnailsPath, stats, copyMode); err != nil {

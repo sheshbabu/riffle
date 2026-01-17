@@ -14,6 +14,7 @@ import (
 	"riffle/features/geocoding"
 	"riffle/features/ingest"
 	"riffle/features/photos"
+	"riffle/features/settings"
 	"syscall"
 
 	"github.com/joho/godotenv"
@@ -104,6 +105,8 @@ func newRouter() *http.ServeMux {
 	mux.HandleFunc("GET /api/photo/", photos.HandleServePhoto)
 	mux.HandleFunc("GET /api/thumbnail/", photos.HandleServeThumbnail)
 	mux.HandleFunc("GET /api/calendar/months/", calendar.HandleGetCalendarMonths)
+	mux.HandleFunc("GET /api/settings/", settings.HandleGetSettings)
+	mux.HandleFunc("POST /api/settings/", settings.HandleUpdateSetting)
 	mux.HandleFunc("GET /assets/", handleStaticAssets)
 	mux.HandleFunc("GET /", handleRoot)
 

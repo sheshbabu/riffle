@@ -112,3 +112,13 @@ CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
 CREATE INDEX IF NOT EXISTS idx_cities_country ON cities(country_code);
 CREATE INDEX IF NOT EXISTS idx_photos_group_id ON photos(group_id);
 CREATE INDEX IF NOT EXISTS idx_photo_groups_start_time ON photo_groups(start_time);
+
+CREATE TABLE IF NOT EXISTS settings (
+    key        TEXT PRIMARY KEY,
+    value      TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT OR IGNORE INTO settings (key, value) VALUES ('import_mode', 'move'); -- "move", "copy"
+INSERT OR IGNORE INTO settings (key, value) VALUES ('import_duplicate_handling', 'keep'); -- "keep", "delete"

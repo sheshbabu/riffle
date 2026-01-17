@@ -1,5 +1,5 @@
 import Link from './Link.jsx';
-import { ImportIcon, CurateIcon, LibraryIcon, TrashIcon, CalendarIcon } from './Icon.jsx';
+import { ImportIcon, CurateIcon, LibraryIcon, TrashIcon, CalendarIcon, SettingsIcon } from './Icon.jsx';
 import './Sidebar.css';
 
 export default function Sidebar() {
@@ -36,6 +36,10 @@ export default function Sidebar() {
         <Link className="sidebar-button" activeClassName="is-active" to="/trash">
           <TrashIcon />
           Trash
+        </Link>
+        <Link className="sidebar-button" activeClassName="is-active" to="/settings">
+          <SettingsIcon />
+          Settings
         </Link>
       </div>
     </div>

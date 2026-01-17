@@ -60,7 +60,7 @@ function StatusLine({ stepStatus, progress }) {
   }
 
   if (stepStatus === "checking_imported") {
-    stepName = "Checking for already-imported files"
+    stepName = "Matching with library"
     if (currentStepIndex === progressingStepIndex) {
       subText = <div className="subtext">{`Checking ${progress.completed.toLocaleString()} / ${progress.total.toLocaleString()} (${progress.percent}%)`}</div>
     } else if (currentStepIndex < progressingStepIndex) {

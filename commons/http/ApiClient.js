@@ -76,8 +76,8 @@ async function getImportProgress() {
   return await request('GET', '/api/import/progress/');
 }
 
-async function importToLibrary(copyMode = false) {
-  return await request('POST', '/api/import/move/', { copyMode });
+async function importToLibrary() {
+  return await request('POST', '/api/import/move/', {});
 }
 
 function buildFilterParams(filters) {
@@ -142,6 +142,14 @@ async function getCalendarMonths() {
   return await request('GET', '/api/calendar/months/');
 }
 
+async function getSettings() {
+  return await request('GET', '/api/settings/');
+}
+
+async function updateSetting(key, value) {
+  return await request('POST', '/api/settings/', { key, value });
+}
+
 export default {
   request,
   scanImportFolder,
@@ -152,5 +160,7 @@ export default {
   getUncuratedPhotos,
   getTrashedPhotos,
   getFilterOptions,
-  getCalendarMonths
+  getCalendarMonths,
+  getSettings,
+  updateSetting
 };

@@ -25,6 +25,10 @@
   cursor: pointer;
   transition-property: background-color;
   transition-duration: var(--transition-normal);
+
+  &:first-child {
+    margin-right: 0;
+  }
 }
 
 .segment:hover {

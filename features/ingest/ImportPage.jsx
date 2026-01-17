@@ -13,7 +13,20 @@ export default function ImportPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(null);
-  const [copyMode, setCopyMode] = useState(false);
+  const [importMode, setImportMode] = useState('move');
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  async function loadSettings() {
+    try {
+      const settings = await ApiClient.getSettings();
+      setImportMode(settings.import_mode || 'move');
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+    }
+  }
 
   useEffect(() => {
     if (!isScanning && !isImporting) {
@@ -35,7 +48,7 @@ export default function ImportPage() {
           const resultsData = await ApiClient.getScanResults();
           setIsImporting(false);
           setProgress(null);
-          const action = copyMode ? 'Copied' : 'Imported';
+          const action = importMode === 'copy' ? 'Copied' : 'Moved';
           showToast(`${action} ${resultsData.movedToLibrary.toLocaleString()} files to library`);
           navigateTo('/curate');
         }
@@ -45,7 +58,7 @@ export default function ImportPage() {
     }, 1000);
 
     return () => clearInterval(pollInterval);
-  }, [isScanning, isImporting, copyMode]);
+  }, [isScanning, isImporting, importMode]);
 
   async function handleScanClick() {
     setIsScanning(true);
@@ -64,21 +77,17 @@ export default function ImportPage() {
     setIsImporting(true);
 
     try {
-      await ApiClient.importToLibrary(copyMode);
+      await ApiClient.importToLibrary();
     } catch (error) {
       setIsImporting(false);
     }
-  }
-
-  function handleCopyModeChange(value) {
-    setCopyMode(value);
   }
 
   return (
     <div className="page-container">
       <ScanImportCard isScanning={isScanning} results={results} onScanClick={handleScanClick} />
       <ScanProgressCard isScanning={isScanning} progress={progress} />
-      <ScanResultsCard results={results} isImporting={isImporting} copyMode={copyMode} onCopyModeChange={handleCopyModeChange} onImportClick={handleImportClick} progress={progress} />
+      <ScanResultsCard results={results} isImporting={isImporting} importMode={importMode} onImportClick={handleImportClick} progress={progress} />
       <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} hasResults={results != null} />
     </div>
   );

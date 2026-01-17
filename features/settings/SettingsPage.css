@@ -1,0 +1,90 @@
+.settings-page {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--neutral-100);
+
+    .settings-content {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+
+        .settings-sidebar {
+            width: 200px;
+            padding: var(--spacing-2) 0;
+            padding-top: 60px;
+            box-shadow: var(--shadow-4);
+
+            .settings-tab {
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                margin: 0 var(--spacing-2);
+                border-radius: 4px;
+                text-decoration: none;
+                color: var(--neutral-500);
+                transition-property: background-color;
+                transition-duration: 500ms;
+
+                &:hover,
+                &.is-active {
+                    background-color: var(--neutral-100);
+                    color: var(--neutral-900);
+                }
+
+                svg {
+                    padding: var(--spacing-2);
+                }
+            }
+        }
+
+        .settings-main {
+            flex: 1;
+            padding: var(--spacing-3) 24px;
+            padding-top: 60px;
+            overflow-y: auto;
+
+            .settings-tab-content {
+                h3 {
+                    font-weight: 500;
+                    margin-bottom: 4px;
+                }
+
+                p {
+                    margin-bottom: 12px;
+                    color: var(--text-secondary);
+                    font-size: 14px;
+                }
+
+                .settings-form {
+                    margin-bottom: var(--spacing-6);
+
+                    label {
+                        display: flex;
+                        align-items: center;
+                        gap: var(--spacing-2);
+                        padding: var(--spacing-3) 0;
+                        cursor: pointer;
+                        font-size: 14px;
+                    }
+
+                    input[type="checkbox"] {
+                        width: 18px;
+                        height: 18px;
+                        cursor: pointer;
+                    }
+                }
+
+                .settings-section {
+                    margin-top: 32px;
+
+                    h4 {
+                        margin-bottom: 4px;
+                        color: var(--text-primary);
+                        font-weight: 500;
+                    }
+                }
+            }
+        }
+    }
+}
