@@ -117,6 +117,7 @@ type PhotosResponse struct {
 	PageEndRecord   int     `json:"pageEndRecord"`
 	TotalRecords    int     `json:"totalRecords"`
 	CurrentOffset   int     `json:"currentOffset"`
+	NextOffset      int     `json:"nextOffset"`
 	Limit           int     `json:"limit"`
 }
 
@@ -226,6 +227,7 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 			response.TotalRecords = photos[0].TotalRecords
 			response.PageStartRecord = offset + 1
 			response.PageEndRecord = offset + len(photos)
+			response.NextOffset = offset + len(photos)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -293,6 +295,7 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 			response.TotalRecords = photos[0].TotalRecords
 			response.PageStartRecord = offset + 1
 			response.PageEndRecord = offset + len(photos)
+			response.NextOffset = offset + len(photos)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -360,6 +363,7 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 			response.TotalRecords = photos[0].TotalRecords
 			response.PageStartRecord = offset + 1
 			response.PageEndRecord = offset + len(photos)
+			response.NextOffset = offset + len(photos)
 		}
 
 		w.Header().Set("Content-Type", "application/json")

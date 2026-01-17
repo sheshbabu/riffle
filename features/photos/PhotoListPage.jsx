@@ -163,6 +163,8 @@ export default function PhotoListPage({ mode = 'library' }) {
   const [pageEndRecord, setPageEndRecord] = useState(0);
   const [totalRecords, setTotalRecords] = useState(0);
   const [limit, setLimit] = useState(100);
+  const [nextOffset, setNextOffset] = useState(null);
+  const [offsetHistory, setOffsetHistory] = useState([]);
   const initialSelection = config.initialSelectedIndex !== null ? new Set([config.initialSelectedIndex]) : new Set();
   const [selectedIndices, setSelectedIndices] = useState(initialSelection);
   const [fadingPhotos, setFadingPhotos] = useState(new Set());
@@ -188,6 +190,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         setPageEndRecord(data.pageEndRecord || 0);
         setTotalRecords(data.totalRecords || 0);
         setLimit(data.limit || 100);
+        setNextOffset(data.nextOffset !== undefined ? data.nextOffset : null);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -203,13 +206,17 @@ export default function PhotoListPage({ mode = 'library' }) {
   }, [offset, viewMode, filtersKey]);
 
   useEffect(() => {
+    setOffsetHistory([]);
+  }, [viewMode, filtersKey]);
+
+  useEffect(() => {
     function handleKeyDown(e) {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         return;
       }
 
-      const hasPrev = offset > 0;
-      const hasNext = offset + limit < totalRecords;
+      const hasPrev = offsetHistory.length > 0;
+      const hasNext = nextOffset !== null && nextOffset < totalRecords;
 
       if (e.key === 'j' || e.key === 'J') {
         if (hasNext) {
@@ -226,7 +233,7 @@ export default function PhotoListPage({ mode = 'library' }) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [offset, limit, totalRecords]);
+  }, [offsetHistory, nextOffset, totalRecords]);
 
   useEffect(() => {
     function handleCurateKeyDown(e) {
@@ -477,16 +484,17 @@ export default function PhotoListPage({ mode = 'library' }) {
   }
 
   function handlePrevPage() {
-    if (offset > 0) {
-      const newOffset = Math.max(0, offset - limit);
-      updateSearchParams({ offset: newOffset });
+    if (offsetHistory.length > 0) {
+      const prevOffset = offsetHistory[offsetHistory.length - 1];
+      setOffsetHistory(prev => prev.slice(0, -1));
+      updateSearchParams({ offset: prevOffset });
     }
   }
 
   function handleNextPage() {
-    if (offset + limit < totalRecords) {
-      const newOffset = offset + limit;
-      updateSearchParams({ offset: newOffset });
+    if (nextOffset !== null && nextOffset < totalRecords) {
+      setOffsetHistory(prev => [...prev, offset]);
+      updateSearchParams({ offset: nextOffset });
     }
   }
 
@@ -558,8 +566,8 @@ export default function PhotoListPage({ mode = 'library' }) {
     );
   }
 
-  const hasPrev = offset > 0;
-  const hasNext = offset + limit < totalRecords;
+  const hasPrev = offsetHistory.length > 0;
+  const hasNext = nextOffset !== null && nextOffset < totalRecords;
 
   let paginationElement = null;
   if (!error && totalRecords > limit) {

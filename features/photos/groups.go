@@ -41,6 +41,28 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 
 	totalCount := getCount(whereClause, filterArgs...)
 
+	groupIDs, err := getGroupIDsForPage(limit, offset, whereClause, filterArgs)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if len(groupIDs) == 0 {
+		return []Photo{}, []Group{}, nil
+	}
+
+	groupPlaceholders := ""
+	groupArgs := make([]any, len(groupIDs))
+	for i, id := range groupIDs {
+		if i > 0 {
+			groupPlaceholders += ", "
+		}
+		groupPlaceholders += "?"
+		groupArgs[i] = id
+	}
+
+	groupWhereClause := fmt.Sprintf("%s AND group_id IN (%s)", whereClause, groupPlaceholders)
+	finalArgs := append(filterArgs, groupArgs...)
+
 	query := fmt.Sprintf(`
 		SELECT
 			file_path, original_filepath, sha256_hash, dhash, file_size, date_time,
@@ -55,11 +77,9 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 		FROM photos
 		%s
 		ORDER BY date_time DESC, created_at DESC
-		LIMIT ? OFFSET ?
-	`, whereClause)
+	`, groupWhereClause)
 
-	args := append(filterArgs, limit, offset)
-	rows, err := sqlite.DB.Query(query, args...)
+	rows, err := sqlite.DB.Query(query, finalArgs...)
 	if err != nil {
 		err = fmt.Errorf("error querying photos with groups: %w", err)
 		slog.Error(err.Error())
@@ -100,11 +120,6 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 
 	var groups []Group
 	if len(groupPhotoCount) > 0 {
-		groupIDs := make([]int64, 0, len(groupPhotoCount))
-		for id := range groupPhotoCount {
-			groupIDs = append(groupIDs, id)
-		}
-
 		groupRecords, err := GetGroupsByIDs(groupIDs)
 		if err != nil {
 			slog.Error("failed to get groups by ids", "error", err)
@@ -126,6 +141,72 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 	}
 
 	return photos, groups, nil
+}
+
+func getGroupIDsForPage(limit, offset int, whereClause string, filterArgs []any) ([]int64, error) {
+	query := fmt.Sprintf(`
+		SELECT group_id, COUNT(*) as photo_count
+		FROM photos
+		%s AND group_id IS NOT NULL
+		GROUP BY group_id
+		ORDER BY MAX(date_time) DESC, MAX(created_at) DESC
+	`, whereClause)
+
+	rows, err := sqlite.DB.Query(query, filterArgs...)
+	if err != nil {
+		err = fmt.Errorf("error querying group counts: %w", err)
+		slog.Error(err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	type groupCount struct {
+		groupID int64
+		count   int
+	}
+
+	var allGroups []groupCount
+	for rows.Next() {
+		var gc groupCount
+		if err := rows.Scan(&gc.groupID, &gc.count); err != nil {
+			slog.Error("error scanning group count", "error", err)
+			continue
+		}
+		allGroups = append(allGroups, gc)
+	}
+
+	var groupIDs []int64
+	currentPhotoCount := 0
+	skippedPhotos := 0
+	startedCollecting := false
+
+	for _, gc := range allGroups {
+		if !startedCollecting {
+			if skippedPhotos+gc.count <= offset {
+				skippedPhotos += gc.count
+				continue
+			}
+			startedCollecting = true
+		}
+
+		if currentPhotoCount == 0 {
+			groupIDs = append(groupIDs, gc.groupID)
+			currentPhotoCount += gc.count
+			if gc.count >= limit {
+				break
+			}
+			continue
+		}
+
+		if currentPhotoCount+gc.count <= limit {
+			groupIDs = append(groupIDs, gc.groupID)
+			currentPhotoCount += gc.count
+		} else {
+			break
+		}
+	}
+
+	return groupIDs, nil
 }
 
 func AssignGroupsToUngroupedPhotos() error {
