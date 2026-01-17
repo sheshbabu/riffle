@@ -18,21 +18,38 @@ type CalendarMonth struct {
 
 func GetCalendarMonths() ([]CalendarMonth, error) {
 	query := `
+		WITH month_stats AS (
+			SELECT
+				strftime('%Y', date_time) as year,
+				strftime('%m', date_time) as month,
+				strftime('%Y-%m', date_time) as year_month,
+				SUM(CASE WHEN is_curated = 1 THEN 1 ELSE 0 END) as curated_count,
+				SUM(CASE WHEN is_curated = 0 THEN 1 ELSE 0 END) as uncurated_count
+			FROM photos
+			WHERE date_time IS NOT NULL
+			  AND is_trashed = 0
+			GROUP BY year_month
+		),
+		cover_photos AS (
+			SELECT DISTINCT
+				strftime('%Y-%m', date_time) as year_month,
+				FIRST_VALUE(file_path) OVER (
+					PARTITION BY strftime('%Y-%m', date_time)
+					ORDER BY rating DESC, date_time ASC
+				) as cover_photo
+			FROM photos
+			WHERE date_time IS NOT NULL
+			  AND is_trashed = 0
+		)
 		SELECT
-			strftime('%Y', date_time) as year,
-			strftime('%m', date_time) as month,
-			SUM(CASE WHEN is_curated = 1 THEN 1 ELSE 0 END) as curated_count,
-			SUM(CASE WHEN is_curated = 0 THEN 1 ELSE 0 END) as uncurated_count,
-			(SELECT file_path FROM photos p2
-			 WHERE strftime('%Y-%m', p2.date_time) = strftime('%Y-%m', p1.date_time)
-			   AND p2.is_trashed = 0
-			 ORDER BY p2.rating DESC, p2.date_time ASC
-			 LIMIT 1) as cover_photo
-		FROM photos p1
-		WHERE date_time IS NOT NULL
-		  AND is_trashed = 0
-		GROUP BY strftime('%Y-%m', date_time)
-		ORDER BY year DESC, month DESC
+			ms.year,
+			ms.month,
+			ms.curated_count,
+			ms.uncurated_count,
+			cp.cover_photo
+		FROM month_stats ms
+		LEFT JOIN cover_photos cp ON ms.year_month = cp.year_month
+		ORDER BY ms.year DESC, ms.month DESC
 	`
 
 	rows, err := sqlite.DB.Query(query)

@@ -9,10 +9,11 @@
 }
 
 .calendar-loading {
-  padding: var(--spacing-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
   color: var(--neutral-400);
-  font: var(--sm);
-  text-align: center;
 }
 
 .calendar-year-section {
