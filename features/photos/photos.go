@@ -201,50 +201,22 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	withGroups := r.URL.Query().Get("groups") == "true" || r.URL.Query().Get("sessions") == "true"
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	if withGroups {
-		photos, groups, err := GetPhotosWithGroups(limit, offset, true, false, filters)
-		if err != nil {
-			slog.Error("failed to get photos with groups", "error", err)
-			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
-			return
-		}
-
-		bursts := DetectBursts(photos)
-
-		response := PhotosResponse{
-			Photos:        photos,
-			Groups:        groups,
-			Bursts:        bursts,
-			CurrentOffset: offset,
-			Limit:         limit,
-		}
-
-		if len(photos) > 0 {
-			response.TotalRecords = photos[0].TotalRecords
-			response.PageStartRecord = offset + 1
-			response.PageEndRecord = offset + len(photos)
-			response.NextOffset = offset + len(photos)
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
-		return
-	}
-
-	photos, err := GetPhotos(limit, offset)
+	photos, groups, err := GetPhotosWithGroups(limit, offset, true, false, filters)
 	if err != nil {
-		slog.Error("failed to get photos", "error", err)
+		slog.Error("failed to get photos with groups", "error", err)
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
 		return
 	}
 
+	bursts := DetectBursts(photos)
+
 	response := PhotosResponse{
 		Photos:        photos,
+		Groups:        groups,
+		Bursts:        bursts,
 		CurrentOffset: offset,
 		Limit:         limit,
 	}
@@ -253,6 +225,7 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 		response.TotalRecords = photos[0].TotalRecords
 		response.PageStartRecord = offset + 1
 		response.PageEndRecord = offset + len(photos)
+		response.NextOffset = offset + len(photos)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -269,50 +242,22 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	withGroups := r.URL.Query().Get("groups") == "true" || r.URL.Query().Get("sessions") == "true"
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	if withGroups {
-		photos, groups, err := GetPhotosWithGroups(limit, offset, false, false, filters)
-		if err != nil {
-			slog.Error("failed to get uncurated photos with groups", "error", err)
-			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
-			return
-		}
-
-		bursts := DetectBursts(photos)
-
-		response := PhotosResponse{
-			Photos:        photos,
-			Groups:        groups,
-			Bursts:        bursts,
-			CurrentOffset: offset,
-			Limit:         limit,
-		}
-
-		if len(photos) > 0 {
-			response.TotalRecords = photos[0].TotalRecords
-			response.PageStartRecord = offset + 1
-			response.PageEndRecord = offset + len(photos)
-			response.NextOffset = offset + len(photos)
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
-		return
-	}
-
-	photos, err := GetUncuratedPhotos(limit, offset)
+	photos, groups, err := GetPhotosWithGroups(limit, offset, false, false, filters)
 	if err != nil {
-		slog.Error("failed to get uncurated photos", "error", err)
+		slog.Error("failed to get uncurated photos with groups", "error", err)
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
 		return
 	}
 
+	bursts := DetectBursts(photos)
+
 	response := PhotosResponse{
 		Photos:        photos,
+		Groups:        groups,
+		Bursts:        bursts,
 		CurrentOffset: offset,
 		Limit:         limit,
 	}
@@ -321,6 +266,7 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 		response.TotalRecords = photos[0].TotalRecords
 		response.PageStartRecord = offset + 1
 		response.PageEndRecord = offset + len(photos)
+		response.NextOffset = offset + len(photos)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -337,50 +283,22 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	withGroups := r.URL.Query().Get("groups") == "true" || r.URL.Query().Get("sessions") == "true"
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	if withGroups {
-		photos, groups, err := GetPhotosWithGroups(limit, offset, false, true, filters)
-		if err != nil {
-			slog.Error("failed to get trashed photos with groups", "error", err)
-			utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
-			return
-		}
-
-		bursts := DetectBursts(photos)
-
-		response := PhotosResponse{
-			Photos:        photos,
-			Groups:        groups,
-			Bursts:        bursts,
-			CurrentOffset: offset,
-			Limit:         limit,
-		}
-
-		if len(photos) > 0 {
-			response.TotalRecords = photos[0].TotalRecords
-			response.PageStartRecord = offset + 1
-			response.PageEndRecord = offset + len(photos)
-			response.NextOffset = offset + len(photos)
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
-		return
-	}
-
-	photos, err := GetTrashedPhotos(limit, offset)
+	photos, groups, err := GetPhotosWithGroups(limit, offset, false, true, filters)
 	if err != nil {
-		slog.Error("failed to get trashed photos", "error", err)
+		slog.Error("failed to get trashed photos with groups", "error", err)
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
 		return
 	}
 
+	bursts := DetectBursts(photos)
+
 	response := PhotosResponse{
 		Photos:        photos,
+		Groups:        groups,
+		Bursts:        bursts,
 		CurrentOffset: offset,
 		Limit:         limit,
 	}
@@ -389,6 +307,7 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 		response.TotalRecords = photos[0].TotalRecords
 		response.PageStartRecord = offset + 1
 		response.PageEndRecord = offset + len(photos)
+		response.NextOffset = offset + len(photos)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

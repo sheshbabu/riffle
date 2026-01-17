@@ -2,10 +2,8 @@ import ApiClient from '../../commons/http/ApiClient.js';
 import PhotoGallery from './PhotoGallery.jsx';
 import FilterPanel from './FilterPanel.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
-import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
 import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmptyIcon, SparklesIcon, ImageIcon } from '../../commons/components/Icon.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
-import ViewPreferences from '../../commons/utils/ViewPreferences.js';
 import useSearchParams from '../../commons/hooks/useSearchParams.js';
 import { updateSearchParams } from '../../commons/components/Link.jsx';
 import './LibraryPage.css';
@@ -15,7 +13,7 @@ const { useState, useEffect } = React;
 
 const PAGE_CONFIG = {
   library: {
-    fetchPhotos: (offset, withGroups, filters) => ApiClient.getPhotos(offset, withGroups, filters),
+    fetchPhotos: (offset, filters) => ApiClient.getPhotos(offset, filters),
     emptyState: {
       icon: ImageIcon,
       title: 'No photos yet',
@@ -25,7 +23,7 @@ const PAGE_CONFIG = {
     fadeOnlyOnTrash: true,
   },
   curate: {
-    fetchPhotos: (offset, withGroups, filters) => ApiClient.getUncuratedPhotos(offset, withGroups, filters),
+    fetchPhotos: (offset, filters) => ApiClient.getUncuratedPhotos(offset, filters),
     emptyState: {
       icon: SparklesIcon,
       title: 'Nothing to review',
@@ -35,7 +33,7 @@ const PAGE_CONFIG = {
     fadeOnlyOnTrash: false,
   },
   trash: {
-    fetchPhotos: (offset, withGroups, filters) => ApiClient.getTrashedPhotos(offset, withGroups, filters),
+    fetchPhotos: (offset, filters) => ApiClient.getTrashedPhotos(offset, filters),
     emptyState: {
       icon: TrashEmptyIcon,
       title: 'Nothing here',
@@ -147,10 +145,6 @@ export default function PhotoListPage({ mode = 'library' }) {
   const offsetParam = searchParams.get('offset');
   const offset = offsetParam ? Math.max(0, parseInt(offsetParam, 10) || 0) : 0;
 
-  const viewParam = searchParams.get('view');
-  const savedView = ViewPreferences.getPreference(mode);
-  const viewMode = (viewParam === 'grid' || viewParam === 'sessions') ? viewParam : savedView;
-
   const filters = parseFiltersFromUrl(searchParams);
 
   const [photos, setPhotos] = useState([]);
@@ -180,8 +174,7 @@ export default function PhotoListPage({ mode = 'library' }) {
       setError(null);
 
       try {
-        const withGroups = viewMode === 'sessions';
-        const data = await config.fetchPhotos(offset, withGroups, filters);
+        const data = await config.fetchPhotos(offset, filters);
         setPhotos(data.photos || []);
         setGroups(data.groups || []);
         setBursts(data.bursts || []);
@@ -203,11 +196,11 @@ export default function PhotoListPage({ mode = 'library' }) {
     }
 
     fetchPhotos();
-  }, [offset, viewMode, filtersKey]);
+  }, [offset, filtersKey]);
 
   useEffect(() => {
     setOffsetHistory([]);
-  }, [viewMode, filtersKey]);
+  }, [filtersKey]);
 
   useEffect(() => {
     function handleKeyDown(e) {
@@ -277,10 +270,6 @@ export default function PhotoListPage({ mode = 'library' }) {
     return () => document.removeEventListener('keydown', handleCurateKeyDown);
   }, [selectedIndices, photos]);
 
-  function handleViewModeChange(newViewMode) {
-    ViewPreferences.setPreference(mode, newViewMode);
-    updateSearchParams({ view: newViewMode === savedView ? null : newViewMode });
-  }
 
   function handleBurstToggle(burstId) {
     setExpandedBursts(prev => {
@@ -321,7 +310,7 @@ export default function PhotoListPage({ mode = 'library' }) {
       const removedIndex = prevPhotos.findIndex(p => p.filePath === filePath);
       const newPhotos = prevPhotos.filter(p => p.filePath !== filePath);
 
-      if (removedIndex !== -1 && viewMode === 'sessions') {
+      if (removedIndex !== -1) {
         setGroups(prevGroups => {
           let photoOffset = 0;
           return prevGroups.map(group => {
@@ -548,11 +537,10 @@ export default function PhotoListPage({ mode = 'library' }) {
       );
     }
   } else if (photos.length > 0) {
-    const groupsToPass = viewMode === 'sessions' ? groups : null;
     content = (
       <PhotoGallery
         photos={photos}
-        groups={groupsToPass}
+        groups={groups}
         bursts={bursts}
         expandedBursts={expandedBursts}
         onBurstToggle={handleBurstToggle}
@@ -602,21 +590,6 @@ export default function PhotoListPage({ mode = 'library' }) {
     );
   }
 
-  let viewToggle = null;
-  if (!error) {
-    const viewModeOptions = [
-      { value: 'sessions', label: 'Grouped' },
-      { value: 'grid', label: 'Grid' },
-    ];
-    viewToggle = (
-      <SegmentedControl
-        options={viewModeOptions}
-        value={viewMode}
-        onChange={handleViewModeChange}
-        isDisabled={photos.length === 0}
-      />
-    );
-  }
 
   let loadingOverlay = null;
   if (isLoading) {
@@ -682,7 +655,6 @@ export default function PhotoListPage({ mode = 'library' }) {
         {actionButtons}
         <div className="right-actions">
           {filterButton}
-          {viewToggle}
           {paginationElement}
         </div>
       </div>
