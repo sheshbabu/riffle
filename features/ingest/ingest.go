@@ -205,6 +205,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 func ScanDirectory(path string) ([]PhotoFile, int, error) {
 	var photos []PhotoFile
 	var skippedCount int
+	var scannedCount int
 
 	err := filepath.WalkDir(path, func(filePath string, entry os.DirEntry, err error) error {
 		if err != nil {
@@ -237,6 +238,11 @@ func ScanDirectory(path string) ([]PhotoFile, int, error) {
 			slog.Error("failed to check hash existence during scan", "file", filePath, "error", err)
 		} else if exists {
 			skippedCount++
+			scannedCount++
+			if scannedCount%100 == 0 {
+				UpdateProgress(StatusScanning, scannedCount, 0)
+				slog.Info("scanning progress", "scanned", scannedCount, "skipped", skippedCount)
+			}
 			return nil
 		}
 
@@ -252,12 +258,21 @@ func ScanDirectory(path string) ([]PhotoFile, int, error) {
 			OriginalFilepath: filePath,
 		})
 
+		scannedCount++
+		if scannedCount%100 == 0 {
+			UpdateProgress(StatusScanning, scannedCount, 0)
+			slog.Info("scanning progress", "scanned", scannedCount, "toProcess", len(photos))
+		}
+
 		return nil
 	})
 
 	if err != nil {
 		return nil, 0, err
 	}
+
+	UpdateProgress(StatusScanning, scannedCount, scannedCount)
+	slog.Info("scan completed", "totalScanned", scannedCount, "toProcess", len(photos), "alreadyImported", skippedCount)
 
 	return photos, skippedCount, nil
 }
