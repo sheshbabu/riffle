@@ -1,16 +1,14 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import { showToast } from '../../commons/components/Toast.jsx';
 import { navigateTo } from '../../commons/components/Link.jsx';
-import ScanImportCard from './ScanImportCard.jsx';
-import ScanProgressCard from './ScanProgressCard.jsx';
-import ScanResultsCard from './ScanResultsCard.jsx';
+import ImportCard from './ImportCard.jsx';
 import DuplicateGroups from './DuplicateGroups.jsx';
 
 const { useState, useEffect } = React;
 
 export default function ImportPage() {
-  const [isScanning, setIsScanning] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [phase, setPhase] = useState('idle'); // 'idle' | 'scanning' | 'importing' | 'complete'
   const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(null);
   const [importMode, setImportMode] = useState('move');
@@ -29,7 +27,7 @@ export default function ImportPage() {
   }
 
   useEffect(() => {
-    if (!isScanning && !isImporting) {
+    if (phase === 'idle' || phase === 'complete') {
       return;
     }
 
@@ -38,19 +36,18 @@ export default function ImportPage() {
         const progressData = await ApiClient.getImportProgress();
         setProgress(progressData);
 
-        if (isScanning && progressData.status === 'scanning_complete') {
-          const resultsData = await ApiClient.getScanResults();
-          setResults(resultsData);
-          setIsScanning(false);
+        // Auto-transition from scanning to importing
+        if (phase === 'scanning' && progressData.status === 'scanning_complete') {
+          setPhase('importing');
+          await ApiClient.importToLibrary();
         }
 
-        if (isImporting && progressData.status === 'importing_complete') {
+        // Complete importing
+        if (phase === 'importing' && progressData.status === 'importing_complete') {
           const resultsData = await ApiClient.getScanResults();
-          setIsImporting(false);
-          setProgress(null);
-          const action = importMode === 'copy' ? 'Copied' : 'Moved';
-          showToast(`${action} ${resultsData.movedToLibrary.toLocaleString()} files to library`);
-          navigateTo('/curate');
+          setResults(resultsData);
+          setPhase('complete');
+          setIsProcessing(false);
         }
       } catch (error) {
         // Progress not ready yet, keep polling
@@ -58,36 +55,40 @@ export default function ImportPage() {
     }, 1000);
 
     return () => clearInterval(pollInterval);
-  }, [isScanning, isImporting, importMode]);
+  }, [phase, importMode]);
 
-  async function handleScanClick() {
-    setIsScanning(true);
+  async function handleImportClick() {
+    setIsProcessing(true);
+    setPhase('scanning');
     setResults(null);
     setProgress({ status: 'scanning', completed: 0, total: 0, percent: 0 });
 
     try {
       await ApiClient.scanImportFolder({});
     } catch (error) {
-      setIsScanning(false);
+      setIsProcessing(false);
+      setPhase('idle');
       setProgress(null);
     }
   }
 
-  async function handleImportClick() {
-    setIsImporting(true);
-
-    try {
-      await ApiClient.importToLibrary();
-    } catch (error) {
-      setIsImporting(false);
-    }
+  function handleImportMoreClick() {
+    setPhase('idle');
+    setResults(null);
+    setProgress(null);
   }
 
   return (
     <div className="page-container">
-      <ScanImportCard isScanning={isScanning} results={results} onScanClick={handleScanClick} />
-      <ScanProgressCard isScanning={isScanning} progress={progress} />
-      <ScanResultsCard results={results} isImporting={isImporting} importMode={importMode} onImportClick={handleImportClick} progress={progress} />
+      <ImportCard
+        isProcessing={isProcessing}
+        phase={phase}
+        progress={progress}
+        results={results}
+        importMode={importMode}
+        onImportClick={handleImportClick}
+        onImportMoreClick={handleImportMoreClick}
+      />
       <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} hasResults={results != null} />
     </div>
   );
