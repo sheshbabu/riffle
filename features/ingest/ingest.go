@@ -475,6 +475,17 @@ func transferFile(photo PhotoFile, destDir string, copyMode bool) (string, error
 		}
 	}
 
+	destHash, err := hash.ComputeSHA256(destPath)
+	if err != nil {
+		os.Remove(destPath)
+		return "", fmt.Errorf("failed to verify transferred file: %w", err)
+	}
+
+	if destHash != photo.Hash {
+		os.Remove(destPath)
+		return "", fmt.Errorf("checksum mismatch after transfer (expected %s, got %s)", photo.Hash[:16], destHash[:16])
+	}
+
 	if !photo.FileModifiedAt.IsZero() {
 		atime := photo.FileModifiedAt
 		mtime := photo.FileModifiedAt
