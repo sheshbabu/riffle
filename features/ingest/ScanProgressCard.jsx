@@ -1,7 +1,7 @@
 import { TaskDoneIcon, TaskInProgressIcon, TaskNotStartedIcon } from '../../commons/components/Icon.jsx'
 import './ScanProgressCard.css';
 
-const stepOrder = ["scanning", "hashing", "finding_duplicates", "scanning_complete"]
+const stepOrder = ["scanning", "hashing", "checking_imported", "finding_duplicates", "scanning_complete"]
 
 export default function ScanProgressCard({ isScanning, progress }) {
   if (!isScanning || progress === null) {
@@ -16,6 +16,7 @@ export default function ScanProgressCard({ isScanning, progress }) {
         <div className="progress-container">
           <StatusLine stepStatus="scanning" progress={progress} />
           <StatusLine stepStatus="hashing" progress={progress} />
+          <StatusLine stepStatus="checking_imported" progress={progress} />
           <StatusLine stepStatus="finding_duplicates" progress={progress} />
           <StatusLine stepStatus="scanning_complete" progress={progress} />
         </div>
@@ -53,6 +54,15 @@ function StatusLine({ stepStatus, progress }) {
     stepName = "Computing hashes"
     if (currentStepIndex === progressingStepIndex) {
       subText = <div className="subtext">{`Processing ${progress.completed.toLocaleString()} / ${progress.total.toLocaleString()} (${progress.percent}%)`}</div>
+    } else if (currentStepIndex < progressingStepIndex) {
+      subText = <div className="subtext">Finished</div>
+    }
+  }
+
+  if (stepStatus === "checking_imported") {
+    stepName = "Checking for already-imported files"
+    if (currentStepIndex === progressingStepIndex) {
+      subText = <div className="subtext">{`Checking ${progress.completed.toLocaleString()} / ${progress.total.toLocaleString()} (${progress.percent}%)`}</div>
     } else if (currentStepIndex < progressingStepIndex) {
       subText = <div className="subtext">Finished</div>
     }

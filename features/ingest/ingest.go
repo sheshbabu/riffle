@@ -74,13 +74,62 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	slog.Info("starting import analysis")
 
 	UpdateProgress(StatusScanning, 0, 0)
-	photos, alreadyImported, err := ScanDirectory(importPath)
+	photos, err := ScanDirectory(importPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan ingest folder: %w", err)
 	}
 
-	totalScanned := len(photos) + alreadyImported
-	slog.Info("scanned ingest folder", "total", totalScanned, "toProcess", len(photos), "alreadyImported", alreadyImported)
+	slog.Info("scanned ingest folder", "totalFiles", len(photos))
+
+	if len(photos) == 0 {
+		slog.Info("no media files found in import folder")
+		stats := &AnalysisStats{
+			ImportPath:        importPath,
+			TotalScanned:      0,
+			AlreadyImported:   0,
+			UniqueFiles:       0,
+			FilesToImport:     make([]FileAction, 0),
+			DuplicatesSkipped: make([]FileAction, 0),
+		}
+		return stats, nil
+	}
+
+	UpdateProgress(StatusHashing, 0, len(photos))
+	workers := runtime.NumCPU()
+	if workers > 16 {
+		workers = 16
+	}
+	slog.Info("processing files with parallel workers", "workers", workers, "cpus", runtime.NumCPU())
+	processFilesParallel(photos, workers)
+
+	UpdateProgress(StatusCheckingImported, 0, len(photos))
+	var newPhotos []PhotoFile
+	var alreadyImported int
+	for i := range photos {
+		if photos[i].Hash == "" {
+			continue
+		}
+		exists, err := CheckHashExists(photos[i].Hash)
+		if err != nil {
+			slog.Error("failed to check hash existence", "file", photos[i].Path, "error", err)
+			newPhotos = append(newPhotos, photos[i])
+			continue
+		}
+		if exists {
+			alreadyImported++
+		} else {
+			newPhotos = append(newPhotos, photos[i])
+		}
+
+		processed := i + 1
+		if processed%100 == 0 || processed == len(photos) {
+			UpdateProgress(StatusCheckingImported, processed, len(photos))
+		}
+	}
+
+	totalScanned := len(photos)
+	photos = newPhotos
+	slog.Info("filtered already-imported photos", "total", totalScanned, "toProcess", len(photos), "alreadyImported", alreadyImported)
 
 	if len(photos) == 0 && alreadyImported > 0 {
 		slog.Info("all files already imported, nothing to process")
@@ -102,14 +151,6 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 		FilesToImport:     make([]FileAction, 0),
 		DuplicatesSkipped: make([]FileAction, 0),
 	}
-
-	UpdateProgress(StatusHashing, 0, len(photos))
-	workers := runtime.NumCPU()
-	if workers > 16 {
-		workers = 16
-	}
-	slog.Info("processing files with parallel workers", "workers", workers, "cpus", runtime.NumCPU())
-	processFilesParallel(photos, workers)
 
 	UpdateProgress(StatusFindingDuplicates, 0, 0)
 	hashGroups := make(map[string][]PhotoFile)
@@ -202,9 +243,8 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	return stats, nil
 }
 
-func ScanDirectory(path string) ([]PhotoFile, int, error) {
+func ScanDirectory(path string) ([]PhotoFile, error) {
 	var photos []PhotoFile
-	var skippedCount int
 	var scannedCount int
 
 	err := filepath.WalkDir(path, func(filePath string, entry os.DirEntry, err error) error {
@@ -227,32 +267,12 @@ func ScanDirectory(path string) ([]PhotoFile, int, error) {
 			return nil
 		}
 
-		sha256Hash, err := hash.ComputeSHA256(filePath)
-		if err != nil {
-			slog.Error("failed to compute hash during scan", "file", filePath, "error", err)
-			return nil
-		}
-
-		exists, err := CheckHashExists(sha256Hash)
-		if err != nil {
-			slog.Error("failed to check hash existence during scan", "file", filePath, "error", err)
-		} else if exists {
-			skippedCount++
-			scannedCount++
-			if scannedCount%100 == 0 {
-				UpdateProgress(StatusScanning, scannedCount, 0)
-				slog.Info("scanning progress", "scanned", scannedCount, "skipped", skippedCount)
-			}
-			return nil
-		}
-
 		fileModifiedAt := info.ModTime()
 		fileCreatedAt := getFileCreatedAt(info)
 
 		photos = append(photos, PhotoFile{
 			Path:             filePath,
 			Size:             info.Size(),
-			Hash:             sha256Hash,
 			FileModifiedAt:   fileModifiedAt,
 			FileCreatedAt:    fileCreatedAt,
 			OriginalFilepath: filePath,
@@ -261,23 +281,31 @@ func ScanDirectory(path string) ([]PhotoFile, int, error) {
 		scannedCount++
 		if scannedCount%100 == 0 {
 			UpdateProgress(StatusScanning, scannedCount, 0)
-			slog.Info("scanning progress", "scanned", scannedCount, "toProcess", len(photos))
+			slog.Info("scanning progress", "scanned", scannedCount)
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		return nil, 0, err
+		return nil, err
 	}
 
 	UpdateProgress(StatusScanning, scannedCount, scannedCount)
-	slog.Info("scan completed", "totalScanned", scannedCount, "toProcess", len(photos), "alreadyImported", skippedCount)
+	slog.Info("scan completed", "totalFiles", scannedCount)
 
-	return photos, skippedCount, nil
+	return photos, nil
 }
 
 func processFile(photo *PhotoFile) {
+	// Compute SHA256 hash
+	sha256Hash, err := hash.ComputeSHA256(photo.Path)
+	if err != nil {
+		slog.Error("failed to compute hash", "file", photo.Path, "error", err)
+		return
+	}
+	photo.Hash = sha256Hash
+
 	if media.IsImageFile(photo.Path) {
 		dhash, err := hash.ComputeDhash(photo.Path)
 		if err != nil {

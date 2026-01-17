@@ -9,6 +9,7 @@ type Status string
 const (
 	StatusScanning          Status = "scanning"
 	StatusHashing           Status = "hashing"
+	StatusCheckingImported  Status = "checking_imported"
 	StatusFindingDuplicates Status = "finding_duplicates"
 	StatusScanningComplete  Status = "scanning_complete"
 	StatusImporting         Status = "importing"
