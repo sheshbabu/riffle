@@ -64,6 +64,7 @@ type AnalysisStats struct {
 	DuplicateGroups   int              `json:"duplicateGroups"`
 	DuplicatesRemoved int              `json:"duplicatesRemoved"`
 	MovedToLibrary    int              `json:"movedToLibrary"`
+	AlreadyImported   int              `json:"alreadyImported"`
 	Duplicates        []DuplicateGroup `json:"duplicates"`
 	FilesToImport     []FileAction     `json:"filesToImport"`
 	DuplicatesSkipped []FileAction     `json:"duplicatesSkipped"`
@@ -73,16 +74,31 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	slog.Info("starting import analysis")
 
 	UpdateProgress(StatusScanning, 0, 0)
-	photos, err := ScanDirectory(importPath)
+	photos, alreadyImported, err := ScanDirectory(importPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan ingest folder: %w", err)
 	}
 
-	slog.Info("scanned ingest folder", "count", len(photos))
+	totalScanned := len(photos) + alreadyImported
+	slog.Info("scanned ingest folder", "total", totalScanned, "toProcess", len(photos), "alreadyImported", alreadyImported)
+
+	if len(photos) == 0 && alreadyImported > 0 {
+		slog.Info("all files already imported, nothing to process")
+		stats := &AnalysisStats{
+			ImportPath:        importPath,
+			TotalScanned:      totalScanned,
+			AlreadyImported:   alreadyImported,
+			UniqueFiles:       0,
+			FilesToImport:     make([]FileAction, 0),
+			DuplicatesSkipped: make([]FileAction, 0),
+		}
+		return stats, nil
+	}
 
 	stats := &AnalysisStats{
 		ImportPath:        importPath,
-		TotalScanned:      len(photos),
+		TotalScanned:      totalScanned,
+		AlreadyImported:   alreadyImported,
 		FilesToImport:     make([]FileAction, 0),
 		DuplicatesSkipped: make([]FileAction, 0),
 	}
@@ -97,6 +113,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 
 	UpdateProgress(StatusFindingDuplicates, 0, 0)
 	hashGroups := make(map[string][]PhotoFile)
+
 	for i := range photos {
 		if photos[i].Hash == "" {
 			continue
@@ -107,6 +124,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	slog.Info("computed hashes", "unique", len(hashGroups))
 
 	for hash, duplicates := range hashGroups {
+
 		if len(duplicates) == 1 {
 			candidate := duplicates[0]
 			stats.UniqueFiles++
@@ -173,18 +191,20 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	fmt.Println()
 	fmt.Println("=== Analysis Summary ===")
 	fmt.Printf("Total files scanned:      %d\n", stats.TotalScanned)
+	fmt.Printf("Already imported:         %d\n", stats.AlreadyImported)
 	fmt.Printf("Unique files:             %d\n", stats.UniqueFiles)
 	fmt.Printf("Duplicate groups found:   %d\n", stats.DuplicateGroups)
 	fmt.Printf("Duplicates to remove:     %d\n", stats.DuplicatesRemoved)
 	fmt.Printf("Files to move to library: %d\n", len(stats.FilesToImport))
-	fmt.Printf("Files to move to trash:   %d\n", len(stats.DuplicatesSkipped))
+	fmt.Printf("Files to skip:            %d\n", len(stats.DuplicatesSkipped)+stats.AlreadyImported)
 	fmt.Println()
 
 	return stats, nil
 }
 
-func ScanDirectory(path string) ([]PhotoFile, error) {
+func ScanDirectory(path string) ([]PhotoFile, int, error) {
 	var photos []PhotoFile
+	var skippedCount int
 
 	err := filepath.WalkDir(path, func(filePath string, entry os.DirEntry, err error) error {
 		if err != nil {
@@ -206,12 +226,27 @@ func ScanDirectory(path string) ([]PhotoFile, error) {
 			return nil
 		}
 
+		sha256Hash, err := hash.ComputeSHA256(filePath)
+		if err != nil {
+			slog.Error("failed to compute hash during scan", "file", filePath, "error", err)
+			return nil
+		}
+
+		exists, err := CheckHashExists(sha256Hash)
+		if err != nil {
+			slog.Error("failed to check hash existence during scan", "file", filePath, "error", err)
+		} else if exists {
+			skippedCount++
+			return nil
+		}
+
 		fileModifiedAt := info.ModTime()
 		fileCreatedAt := getFileCreatedAt(info)
 
 		photos = append(photos, PhotoFile{
 			Path:             filePath,
 			Size:             info.Size(),
+			Hash:             sha256Hash,
 			FileModifiedAt:   fileModifiedAt,
 			FileCreatedAt:    fileCreatedAt,
 			OriginalFilepath: filePath,
@@ -221,20 +256,13 @@ func ScanDirectory(path string) ([]PhotoFile, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return photos, nil
+	return photos, skippedCount, nil
 }
 
 func processFile(photo *PhotoFile) {
-	sha256Hash, err := hash.ComputeSHA256(photo.Path)
-	if err != nil {
-		slog.Error("failed to compute hash", "file", photo.Path, "error", err)
-		return
-	}
-	photo.Hash = sha256Hash
-
 	if media.IsImageFile(photo.Path) {
 		dhash, err := hash.ComputeDhash(photo.Path)
 		if err != nil {
@@ -354,6 +382,7 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copy
 	}
 
 	slog.Info("duplicate files skipped", "count", len(stats.DuplicatesSkipped))
+	slog.Info("already imported files skipped", "count", stats.AlreadyImported)
 
 	fmt.Println()
 	fmt.Println("=== Execution Summary ===")
@@ -363,6 +392,7 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copy
 		fmt.Printf("Files moved to library:   %d\n", movedToLibrary)
 	}
 	fmt.Printf("Duplicates skipped:       %d\n", len(stats.DuplicatesSkipped))
+	fmt.Printf("Already imported skipped: %d\n", stats.AlreadyImported)
 	fmt.Println()
 
 	return nil

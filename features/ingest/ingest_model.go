@@ -159,3 +159,15 @@ func UpdatePhotoThumbnail(filePath, thumbnailPath string) error {
 	}
 	return nil
 }
+
+func CheckHashExists(hash string) (bool, error) {
+	query := `SELECT COUNT(*) FROM photos WHERE sha256_hash = ?`
+	var count int
+	err := sqlite.DB.QueryRow(query, hash).Scan(&count)
+	if err != nil {
+		err = fmt.Errorf("error checking hash existence: %w", err)
+		slog.Error(err.Error())
+		return false, err
+	}
+	return count > 0, nil
+}
