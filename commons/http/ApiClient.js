@@ -141,6 +141,10 @@ async function getFilterOptions() {
   return await request('GET', '/api/photos/filters/');
 }
 
+async function getCalendarMonths() {
+  return await request('GET', '/api/calendar/months/');
+}
+
 export default {
   request,
   scanImportFolder,
@@ -150,5 +154,6 @@ export default {
   getPhotos,
   getUncuratedPhotos,
   getTrashedPhotos,
-  getFilterOptions
+  getFilterOptions,
+  getCalendarMonths
 };

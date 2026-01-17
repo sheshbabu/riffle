@@ -6,6 +6,7 @@ import Sidebar from './commons/components/Sidebar.jsx';
 import { ToastProvider } from './commons/components/Toast.jsx';
 import ImportPage from './features/ingest/ImportPage.jsx';
 import PhotoListPage from './features/photos/PhotoListPage.jsx';
+import CalendarPage from './features/calendar/CalendarPage.jsx';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
             <Route path="/import" component={ImportPage} />
             <Route path="/curate" component={CuratePage} />
             <Route path="/library" component={LibraryPage} />
+            <Route path="/calendar" component={CalendarPage} />
             <Route path="/trash" component={TrashPage} />
           </Router>
         </div>

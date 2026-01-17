@@ -10,6 +10,7 @@ import (
 	"riffle/commons/exif"
 	"riffle/commons/sqlite"
 	"riffle/commons/utils"
+	"riffle/features/calendar"
 	"riffle/features/geocoding"
 	"riffle/features/ingest"
 	"riffle/features/photos"
@@ -102,6 +103,7 @@ func newRouter() *http.ServeMux {
 	mux.HandleFunc("POST /api/photos/curate/", photos.HandleCuratePhoto)
 	mux.HandleFunc("GET /api/photo/", photos.HandleServePhoto)
 	mux.HandleFunc("GET /api/thumbnail/", photos.HandleServeThumbnail)
+	mux.HandleFunc("GET /api/calendar/months/", calendar.HandleGetCalendarMonths)
 	mux.HandleFunc("GET /assets/", handleStaticAssets)
 	mux.HandleFunc("GET /", handleRoot)
 
