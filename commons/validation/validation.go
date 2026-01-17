@@ -60,10 +60,10 @@ func ValidateExifData(data map[string]any) map[string]any {
 	return validated
 }
 
-// Check if ISO value is within reasonable range (50-102400)
+// Check if ISO value is within reasonable range (16-819200)
 func validateISO(isoVal int) (int, bool) {
-	if isoVal < 50 || isoVal > 102400 {
-		slog.Warn("iso value out of expected range", "iso", isoVal, "expected", "50-102400")
+	if isoVal < 16 || isoVal > 819200 {
+		slog.Warn("iso value out of expected range", "iso", isoVal, "expected", "16-819200")
 		// Don't reject, just log - some specialized cameras may exceed this
 	}
 
