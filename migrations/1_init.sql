@@ -120,5 +120,5 @@ CREATE TABLE IF NOT EXISTS settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT OR IGNORE INTO settings (key, value) VALUES ('import_mode', 'move'); -- "move", "copy"
+INSERT OR IGNORE INTO settings (key, value) VALUES ('import_mode', 'copy'); -- "move", "copy"
 INSERT OR IGNORE INTO settings (key, value) VALUES ('import_duplicate_handling', 'keep'); -- "keep", "delete"
