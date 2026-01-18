@@ -23,7 +23,7 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - `make dev` - Run development server
 - `make watch` - Run with file watching (requires air)
 
-## Workflow: Import → Curate → Library → Export
+## Workflow: Import → Curate → Library → Calendar → Settings → Export
 
 ### 1. Import (File Management)
 - Point app at import folder (source files)
@@ -34,7 +34,7 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - Assign photos to groups based on time/location clustering
 - Store metadata in SQLite database
 
-### 2. Curate (The Culling - IN PROGRESS)
+### 2. Curate (The Culling)
 - Dedicated view shows only uncurated photos (`is_curated = false`)
 - Keyboard shortcuts for fast review:
   - **P (Accept)**: Sets `is_curated=true, rating=0`
@@ -54,107 +54,45 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - "Empty Trash" button (no-op for now)
 - Future: Physical deletion or move to OS trash
 
-### 5. Export (Delivery - PLANNED)
-- Filter by rating, date, group
-- Export to local folder or cloud (S3, Google Drive)
+### 5. Calendar
+Month-by-month grid showing curated/uncurated counts and cover photos. Click to navigate to filtered library view.
+
+### 6. Settings
+Tabbed interface for import/library folder configuration and storage statistics.
+
+### 7. Export (PLANNED)
+Filter and export photos to local folder or cloud (S3, Google Drive).
 
 ### Photo Groups
-Photos are automatically grouped during import using time-gap clustering and location-based analysis. Groups are persisted in the database to ensure consistent display across paginated views.
+Photos are automatically grouped during import using time-gap clustering and location-based analysis. Groups persisted in `photo_groups` table.
 
 **A new group starts when ANY of these conditions are met:**
 - **Time gap > 120 minutes** between consecutive photos
 - **Total group duration > 12 hours** (prevents multi-day groups)
 - **Distance > 1km** from the group's starting location (using Haversine distance)
 
-**Key Features:**
-- Groups are assigned during import and stored in `photo_groups` table
-- Each group tracks: time range, photo count, total size (bytes), and location
-- Groups are displayed with headers showing date/time range, location, photo count, and storage size
-- Location-aware: Uses GPS coordinates when available to split groups across different locations
-- Time-aware: Prevents groups from drifting across multiple days
-- Toggle between grid view and grouped view using the view toggle button
-
-### Thumbnail Generation
-Thumbnails are pre-generated during import for faster gallery loading.
-
-**Storage:**
-- Thumbnails stored in `THUMBNAILS_PATH` mirroring the library folder structure
-- Size: 300x300 pixels (JPEG format)
-- Path derived by replacing `LIBRARY_PATH` prefix with `THUMBNAILS_PATH`
-
-**Serving:**
-- `HandleServePhoto()` checks for pre-generated thumbnails first
-- Falls back to on-demand generation if thumbnail is missing
-
 ### Burst Detection
-Photos taken in rapid succession with similar content are grouped as bursts.
-
-**Detection criteria (ALL must be met):**
-- **Time window ≤ 3 seconds** between photos
-- **dHash distance ≤ 4** (perceptual similarity using difference hash)
-
-**Display behavior:**
-- Collapsed bursts show as a stack with count badge (e.g., "3")
-- Click to expand and show all photos in the burst
-- Expanded photos show position indicator (e.g., "1/3", "2/3", "3/3")
+Photos taken within 3 seconds with dHash distance ≤ 4 are grouped as bursts. Display as collapsed stack with count badge; click to expand.
 
 ### Exact Duplicate Detection
 - **SHA256 file hash** to identify exact duplicates
 - **EXIF extraction** for all files to aid candidate selection
-- **Duplicate handling**: Only the best candidate is moved to library; duplicates are left in the import folder for manual cleanup
+- **Duplicate handling**: Only the best candidate (prefers files with EXIF data) is moved to library; duplicates are left in the import folder for manual cleanup
 
-### Candidate Selection Strategy
-When multiple files share the same hash (exact duplicates), select one to keep:
-1. **Has EXIF data** - prefer files with EXIF metadata (likely originals)
-2. **If tie** - pick first (they're byte-for-byte identical anyway)
-
-### EXIF Fields Extracted
-- **DateTime** - When photo/video was taken (checks multiple fields in priority order):
-  - Photos: `DateTimeOriginal`
-  - Videos: `CreateDate`, `MediaCreateDate`, `TrackCreateDate`, `CreationDate`
-- **Make/Model** - Camera manufacturer and model
-- **Width/Height** - Image dimensions
-- **Latitude/Longitude** - GPS coordinates
-- **Orientation** - Image rotation
-- **Software** - Editing software (if edited)
-- **ISO** - ISO speed rating
-- **FNumber** - Aperture setting
-- **ExposureTime** - Shutter speed
-- **FocalLength** - Lens focal length
-- **Flash** - Flash usage
-- **ColorSpace** - Color space (sRGB, AdobeRGB)
-
-### Media File Support
-**Images:** .jpg, .jpeg, .png, .gif, .heic, .heif, .webp, .bmp, .tiff, .tif
-**Videos:** .mp4, .mov, .avi, .mkv, .wmv, .flv, .webm, .m4v, .mpg, .mpeg
+### EXIF & Media Support
+- **Key EXIF fields**: DateTime, GPS coordinates, camera make/model, dimensions, orientation, camera settings (ISO, aperture, shutter speed, focal length)
+- **Supported formats**: Common image formats (JPG, PNG, HEIC, WebP, etc.) and video formats (MP4, MOV, AVI, etc.)
 
 ### Date Handling
 - **Primary source**: EXIF DateTime fields (DateTimeOriginal, CreateDate, etc.)
-- **Fallback**: File modification time (ModTime) if EXIF DateTime is unavailable
-- Files are organized by date from either source
-- **File system timestamps preserved**: Original file creation time and modification time are captured during scanning and preserved in the database
-  - `file_created_at`: Original file birth/creation time from filesystem
-  - `file_modified_at`: Original file modification time from filesystem
-  - After moving files to library, modification time is restored using `os.Chtimes()`
-  - Birth time cannot be restored on most filesystems but is stored in database
-- **Timestamp distinction**:
-  - `date_time`: EXIF DateTime (photo/video capture time) - used for organization
-  - `file_created_at`: Original file creation time from filesystem
-  - `file_modified_at`: Original file modification time from filesystem
-  - `created_at`: Database record creation time (when imported)
-  - `imported_at`: Time when file was imported to library
-
-### Known Limitations
-- **Scanned photos**: When physical photos are scanned, the scan date often gets written to `DateTimeOriginal` instead of the original photo date. These files will be organized by scan date rather than the actual photo date.
-- **Birth time preservation**: While birth time is captured and stored in the database, it cannot be restored to the filesystem after moving files (filesystem limitation).
+- **Fallback**: File modification time if EXIF unavailable
+- **Timestamp preservation**: Original file timestamps are captured and stored in database; modification time is restored after file moves using `os.Chtimes()`
+- **Database fields**: `date_time` (EXIF, used for organization), `file_created_at`, `file_modified_at`, `created_at`, `imported_at`
 
 ### Folder Structure
 
-**Ingest** (internally) / **Import** (user-facing):
-- `IMPORT_PATH` - Source folder containing photos to process
-- Scanned recursively for media files
-- Files are moved (not copied) during import
-- Cross-device moves supported (e.g., Docker volumes on different mounts)
+**Import:**
+- `IMPORT_PATH` - Source folder scanned recursively; files are moved or copied depending on settings, with cross-device support
 
 **Library** (organized by date):
 ```
@@ -170,52 +108,26 @@ library/
     a4b8c16d32e64f12.jpg  (rare: only if date cannot be determined)
 ```
 
-Files are renamed using pattern: `YYYY-MM-DD-HHMMSS-<hash>.<ext>`
-- Date/time from EXIF DateTime field (preferred) or file modification time (fallback)
-- Hash is first 16 characters of SHA256 file hash
-- Files without any date information go to `Unknown/` folder
+Files renamed as `YYYY-MM-DD-HHMMSS-<hash>.<ext>` (hash = first 16 chars of SHA256). Files without date go to `Unknown/`.
 
-**Thumbnails** (mirrors library structure):
-- `THUMBNAILS_PATH` - Pre-generated 300x300 thumbnails
-- Same folder structure as library (Year/Month)
-- Generated during import for faster gallery loading
+**Thumbnails:**
+- `THUMBNAILS_PATH` - Pre-generated 300x300px JPEG thumbnails mirroring library structure
 
-**Trash** (virtual only):
-- No physical trash folder
-- Photos flagged with `is_trashed=true` in database
-- Files remain in library folder until "Empty Trash" is executed
+**Trash:**
+- Virtual only (flagged with `is_trashed=true`); files remain in library folder
 
-**Export** (future):
-- `EXPORT_PATH` - Destination for filtered/curated exports
+**Export:**
+- `EXPORT_PATH` - Future destination for filtered exports
 
 ### Photo Database
 
-Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging, albums, and curation.
+Photos stored in `riffle.db` (SQLite) with EXIF metadata.
 
-**Tables:** photos, photo_groups, tags, photo_tags, albums, album_photos
+**Main tables:** `photos`, `photo_groups`, `tags`, `photo_tags`, `albums`, `album_photos`
 
-**Key Fields (photos):**
-- `is_curated` (boolean) - Whether user has reviewed the photo
-- `is_trashed` (boolean) - Virtual trash flag
-- `rating` (int 0-5) - User rating (0 = unrated)
-- `sha256_hash` and `dhash` - For duplicate/near-duplicate detection
-- `thumbnail_path` (text) - Path to pre-generated thumbnail
-- `group_id` (int) - Foreign key to photo_groups table
-- `notes` (text) - User notes
+**Key photo fields:** `is_curated`, `is_trashed`, `rating` (0-5), `sha256_hash`, `dhash`, `thumbnail_path`, `group_id`, `notes`
 
-**Key Fields (photo_groups):**
-- `group_id` (int) - Primary key
-- `start_time`, `end_time` (timestamp) - Time range of photos in group
-- `photo_count` (int) - Number of photos in group
-- `total_size` (int) - Total bytes of all photos in group
-- `latitude`, `longitude` (real) - Group location
-- `city`, `state`, `country_name` (text) - Reverse geocoded location (full country names, not codes)
-
-**Features:**
-- Tag photos for organization
-- Organize into albums
-- Track curation status and ratings
-- Search by date, camera, location, format
+**Key group fields:** `group_id`, `start_time`, `end_time`, `photo_count`, `total_size`, GPS coordinates, reverse geocoded location
 
 
 ## Architecture Overview
@@ -226,16 +138,12 @@ Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging
 - **Feature-based Structure**: Each feature has its own directory under `features/`
   - `ingest/` - Import workflow (scanning, deduplication, moving files)
   - `photos/` - Photo library management and serving
+  - `calendar/` - Monthly overview and statistics
+  - `settings/` - Application configuration and folder management
   - `geocoding/` - Reverse geocoding with offline GeoNames data
 - **Commons**: Shared utilities in `commons/`
-  - `exif/` - EXIF data extraction and validation
-  - `hash/` - SHA256 file hashing
-  - `media/` - Image/video processing (resize, rotate, thumbnails)
-  - `sqlite/` - Database connection and migrations
-  - `http/` - API client for frontend communication
-  - `utils/` - HTTP, filesystem, and geo utilities
-  - `hooks/` - React hooks (useSearchParams)
-  - `components/` - Shared React components (Button, Modal, Lightbox, etc.)
+  - Backend: `exif/`, `hash/`, `media/`, `sqlite/`, `utils/`
+  - Frontend: `http/` (ApiClient), `hooks/`, `components/` (Button, Modal, Lightbox, etc.)
 
 ### Frontend (React)
 - **Entry Point**: `index.jsx` - Main app initialization
@@ -246,21 +154,14 @@ Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging
 - **API Communication**: Centralized ApiClient with polling for async operations
 
 ### Key Patterns
-- **Server-based**: Web UI for folder selection and deduplication control
 - **API Routes**: RESTful endpoints prefixed with `/api/`
-- **Background Processing**: Deduplication runs in goroutine, results written to temp file
-- **Polling**: Frontend polls for results every 2 seconds until completion
-- **Feature Structure**: Features are self-contained with models and utilities
-- **Single Binary**: Assets embedded in binary for production, file system for development
-- **Asset Handling**: Static assets embedded in binary (`go:embed`), dev mode serves from disk
+- **Background Processing**: Long-running tasks use goroutines with polling
+- **Asset Handling**: Embedded in binary (`go:embed`) for production, file system for dev mode
+- **Feature Structure**: Self-contained features with models and utilities
 
 ### Environment Variables
-- `DEV_MODE=true` - Development mode with file system assets
-- `PORT` - Server port (default: 8080)
-- `IMPORT_PATH` - Source folder for importing photos
-- `LIBRARY_PATH` - Organized photo library destination
-- `THUMBNAILS_PATH` - Pre-generated thumbnails (mirrors library structure)
-- `EXPORT_PATH` - Export destination (future use)
+- `DEV_MODE`, `PORT` (default: 8080)
+- `IMPORT_PATH`, `LIBRARY_PATH`, `THUMBNAILS_PATH`, `EXPORT_PATH`
 
 ## Development Conventions
 
@@ -294,16 +195,9 @@ Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging
 - Keep utility/helper functions in feature files, not in model files
 - Error pattern: `fmt.Errorf("error message: %w", err)` + `slog.Error(err.Error())`
 
-#### Struct Conventions
-- Use descriptive names (e.g., `PhotoFile` not `Photo`)
-- Use JSON tags for API responses: `json:"fieldName"`
-- Use full words, not abbreviations (e.g., `libraryPath` not `libPath`)
-
-#### Logging
-- Use structured logging with `slog` package
-- Log messages are lowercase
-- Include context with key-value pairs: `slog.Info("message", "key", value)`
-- Example: `slog.Error("failed to compute hash", "file", filePath, "error", err)`
+#### Struct & Logging
+- Descriptive names (e.g., `PhotoFile` not `Photo`), JSON tags, full words not abbreviations
+- Use `slog` package with lowercase messages and key-value pairs
 
 ### React Frontend Patterns
 
@@ -342,16 +236,9 @@ Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging
   );
   ```
 
-#### State Management
-- Use descriptive state names: `[photos, setPhotos]`, `[isLoading, setIsLoading]`
-- Local state with `useState`, prop drilling for shared state
-- Functional updates for state dependent on previous state
-
-#### API Calls
-- Use centralized `ApiClient` from `commons/http/ApiClient.js`
-- Use specific named methods (e.g., `ApiClient.dedupe()`, `ApiClient.getDedupeResults()`)
-- Async/await pattern for cleaner error handling
-- Consistent error handling with user-facing messages
+#### State & API
+- Descriptive state names, local state with `useState`, functional updates for dependent state
+- Centralized `ApiClient` with specific named methods, async/await pattern
 
 #### Function Declarations
 - Use `function` keyword for event handlers, utility functions, and render functions
@@ -367,12 +254,6 @@ Photos moved to library are stored in `riffle.db` with EXIF metadata for tagging
   items.map(item => ...)
   ```
 
-#### Event Handling
-- Handler naming: `handle{Action}Click` or `handle{Action}` (e.g., `handleSaveClick`, `handleDedupe`)
-- Keyboard shortcuts with `preventDefault()`
-
-#### CSS Classes
-- BEM-like naming: `photo-grid`, `toolbar-button`
-- Conditional classes using template literals
-- Minimal inline styles, prefer CSS classes
-- Use CSS variables from `assets/index.css` for theming (`var(--spacing-6)`, `var(--neutral-200)`)
+#### Event Handling & CSS
+- Handler naming: `handle{Action}Click` or `handle{Action}`, use `preventDefault()` for keyboard shortcuts
+- BEM-like naming, conditional classes with template literals, use CSS variables for theming
