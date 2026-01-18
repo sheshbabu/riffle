@@ -11,10 +11,12 @@ func GenerateVideoThumbnail(filePath string, maxWidth, maxHeight int) ([]byte, s
 	cmd := exec.Command(
 		"ffmpeg",
 		"-i", filePath,
-		"-vframes", "1",
-		"-vf", fmt.Sprintf("scale='min(%d,iw)':'min(%d,ih)':force_original_aspect_ratio=decrease", maxWidth, maxHeight),
+		"-vframes", "1", // Extract 1 frame
+		"-vf", fmt.Sprintf("scale='min(%d,iw)':'min(%d,ih)':force_original_aspect_ratio=decrease", maxWidth, maxHeight), // Scale to max dimensions while preserving aspect ratio
+		"-q:v", "2", // Better quality
 		"-f", "image2pipe",
-		"-vcodec", "mjpeg",
+		"-an", // Disable audio processing
+		"-loglevel", "error",
 		"-",
 	)
 
