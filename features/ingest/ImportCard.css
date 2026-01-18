@@ -19,10 +19,11 @@
 .import-card-container {
   display: flex;
   justify-content: center;
+  align-items: center;
+  height: 100%;
 
   .import-card {
     display: flex;
-    margin-top: calc(50vh - 200px);
     flex-direction: column;
     width: 400px;
 

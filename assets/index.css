@@ -158,6 +158,7 @@ svg.lucide {
 .page-container {
     padding: 16px;
     padding-top: 0;
+    height: 100%;
 
     h2 {
         font-weight: 400;
