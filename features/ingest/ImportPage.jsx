@@ -17,6 +17,10 @@ export default function ImportPage() {
     loadSettings();
   }, []);
 
+  useEffect(() => {
+    document.title = getProgressTitle(phase, progress, importMode);
+  }, [phase, progress, importMode]);
+
   async function loadSettings() {
     try {
       const settings = await ApiClient.getSettings();
@@ -92,4 +96,30 @@ export default function ImportPage() {
       <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} hasResults={results != null} />
     </div>
   );
+}
+
+function getProgressTitle(phase, progress) {
+  if (phase === 'idle' || phase === 'complete') {
+    return 'riffle';
+  }
+
+  if (progress === null) {
+    return 'riffle';
+  }
+
+  let titlePrefix = '';
+
+  if (progress.status === 'scanning') {
+    titlePrefix = 'Scanning...';
+  } else if (progress.status === 'hashing') {
+    titlePrefix = `Hashing ${progress.percent || 0}%`;
+  } else if (progress.status === 'checking_imported') {
+    titlePrefix = `Checking ${progress.percent || 0}%`;
+  } else if (progress.status === 'finding_duplicates') {
+    titlePrefix = 'Finding duplicates...';
+  } else if (progress.status === 'importing') {
+    titlePrefix = `Importing ${progress.percent || 0}%`;
+  }
+
+  return titlePrefix ? `${titlePrefix} - riffle` : 'riffle';
 }
