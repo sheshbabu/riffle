@@ -150,6 +150,14 @@ async function updateSetting(key, value) {
   return await request('POST', '/api/settings/', { key, value });
 }
 
+async function rebuildThumbnails() {
+  return await request('POST', '/api/thumbnails/rebuild/', {});
+}
+
+async function getThumbnailRebuildProgress() {
+  return await request('GET', '/api/thumbnails/rebuild/progress/');
+}
+
 export default {
   request,
   scanImportFolder,
@@ -162,5 +170,7 @@ export default {
   getFilterOptions,
   getCalendarMonths,
   getSettings,
-  updateSetting
+  updateSetting,
+  rebuildThumbnails,
+  getThumbnailRebuildProgress
 };

@@ -83,6 +83,12 @@
                         color: var(--text-primary);
                         font-weight: 500;
                     }
+
+                    .progress-text {
+                        margin-top: 8px;
+                        font-size: 14px;
+                        color: var(--text-secondary);
+                    }
                 }
             }
         }

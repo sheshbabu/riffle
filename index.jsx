@@ -23,6 +23,8 @@ function App() {
             <Route path="/calendar" component={CalendarPage} />
             <Route path="/trash" component={TrashPage} />
             <Route path="/settings" component={SettingsPage} />
+            <Route path="/settings/import" component={SettingsPage} />
+            <Route path="/settings/library" component={SettingsPage} />
           </Router>
         </div>
       </div>
