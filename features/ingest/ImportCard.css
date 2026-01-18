@@ -24,6 +24,7 @@
     display: flex;
     margin-top: calc(50vh - 200px);
     flex-direction: column;
+    width: 400px;
 
     h3 {
       margin-top: 0;
@@ -105,12 +106,10 @@
 
     .results-summary {
       margin-top: var(--spacing-4);
-      padding: var(--spacing-3);
-      background-color: var(--bg-secondary);
-      border-radius: 4px;
+      font: var(--sm);
 
       .result-message {
-        font: var(--base);
+        font: var(--p1);
         color: var(--neutral-700);
         font-weight: 500;
       }
@@ -122,7 +121,7 @@
       }
 
       .result-primary {
-        font: var(--base);
+        font: var(--p1);
         color: var(--neutral-700);
         font-weight: 500;
       }

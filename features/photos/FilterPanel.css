@@ -231,7 +231,7 @@
 
   &.has-filters {
     border-color: var(--red-500);
-    color: var(--red-400);
+    color: var(--red-500);
   }
 }
 

@@ -181,7 +181,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: var(--blue-500);
+  background-color: var(--blue-600);
   border-radius: 1px;
 }
 
@@ -192,7 +192,7 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background-color: var(--blue-200);
+  background-color: var(--neutral-300);
 }
 
 .gallery-item.burst-last::after {

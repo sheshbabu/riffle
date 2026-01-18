@@ -97,11 +97,11 @@ export default function ImportCard({
 
       actionButtons = (
         <div className="action-buttons">
-          <Button className='secondary' onClick={onImportMoreClick}>
-            Import More
-          </Button>
           <Button className='primary' onClick={() => navigateTo('/curate')}>
             View Library
+          </Button>
+          <Button className='secondary' onClick={onImportMoreClick}>
+            Import More
           </Button>
         </div>
       );
