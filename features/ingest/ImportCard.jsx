@@ -3,7 +3,7 @@ import { TaskDoneIcon, TaskInProgressIcon, TaskNotStartedIcon } from '../../comm
 import { navigateTo } from '../../commons/components/Link.jsx';
 import './ImportCard.css';
 
-const stepOrder = ["scanning", "hashing", "checking_imported", "finding_duplicates", "importing", "importing_complete"];
+const stepOrder = ["scanning", "hashing", "checking_imported", "finding_duplicates", "scanning_complete", "importing", "importing_complete"];
 
 export default function ImportCard({
   isProcessing,
