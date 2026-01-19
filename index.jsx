@@ -8,6 +8,8 @@ import ImportPage from './features/ingest/ImportPage.jsx';
 import PhotoListPage from './features/photos/PhotoListPage.jsx';
 import CalendarPage from './features/calendar/CalendarPage.jsx';
 import SettingsPage from './features/settings/SettingsPage.jsx';
+import AlbumsPage from './features/albums/AlbumsPage.jsx';
+import AlbumDetailPage from './features/albums/AlbumDetailPage.jsx';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
             <Route path="/import" component={ImportPage} />
             <Route path="/curate" component={CuratePage} />
             <Route path="/library" component={LibraryPage} />
+            <Route path="/albums" component={AlbumsPage} />
+            <Route path="/albums/:albumId" component={AlbumDetailPage} />
             <Route path="/calendar" component={CalendarPage} />
             <Route path="/trash" component={TrashPage} />
             <Route path="/settings" component={SettingsPage} />

@@ -1,0 +1,94 @@
+.add-to-album-modal {
+  width: 500px;
+  max-width: 90vw;
+}
+
+.add-to-album-modal-header-actions {
+  margin-bottom: 16px;
+}
+
+.add-to-album-modal-new-album {
+  margin-bottom: 48px;
+}
+
+.add-to-album-modal-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.add-to-album-modal-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 12px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.add-to-album-modal-new-album-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.add-to-album-modal-album-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.add-to-album-modal-album-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--bg-secondary);
+  }
+
+  &.is-selected {
+    background: var(--neutral-100);
+    border: 1px solid var(--neutral-200);
+  }
+}
+
+.add-to-album-modal-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.add-to-album-modal-album-info {
+  flex: 1;
+}
+
+.add-to-album-modal-album-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.add-to-album-modal-album-count {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.add-to-album-modal-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}

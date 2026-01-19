@@ -2,7 +2,8 @@ import ApiClient from '../../commons/http/ApiClient.js';
 import PhotoGallery from './PhotoGallery.jsx';
 import FilterPanel from './FilterPanel.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
-import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmptyIcon, SparklesIcon, ImageIcon } from '../../commons/components/Icon.jsx';
+import AddToAlbumModal from '../albums/AddToAlbumModal.jsx';
+import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmptyIcon, SparklesIcon, ImageIcon, FolderIcon } from '../../commons/components/Icon.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import useSearchParams from '../../commons/hooks/useSearchParams.js';
 import { updateSearchParams } from '../../commons/components/Link.jsx';
@@ -165,6 +166,7 @@ export default function PhotoListPage({ mode = 'library' }) {
   const [undoTimers, setUndoTimers] = useState(new Map());
   const [isCurating, setIsCurating] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
+  const [isAlbumModalOpen, setIsAlbumModalOpen] = useState(false);
 
   const filtersKey = JSON.stringify(filters);
 
@@ -537,6 +539,11 @@ export default function PhotoListPage({ mode = 'library' }) {
       );
     }
   } else if (photos.length > 0) {
+    function handleAddToAlbumFromGroup(photoIndices) {
+      setSelectedIndices(new Set(photoIndices));
+      setIsAlbumModalOpen(true);
+    }
+
     content = (
       <PhotoGallery
         photos={photos}
@@ -550,6 +557,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         onCurate={curatePhoto}
         onUndo={handleUndo}
         isCurateMode={isCurateMode}
+        onAddToAlbum={handleAddToAlbumFromGroup}
       />
     );
   }
@@ -639,6 +647,10 @@ export default function PhotoListPage({ mode = 'library' }) {
         <div className="rating-buttons">
           {starElements}
         </div>
+        <button className="action-button add-to-album" onClick={() => setIsAlbumModalOpen(true)} title="Add to Album">
+          <FolderIcon />
+          <span>Add to Album</span>
+        </button>
       </div>
     );
   }
@@ -646,6 +658,12 @@ export default function PhotoListPage({ mode = 'library' }) {
   let selectionCountElement = null;
   if (!isLoading && !error && photos.length > 0) {
     selectionCountElement = <span className="selection-count">{selectedIndices.size} selected</span>;
+  }
+
+  let albumModal = null;
+  if (isAlbumModalOpen && hasSelection) {
+    const selectedPhotoPaths = Array.from(selectedIndices).map(index => photos[index].filePath);
+    albumModal = (<AddToAlbumModal selectedPhotos={selectedPhotoPaths} onClose={() => setIsAlbumModalOpen(false)} />);
   }
 
   return (
@@ -666,6 +684,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         filters={filters}
         onFiltersChange={handleFiltersChange}
       />
+      {albumModal}
     </div>
   );
 }

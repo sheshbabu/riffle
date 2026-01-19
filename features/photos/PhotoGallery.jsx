@@ -20,7 +20,8 @@ export default function PhotoGallery({
   fadingPhotos,
   onCurate,
   onUndo,
-  isCurateMode = false
+  isCurateMode = false,
+  onAddToAlbum
 }) {
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const fadingSet = fadingPhotos || new Set();
@@ -341,13 +342,45 @@ export default function PhotoGallery({
         sizeElement = <span className="group-size">{formatFileSize(group.totalSize)}</span>;
       }
 
+      let selectAllButton = null;
+      if (onSelectionChange) {
+        const groupPhotoIndices = [];
+        for (let i = groupStartIndex; i < groupEndIndex; i++) {
+          groupPhotoIndices.push(i);
+        }
+
+        const allSelected = groupPhotoIndices.every(index => selectedSet.has(index));
+
+        function handleSelectAllClick() {
+          if (allSelected) {
+            const newSelection = new Set(selectedSet);
+            groupPhotoIndices.forEach(index => newSelection.delete(index));
+            onSelectionChange(newSelection);
+          } else {
+            const newSelection = new Set(selectedSet);
+            groupPhotoIndices.forEach(index => newSelection.add(index));
+            onSelectionChange(newSelection);
+          }
+        }
+
+        const buttonText = allSelected ? 'Deselect All' : 'Select All';
+        selectAllButton = (
+          <button className="group-select-all-button" onClick={handleSelectAllClick}>
+            {buttonText}
+          </button>
+        );
+      }
+
       return (
         <div key={group.groupId} className="group-container">
           <div className="group-header">
-            <span className="group-date">{formatSessionDate(group.startTime, group.endTime)}</span>
-            {locationElement}
-            <span className="group-count">{group.photoCount} {group.photoCount === 1 ? 'photo' : 'photos'}</span>
-            {sizeElement}
+            <div className="group-header-info">
+              <span className="group-date">{formatSessionDate(group.startTime, group.endTime)}</span>
+              {locationElement}
+              <span className="group-count">{group.photoCount} {group.photoCount === 1 ? 'photo' : 'photos'}</span>
+              {sizeElement}
+            </div>
+            {selectAllButton}
           </div>
           <div className="group-grid">
             {photoElements}

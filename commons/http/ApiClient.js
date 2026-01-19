@@ -81,7 +81,9 @@ async function importToLibrary() {
 }
 
 function buildFilterParams(filters) {
-  if (!filters) return '';
+  if (!filters) {
+    return ''
+  };
 
   const params = [];
 
@@ -158,6 +160,42 @@ async function getThumbnailRebuildProgress() {
   return await request('GET', '/api/thumbnails/rebuild/progress/');
 }
 
+async function curatePhoto(filePath, action, rating) {
+  return await request('POST', '/api/photos/curate/', { filePath, action, rating });
+}
+
+async function getAlbums() {
+  return await request('GET', '/api/albums/');
+}
+
+async function getAlbum(albumId) {
+  return await request('GET', `/api/albums/${albumId}/`);
+}
+
+async function createAlbum(name, description) {
+  return await request('POST', '/api/albums/', { name, description });
+}
+
+async function addPhotosToAlbums(albumIds, filePaths) {
+  return await request('PUT', '/api/albums/photos/', { albumIds, filePaths });
+}
+
+async function removePhotosFromAlbum(albumId, filePaths) {
+  return await request('DELETE', `/api/albums/${albumId}/photos/`, { filePaths });
+}
+
+async function deleteAlbum(albumId) {
+  return await request('DELETE', `/api/albums/${albumId}/`);
+}
+
+async function getAlbumPhotos(albumId) {
+  return await request('GET', `/api/albums/${albumId}/photos/`);
+}
+
+async function getPhotoAlbums(filePath) {
+  return await request('GET', `/api/photo/albums/?path=${encodeURIComponent(filePath)}`);
+}
+
 export default {
   request,
   scanImportFolder,
@@ -172,5 +210,14 @@ export default {
   getSettings,
   updateSetting,
   rebuildThumbnails,
-  getThumbnailRebuildProgress
+  getThumbnailRebuildProgress,
+  curatePhoto,
+  getAlbums,
+  getAlbum,
+  createAlbum,
+  addPhotosToAlbums,
+  removePhotosFromAlbum,
+  deleteAlbum,
+  getAlbumPhotos,
+  getPhotoAlbums
 };

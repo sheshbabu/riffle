@@ -1,4 +1,4 @@
-const { createContext, useContext, useState, useEffect } = React;
+const { useState, useEffect, createContext, useContext } = React;
 
 const RouterContext = createContext(null);
 
@@ -14,18 +14,45 @@ export default function Router({ children }) {
       setCurrentPath(window.location.pathname);
     }
 
-    window.addEventListener('navigate', handleLocationChange);
-    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener("navigate", handleLocationChange);
+    window.addEventListener("popstate", handleLocationChange);
 
     return () => {
-      window.removeEventListener('navigate', handleLocationChange);
-      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener("navigate", handleLocationChange);
+      window.removeEventListener("popstate", handleLocationChange);
     };
   }, []);
 
-  return (
-    <RouterContext.Provider value={{ currentPath }}>
-      {children}
-    </RouterContext.Provider>
-  );
+  let matchedComponent = null;
+
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    const { path, component } = child.props;
+
+    if (path.includes(":")) {
+      const pathSegments = path.split("/");
+      const pathPattern = pathSegments.map(segment => {
+        if (segment.startsWith(":")) {
+          const paramName = segment.slice(1);
+          return `(?<${paramName}>[^/]+)`;
+        }
+        return segment;
+      }).join("\\/");
+      const pattern = new RegExp(`^${pathPattern}$`);
+      const match = pattern.exec(currentPath);
+
+      if (match) {
+        const params = match.groups;
+        matchedComponent = React.createElement(component, { ...params });
+        break;
+      }
+    }
+
+    if (currentPath === path) {
+      matchedComponent = React.createElement(component, {});
+      break;
+    }
+  }
+
+  return React.createElement(RouterContext.Provider, { value: { currentPath } }, matchedComponent);
 }
