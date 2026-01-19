@@ -196,6 +196,14 @@ async function getPhotoAlbums(filePath) {
   return await request('GET', `/api/photo/albums/?path=${encodeURIComponent(filePath)}`);
 }
 
+async function startExport(minRating, curationStatus) {
+  return await request('POST', '/api/export/start/', { minRating, curationStatus });
+}
+
+async function getExportProgress() {
+  return await request('GET', '/api/export/progress/');
+}
+
 export default {
   request,
   scanImportFolder,
@@ -219,5 +227,7 @@ export default {
   removePhotosFromAlbum,
   deleteAlbum,
   getAlbumPhotos,
-  getPhotoAlbums
+  getPhotoAlbums,
+  startExport,
+  getExportProgress
 };

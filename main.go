@@ -12,6 +12,7 @@ import (
 	"riffle/commons/utils"
 	"riffle/features/albums"
 	"riffle/features/calendar"
+	"riffle/features/export"
 	"riffle/features/geocoding"
 	"riffle/features/ingest"
 	"riffle/features/photos"
@@ -118,6 +119,8 @@ func newRouter() *http.ServeMux {
 	mux.HandleFunc("DELETE /api/albums/{id}/photos/", albums.HandleRemovePhotosFromAlbum)
 	mux.HandleFunc("DELETE /api/albums/{id}/", albums.HandleDeleteAlbum)
 	mux.HandleFunc("GET /api/photo/albums/", albums.HandleGetPhotoAlbums)
+	mux.HandleFunc("POST /api/export/start/", export.HandleStartExport)
+	mux.HandleFunc("GET /api/export/progress/", export.HandleGetExportProgress)
 
 	mux.HandleFunc("GET /assets/", handleStaticAssets)
 	mux.HandleFunc("GET /", handleRoot)

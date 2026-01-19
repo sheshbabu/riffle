@@ -122,3 +122,5 @@ CREATE TABLE IF NOT EXISTS settings (
 
 INSERT OR IGNORE INTO settings (key, value) VALUES ('import_mode', 'copy'); -- "move", "copy"
 INSERT OR IGNORE INTO settings (key, value) VALUES ('import_duplicate_handling', 'keep'); -- "keep", "delete"
+INSERT OR IGNORE INTO settings (key, value) VALUES ('export_min_rating', '0');
+INSERT OR IGNORE INTO settings (key, value) VALUES ('export_curation_status', 'pick');

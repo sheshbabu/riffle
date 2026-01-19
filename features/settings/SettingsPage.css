@@ -89,6 +89,64 @@
                         font-size: 14px;
                         color: var(--text-secondary);
                     }
+
+                }
+
+                .export-progress-section {
+                    background-color: var(--neutral-50);
+                    border: 1px solid var(--neutral-200);
+                    border-radius: 8px;
+                    padding: var(--spacing-3);
+
+                    .export-progress-content {
+                        display: flex;
+                        align-items: center;
+                        gap: var(--spacing-2);
+
+                        .export-progress-text {
+                            flex: 1;
+                            font-size: 14px;
+
+                            .export-progress-count {
+                                margin-top: 4px;
+                                font-size: 13px;
+                                color: var(--text-secondary);
+                            }
+                        }
+                    }
+
+                    .export-progress-bar {
+                        margin-top: var(--spacing-2);
+                        height: 6px;
+                        background-color: var(--neutral-200);
+                        border-radius: 3px;
+                        overflow: hidden;
+
+                        .export-progress-fill {
+                            height: 100%;
+                            background-color: var(--blue-500);
+                            transition: width 200ms ease-in-out;
+                        }
+                    }
+                }
+
+                .export-message {
+                    padding: var(--spacing-3);
+                    border-radius: 8px;
+                    font-size: 14px;
+                    margin-top: 24px;
+
+                    &.export-message-success {
+                        background-color: var(--green-50);
+                        border: 1px solid var(--green-200);
+                        color: var(--green-800);
+                    }
+
+                    &.export-message-error {
+                        background-color: var(--red-50);
+                        border: 1px solid var(--red-200);
+                        color: var(--red-800);
+                    }
                 }
             }
         }
