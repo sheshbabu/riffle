@@ -1,4 +1,5 @@
 import ApiClient from '../../commons/http/ApiClient.js';
+import Button from '../../commons/components/Button.jsx';
 import { CloseIcon, ChevronDownIcon, ChevronUpIcon, LoadingSpinner } from '../../commons/components/Icon.jsx';
 import './FilterPanel.css';
 
@@ -370,9 +371,9 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
   let clearButton = null;
   if (activeCount > 0) {
     clearButton = (
-      <button className="filter-clear-button" onClick={handleClearAll}>
+      <Button variant="ghost" onClick={handleClearAll}>
         Clear all
-      </button>
+      </Button>
     );
   }
 
@@ -380,7 +381,9 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
     <div className="filter-panel-overlay" onClick={onClose}>
       <div className="filter-panel" onClick={e => e.stopPropagation()}>
         <div className="filter-panel-header">
-          <h3>Filters {activeCount > 0 && <span className="filter-count">({activeCount})</span>}</h3>
+          <h3>
+            Filters {activeCount > 0 ? <span className="filter-count">({activeCount})</span> : null}
+          </h3>
           <div className="filter-panel-actions">
             {clearButton}
             <div className="filter-close-button" onClick={onClose}>

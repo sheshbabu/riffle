@@ -1,0 +1,5 @@
+.selection-count {
+  font: var(--sm);
+  color: var(--text-secondary);
+  padding: 0 8px;
+}

@@ -8,31 +8,18 @@
 }
 
 .add-to-album-modal-new-album {
-  margin-bottom: 48px;
-}
+  margin-bottom: 24px;
 
-.add-to-album-modal-input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--neutral-300);
-  border-radius: 4px;
-  font-size: 14px;
-  margin-bottom: 8px;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-}
+  .input-container {
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
 
-.add-to-album-modal-textarea {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--neutral-300);
-  border-radius: 4px;
-  font-size: 14px;
-  font-family: inherit;
-  resize: vertical;
-  margin-bottom: 12px;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  textarea {
+    height: auto;
+    font-family: inherit;
+    resize: vertical;
+  }
 }
 
 .add-to-album-modal-new-album-buttons {

@@ -1,6 +1,7 @@
 import Button from '../../commons/components/Button.jsx';
 import { TaskDoneIcon, TaskInProgressIcon, TaskNotStartedIcon } from '../../commons/components/Icon.jsx';
 import { navigateTo } from '../../commons/components/Link.jsx';
+import formatCount from '../../commons/utils/formatCount.js';
 import './ImportCard.css';
 
 const stepOrder = ["scanning", "hashing", "checking_imported", "finding_duplicates", "scanning_complete", "importing", "importing_complete"];
@@ -61,7 +62,7 @@ export default function ImportCard({
       let submessage = null;
 
       if (alreadyImported > 0) {
-        submessage = `All ${alreadyImported.toLocaleString()} files are already in the library`;
+        submessage = `All ${formatCount(alreadyImported)} files are already in the library`;
       } else if (results?.totalScanned === 0) {
         submessage = 'No files found in import folder';
       }
@@ -85,12 +86,12 @@ export default function ImportCard({
 
       resultsSummary = (
         <div className="results-summary">
-          <div className="result-primary">{verb} {movedToLibrary.toLocaleString()} files to library</div>
+          <div className="result-primary">{verb} {formatCount(movedToLibrary)} files to library</div>
           {alreadyImported > 0 && (
-            <div className="result-detail">{alreadyImported.toLocaleString()} already imported</div>
+            <div className="result-detail">{formatCount(alreadyImported)} already imported</div>
           )}
           {duplicatesRemoved > 0 && (
-            <div className="result-detail">{duplicatesRemoved.toLocaleString()} duplicates skipped</div>
+            <div className="result-detail">{formatCount(duplicatesRemoved)} duplicates skipped</div>
           )}
         </div>
       );
@@ -147,7 +148,7 @@ function StatusLine({ stepStatus, progress, phase, importMode, isComplete = fals
   if (stepStatus === "scanning") {
     stepName = "Discovering files";
     if (isComplete || currentStepIndex < progressingStepIndex) {
-      subText = <div className="subtext">{`Found ${progress?.total?.toLocaleString() || 0} photos and videos`}</div>;
+      subText = <div className="subtext">{`Found ${formatCount(progress?.total, 0)} photos and videos`}</div>;
     } else if (currentStepIndex === progressingStepIndex) {
       subText = <div className="subtext">Scanning...</div>;
     }
@@ -158,7 +159,7 @@ function StatusLine({ stepStatus, progress, phase, importMode, isComplete = fals
     if (isComplete || currentStepIndex < progressingStepIndex) {
       subText = <div className="subtext">Finished</div>;
     } else if (currentStepIndex === progressingStepIndex) {
-      subText = <div className="subtext">{`Processing ${progress?.completed?.toLocaleString() || 0} / ${progress?.total?.toLocaleString() || 0} (${progress?.percent || 0}%)`}</div>;
+      subText = <div className="subtext">{`Processing ${formatCount(progress?.completed, 0)} / ${formatCount(progress?.total, 0)} (${progress?.percent || 0}%)`}</div>;
     }
   }
 
@@ -167,7 +168,7 @@ function StatusLine({ stepStatus, progress, phase, importMode, isComplete = fals
     if (isComplete || currentStepIndex < progressingStepIndex) {
       subText = <div className="subtext">Finished</div>;
     } else if (currentStepIndex === progressingStepIndex) {
-      subText = <div className="subtext">{`Checking ${progress?.completed?.toLocaleString() || 0} / ${progress?.total?.toLocaleString() || 0} (${progress?.percent || 0}%)`}</div>;
+      subText = <div className="subtext">{`Checking ${formatCount(progress?.completed, 0)} / ${formatCount(progress?.total, 0)} (${progress?.percent || 0}%)`}</div>;
     }
   }
 
@@ -183,7 +184,7 @@ function StatusLine({ stepStatus, progress, phase, importMode, isComplete = fals
     if (isComplete) {
       subText = <div className="subtext">Finished</div>;
     } else if (currentStepIndex === progressingStepIndex) {
-      subText = <div className="subtext">{`${importMode === 'copy' ? 'Copying' : 'Moving'} ${progress?.completed?.toLocaleString() || 0} / ${progress?.total?.toLocaleString() || 0} (${progress?.percent || 0}%)`}</div>;
+      subText = <div className="subtext">{`${importMode === 'copy' ? 'Copying' : 'Moving'} ${formatCount(progress?.completed, 0)} / ${formatCount(progress?.total, 0)} (${progress?.percent || 0}%)`}</div>;
     }
   }
 

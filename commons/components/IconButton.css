@@ -1,0 +1,128 @@
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 32px;
+  padding: 8px;
+  border: 0;
+  border-radius: 6px;
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  font: var(--sm);
+  font-weight: 500;
+  transition: background-color var(--transition-normal), border-color var(--transition-normal);
+
+  &:hover {
+    background-color: var(--neutral-100);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &.pick {
+    color: var(--green-600);
+
+    svg {
+      line,
+      circle,
+      rect,
+      path {
+        stroke: var(--green-600);
+      }
+    }
+
+    &:hover {
+      background-color: rgba(22, 163, 74, 0.1);
+      border-color: var(--green-500);
+    }
+
+    &.active {
+      background-color: var(--green-600);
+      border-color: var(--green-600);
+      color: white;
+
+      svg {
+        line,
+        circle,
+        rect,
+        path {
+          stroke: white;
+        }
+      }
+    }
+  }
+
+  &.reject {
+    color: var(--red-600);
+
+    svg {
+      line,
+      circle,
+      rect,
+      path {
+        stroke: var(--red-600);
+      }
+    }
+
+    &:hover {
+      background-color: rgba(220, 38, 38, 0.1);
+      border-color: var(--red-500);
+    }
+
+    &.active {
+      background-color: var(--red-600);
+      border-color: var(--red-600);
+      color: white;
+
+      svg {
+        line,
+        circle,
+        rect,
+        path {
+          stroke: white;
+        }
+      }
+    }
+  }
+
+  &.rate {
+    color: var(--yellow-500);
+
+    svg {
+      width: 18px;
+      height: 18px;
+      stroke: var(--yellow-500);
+    }
+
+    &:hover {
+      background-color: rgba(234, 179, 8, 0.1);
+      border-color: var(--yellow-400);
+    }
+
+    &.active {
+      color: var(--yellow-500);
+
+      svg {
+        line,
+        circle,
+        rect,
+        path {
+          fill: var(--yellow-500);
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,9 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import { ModalBackdrop, ModalContainer, ModalHeader, ModalContent, ModalFooter } from '../../commons/components/Modal.jsx';
 import Button from '../../commons/components/Button.jsx';
+import Input from '../../commons/components/Input.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
+import pluralize from '../../commons/utils/pluralize.js';
 import './AddToAlbumModal.css';
 
 const { useState, useEffect } = React;
@@ -14,7 +16,7 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
   const [newAlbumDescription, setNewAlbumDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(function () {
+  useEffect(() => {
     loadAlbums();
   }, []);
 
@@ -68,7 +70,7 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
       await ApiClient.addPhotosToAlbums(selectedAlbumIds, selectedPhotos);
       const photoCount = selectedPhotos.length;
       const albumCount = selectedAlbumIds.length;
-      showToast(`Added ${photoCount} photo${photoCount > 1 ? 's' : ''} to ${albumCount} album${albumCount > 1 ? 's' : ''}`);
+      showToast(`Added ${photoCount} ${pluralize(photoCount, 'photo')} to ${albumCount} ${pluralize(albumCount, 'album')}`);
       onClose();
     } catch (error) {
       console.error('Failed to add photos to albums:', error);
@@ -84,7 +86,7 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
     if (album.photoCount > 0) {
       photoCountElement = (
         <div className="add-to-album-modal-album-count">
-          {album.photoCount} photo{album.photoCount > 1 ? 's' : ''}
+          {album.photoCount} {pluralize(album.photoCount, 'photo')}
         </div>
       );
     }
@@ -95,8 +97,22 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
   if (isCreatingNew) {
     newAlbumSection = (
       <div className="add-to-album-modal-new-album">
-        <input type="text" placeholder="Name" value={newAlbumName} onChange={(e) => setNewAlbumName(e.target.value)} className="add-to-album-modal-input" autoFocus />
-        <textarea placeholder="Description" value={newAlbumDescription} onChange={(e) => setNewAlbumDescription(e.target.value)} className="add-to-album-modal-textarea" rows="2" />
+        <Input
+          id="album-name"
+          type="text"
+          placeholder="Name"
+          value={newAlbumName}
+          onChange={(e) => setNewAlbumName(e.target.value)}
+          autoFocus
+        />
+        <Input
+          id="album-description"
+          type="textarea"
+          placeholder="Description"
+          value={newAlbumDescription}
+          onChange={(e) => setNewAlbumDescription(e.target.value)}
+          rows={2}
+        />
         <div className="add-to-album-modal-new-album-buttons">
           <Button onClick={handleCreateNewAlbum} disabled={isLoading} variant="primary">
             Create Album

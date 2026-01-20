@@ -1,10 +1,13 @@
 import Lightbox from '../../commons/components/Lightbox.jsx';
+import IconButton from '../../commons/components/IconButton.jsx';
+import Button from '../../commons/components/Button.jsx';
 import { StackIcon } from '../../commons/components/Icon.jsx';
 import getThumbnailUrl from '../../commons/utils/getThumbnailUrl.js';
 import isVideoFile from '../../commons/utils/isVideoFile.js';
 import formatSessionDate from '../../commons/utils/formatSessionDate.js';
 import formatDuration from '../../commons/utils/formatDuration.js';
 import formatFileSize from '../../commons/utils/formatFileSize.js';
+import pluralize from '../../commons/utils/pluralize.js';
 import './PhotoGallery.css';
 
 const { useState, useEffect } = React;
@@ -236,7 +239,7 @@ export default function PhotoGallery({
           e.stopPropagation();
           onUndo(photo.filePath);
         }}>
-          <button className="undo-button">Undo</button>
+          <Button variant="primary">Undo</Button>
         </div>
       );
     }
@@ -365,9 +368,9 @@ export default function PhotoGallery({
 
         const buttonText = allSelected ? 'Deselect All' : 'Select All';
         selectAllButton = (
-          <button className="group-select-all-button" onClick={handleSelectAllClick}>
+          <IconButton onClick={handleSelectAllClick} className="group-select-all-button">
             {buttonText}
-          </button>
+          </IconButton>
         );
       }
 
@@ -377,7 +380,7 @@ export default function PhotoGallery({
             <div className="group-header-info">
               <span className="group-date">{formatSessionDate(group.startTime, group.endTime)}</span>
               {locationElement}
-              <span className="group-count">{group.photoCount} {group.photoCount === 1 ? 'photo' : 'photos'}</span>
+              <span className="group-count">{group.photoCount} {pluralize(group.photoCount, 'photo')}</span>
               {sizeElement}
             </div>
             {selectAllButton}

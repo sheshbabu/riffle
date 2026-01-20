@@ -28,35 +28,9 @@
 }
 
 .group-select-all-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  height: 32px;
-  padding: 8px;
-  border: 0;
-  border-radius: 6px;
-  background-color: var(--bg-primary);
-  cursor: pointer;
-  font: var(--sm);
-  font-weight: 500;
   transition: opacity var(--transition-normal), background-color var(--transition-normal), border-color var(--transition-normal);
   opacity: 0;
   pointer-events: none;
-
-  &:hover {
-    background-color: var(--neutral-100);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
 
   .group-header:hover & {
     opacity: 1;
@@ -126,23 +100,6 @@
   align-items: center;
   justify-content: center;
   pointer-events: all;
-}
-
-.undo-button {
-  padding: var(--spacing-2) var(--spacing-4);
-  background-color: #FFF;
-  color: var(--neutral-700);
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: var(--shadow-3);
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: var(--neutral-100);
-  }
 }
 
 .gallery-media {

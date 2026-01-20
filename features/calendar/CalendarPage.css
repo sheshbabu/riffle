@@ -8,14 +8,6 @@
   margin: 0 auto;
 }
 
-.calendar-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  color: var(--neutral-400);
-}
-
 .calendar-year-section {
   margin-bottom: var(--spacing-6);
 }

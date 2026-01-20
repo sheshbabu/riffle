@@ -1,7 +1,13 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import PhotoGallery from '../photos/PhotoGallery.jsx';
-import { LoadingSpinner, TrashIcon } from '../../commons/components/Icon.jsx';
+import IconButton from '../../commons/components/IconButton.jsx';
+import EmptyState from '../../commons/components/EmptyState.jsx';
+import LoadingContainer from '../../commons/components/LoadingContainer.jsx';
+import MessageBox from '../../commons/components/MessageBox.jsx';
+import SelectionCount from '../../commons/components/SelectionCount.jsx';
+import { TrashIcon, ImageIcon } from '../../commons/components/Icon.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
+import pluralize from '../../commons/utils/pluralize.js';
 import './AlbumDetailPage.css';
 
 const { useState, useEffect } = React;
@@ -60,24 +66,19 @@ export default function AlbumDetailPage({ albumId }) {
 
   if (error) {
     content = (
-      <div className="message-box error">
+      <MessageBox variant="error">
         Error: {error}
-      </div>
+      </MessageBox>
     );
   } else if (isLoading) {
-    content = (
-      <div className="album-detail-page-loading">
-        <LoadingSpinner size={32} />
-      </div>
-    );
+    content = <LoadingContainer size={32} />;
   } else if (photos.length === 0) {
     content = (
-      <div className="empty-state">
-        <h2 className="empty-state-title">No photos in this album</h2>
-        <p className="empty-state-description">
-          Add photos to this album from the Library or Curate views.
-        </p>
-      </div>
+      <EmptyState
+        icon={<ImageIcon />}
+        title="No photos in this album"
+        description="Add photos to this album from the Library or Curate views."
+      />
     );
   } else {
     content = (
@@ -110,15 +111,15 @@ export default function AlbumDetailPage({ albumId }) {
   let removeButton = null;
   if (selectedIndices.size > 0) {
     removeButton = (
-      <button className="album-detail-page-remove-button" onClick={handleRemoveFromAlbum}>
+      <IconButton onClick={handleRemoveFromAlbum}>
         <TrashIcon /> Remove from Album
-      </button>
+      </IconButton>
     );
   }
 
   let selectionCountElement = null;
   if (!isLoading && !error && photos.length > 0) {
-    selectionCountElement = <span className="selection-count">{selectedIndices.size} selected</span>;
+    selectionCountElement = <SelectionCount count={selectedIndices.size} />;
   }
 
   return (
@@ -127,7 +128,7 @@ export default function AlbumDetailPage({ albumId }) {
         <h3 className="album-detail-page-title">{albumTitle}</h3>
         {albumDescription}
         <div className="album-detail-page-meta">
-          {photoCount} photo{photoCount !== 1 ? 's' : ''}
+          {photoCount} {pluralize(photoCount, 'photo')}
         </div>
       </div>
 

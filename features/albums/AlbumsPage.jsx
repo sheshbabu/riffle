@@ -1,7 +1,12 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import Link from '../../commons/components/Link.jsx';
-import { LoadingSpinner, FolderIcon } from '../../commons/components/Icon.jsx';
+import IconButton from '../../commons/components/IconButton.jsx';
+import EmptyState from '../../commons/components/EmptyState.jsx';
+import LoadingContainer from '../../commons/components/LoadingContainer.jsx';
+import MessageBox from '../../commons/components/MessageBox.jsx';
+import { FolderIcon } from '../../commons/components/Icon.jsx';
 import AddToAlbumModal from './AddToAlbumModal.jsx';
+import pluralize from '../../commons/utils/pluralize.js';
 import './AlbumsPage.css';
 
 const { useState, useEffect } = React;
@@ -12,7 +17,7 @@ export default function AlbumsPage() {
   const [error, setError] = useState(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
 
-  useEffect(function () {
+  useEffect(() => {
     loadAlbums();
   }, []);
 
@@ -42,28 +47,24 @@ export default function AlbumsPage() {
 
   if (error) {
     content = (
-      <div className="message-box error">
+      <MessageBox variant="error">
         Error: {error}
-      </div>
+      </MessageBox>
     );
   } else if (isLoading) {
-    content = (
-      <div className="albums-page-loading">
-        <LoadingSpinner size={32} />
-      </div>
-    );
+    content = <LoadingContainer size={32} />;
   } else if (albums.length === 0) {
     content = (
-      <div className="empty-state">
-        <div className="empty-state-icon">
-          <FolderIcon />
-        </div>
-        <h2 className="empty-state-title">No albums yet</h2>
-        <p className="empty-state-description">Create an album to organize your photos.</p>
-        <button className="albums-page-create-button" onClick={handleCreateNewClick}>
-          + New Album
-        </button>
-      </div>
+      <EmptyState
+        icon={<FolderIcon />}
+        title="No albums yet"
+        description="Create an album to organize your photos."
+        actionButton={
+          <IconButton onClick={handleCreateNewClick}>
+            + New Album
+          </IconButton>
+        }
+      />
     );
   } else {
     const sortedAlbums = [...albums].sort((a, b) => a.name.localeCompare(b.name));
@@ -87,7 +88,7 @@ export default function AlbumsPage() {
           <div className="albums-page-card-info">
             <div className="albums-page-card-name">{album.name}</div>
             <div className="albums-page-card-count">
-              {album.photoCount} photo{album.photoCount !== 1 ? 's' : ''}
+              {album.photoCount} {pluralize(album.photoCount, 'photo')}
             </div>
           </div>
         </Link>
@@ -114,10 +115,10 @@ export default function AlbumsPage() {
   let headerButton = null;
   if (!isLoading && !error && albums.length > 0) {
     headerButton = (
-      <button className="albums-page-create-button" onClick={handleCreateNewClick}>
+      <IconButton onClick={handleCreateNewClick}>
         <FolderIcon />
         <span>New Album</span>
-      </button>
+      </IconButton>
     );
   }
 

@@ -1,7 +1,7 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import getThumbnailUrl from '../../commons/utils/getThumbnailUrl.js';
 import { navigateTo } from '../../commons/components/Link.jsx';
-import { LoadingSpinner } from '../../commons/components/Icon.jsx';
+import LoadingContainer from '../../commons/components/LoadingContainer.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import './CalendarPage.css';
 
@@ -35,11 +35,7 @@ export default function CalendarPage() {
   let content = null;
 
   if (isLoading) {
-    content = (
-      <div className="calendar-loading">
-        <LoadingSpinner size={32} />
-      </div>
-    );
+    content = <LoadingContainer size={32} />;
   } else {
     const monthsByYear = groupMonthsByYear(months);
     const years = Object.keys(monthsByYear).sort(function(a, b) {

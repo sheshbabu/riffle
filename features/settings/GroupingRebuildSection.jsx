@@ -1,4 +1,5 @@
 import Button from '../../commons/components/Button.jsx';
+import { showToast } from '../../commons/components/Toast.jsx';
 
 const { useState } = React;
 
@@ -9,7 +10,7 @@ export default function GroupingRebuildSection() {
     setIsRecalculating(true);
     setTimeout(() => {
       setIsRecalculating(false);
-      alert('Group recalculation completed (placeholder)');
+      showToast('Group recalculation completed (placeholder)');
     }, 2000);
   }
 

@@ -58,21 +58,6 @@
     gap: var(--spacing-2);
   }
 
-  .filter-clear-button {
-    background: none;
-    border: none;
-    color: var(--red-500);
-    font: var(--sm);
-    font-weight: 600;
-    cursor: pointer;
-    padding: var(--spacing-2);
-    border-radius: 4px;
-
-    &:hover {
-      background: var(--neutral-800);
-    }
-  }
-
   .filter-close-button {
     background: none;
     border: none;

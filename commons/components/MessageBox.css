@@ -1,0 +1,22 @@
+.message-box {
+  padding: var(--spacing-6);
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  text-align: center;
+  color: var(--text-secondary);
+
+  &.error {
+    background-color: var(--yellow-100);
+    color: var(--red-700);
+  }
+
+  &.warning {
+    background-color: var(--yellow-100);
+    color: var(--yellow-500);
+  }
+
+  &.success {
+    background-color: var(--neutral-100);
+    color: var(--green-600);
+  }
+}

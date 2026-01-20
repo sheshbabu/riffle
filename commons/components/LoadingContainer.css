@@ -1,0 +1,13 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.loading-container-message {
+  font: var(--sm);
+  color: var(--text-secondary);
+  margin: 0;
+}

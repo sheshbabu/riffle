@@ -1,5 +1,6 @@
 import Button from '../../commons/components/Button.jsx';
 import ApiClient from '../../commons/http/ApiClient.js';
+import formatCount from '../../commons/utils/formatCount.js';
 
 const { useState, useEffect, useRef } = React;
 
@@ -64,14 +65,14 @@ export default function ThumbnailRebuildSection() {
 
   if (progress) {
     if (progress.status === 'processing') {
-      const completedText = progress.completed?.toLocaleString() || 0;
-      const totalText = progress.total?.toLocaleString() || 0;
+      const completedText = formatCount(progress.completed, 0);
+      const totalText = formatCount(progress.total, 0);
       const percent = progress.percent || 0;
       progressText = `Processing ${completedText} / ${totalText} (${percent}%)`;
     }
 
     if (progress.status === 'complete') {
-      const totalText = progress.total?.toLocaleString() || 0;
+      const totalText = formatCount(progress.total, 0);
       progressText = `Successfully rebuilt ${totalText} thumbnails`;
     }
   }

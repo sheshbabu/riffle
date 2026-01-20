@@ -3,10 +3,15 @@ import PhotoGallery from './PhotoGallery.jsx';
 import FilterPanel from './FilterPanel.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import AddToAlbumModal from '../albums/AddToAlbumModal.jsx';
+import IconButton from '../../commons/components/IconButton.jsx';
+import EmptyState from '../../commons/components/EmptyState.jsx';
+import MessageBox from '../../commons/components/MessageBox.jsx';
+import SelectionCount from '../../commons/components/SelectionCount.jsx';
 import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmptyIcon, SparklesIcon, ImageIcon, FolderIcon } from '../../commons/components/Icon.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import useSearchParams from '../../commons/hooks/useSearchParams.js';
 import { updateSearchParams } from '../../commons/components/Link.jsx';
+import pluralize from '../../commons/utils/pluralize.js';
 import './LibraryPage.css';
 import './Loading.css';
 
@@ -433,7 +438,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     filePaths.forEach(filePath => curatePhoto(filePath, true, false, 0, true));
     setSelectedIndices(new Set());
     const count = filePaths.length;
-    const label = count === 1 ? 'Photo' : `${count} photos`;
+    const label = count === 1 ? 'Photo' : `${count} ${pluralize(count, 'photo')}`;
     showToast(`${label} picked`, 2000);
   }
 
@@ -445,7 +450,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     filePaths.forEach(filePath => curatePhoto(filePath, true, true, 0, true));
     setSelectedIndices(new Set());
     const count = filePaths.length;
-    const label = count === 1 ? 'Photo' : `${count} photos`;
+    const label = count === 1 ? 'Photo' : `${count} ${pluralize(count, 'photo')}`;
     showToast(`${label} rejected`, 2000);
   }
 
@@ -457,7 +462,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     filePaths.forEach(filePath => curatePhoto(filePath, false, false, 0, true));
     setSelectedIndices(new Set());
     const count = filePaths.length;
-    const label = count === 1 ? 'Photo' : `${count} photos`;
+    const label = count === 1 ? 'Photo' : `${count} ${pluralize(count, 'photo')}`;
     showToast(`${label} unflagged`, 2000);
   }
 
@@ -469,8 +474,8 @@ export default function PhotoListPage({ mode = 'library' }) {
     filePaths.forEach(filePath => curatePhoto(filePath, true, false, rating, true));
     setSelectedIndices(new Set());
     const count = filePaths.length;
-    const label = count === 1 ? 'Photo' : `${count} photos`;
-    const stars = rating === 1 ? 'star' : 'stars';
+    const label = count === 1 ? 'Photo' : `${count} ${pluralize(count, 'photo')}`;
+    const stars = pluralize(rating, 'star');
     showToast(`${label} rated ${rating} ${stars}`, 2000);
   }
 
@@ -510,32 +515,28 @@ export default function PhotoListPage({ mode = 'library' }) {
 
   if (error) {
     content = (
-      <div className="message-box error">
+      <MessageBox variant="error">
         Error: {error}
-      </div>
+      </MessageBox>
     );
   } else if (photos.length === 0 && !isLoading) {
     const hasActiveFilters = activeFilterCount > 0;
     if (hasActiveFilters) {
       content = (
-        <div className="empty-state">
-          <div className="empty-state-icon">
-            <FilterIcon />
-          </div>
-          <h2 className="empty-state-title">No matches</h2>
-          <p className="empty-state-description">Try adjusting your filters.</p>
-        </div>
+        <EmptyState
+          icon={<FilterIcon />}
+          title="No matches"
+          description="Try adjusting your filters."
+        />
       );
     } else {
       const EmptyIcon = config.emptyState.icon;
       content = (
-        <div className="empty-state">
-          <div className="empty-state-icon">
-            <EmptyIcon />
-          </div>
-          <h2 className="empty-state-title">{config.emptyState.title}</h2>
-          <p className="empty-state-description">{config.emptyState.description}</p>
-        </div>
+        <EmptyState
+          icon={<EmptyIcon />}
+          title={config.emptyState.title}
+          description={config.emptyState.description}
+        />
       );
     }
   } else if (photos.length > 0) {
@@ -587,14 +588,14 @@ export default function PhotoListPage({ mode = 'library' }) {
       filterBadge = <span className="filter-badge">{activeFilterCount}</span>;
     }
     filterButton = (
-      <button
+      <IconButton
         className={`filter-button ${activeFilterCount > 0 ? 'has-filters' : ''}`}
         onClick={() => setIsFilterPanelOpen(true)}
         title="Filters"
       >
         <FilterIcon />
         {filterBadge}
-      </button>
+      </IconButton>
     );
   }
 
@@ -621,43 +622,43 @@ export default function PhotoListPage({ mode = 'library' }) {
     const starElements = [1, 2, 3, 4, 5].map(rating => {
       const isFilled = rating <= currentRating;
       return (
-        <button key={rating} className={`action-button rate ${isFilled ? 'active' : ''}`} onClick={() => handleRateClick(rating)} title={`Rate ${rating}`} disabled={isCurating}>
+        <IconButton key={rating} variant="rate" active={isFilled} onClick={() => handleRateClick(rating)} title={`Rate ${rating}`} disabled={isCurating}>
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={isFilled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z" />
           </svg>
-        </button>
+        </IconButton>
       );
     });
 
 
     actionButtons = (
       <div className="library-actions">
-        <button className={`action-button pick ${isPicked && currentRating === 0 ? 'active' : ''}`} onClick={handlePickClick} title="Pick (P)" disabled={isCurating}>
+        <IconButton variant="pick" active={isPicked && currentRating === 0} onClick={handlePickClick} title="Pick (P)" disabled={isCurating}>
           <PickIcon />
           <span>Pick</span>
-        </button>
-        <button className={`action-button reject ${isRejected ? 'active' : ''}`} onClick={handleRejectClick} title="Reject (X)" disabled={isCurating}>
+        </IconButton>
+        <IconButton variant="reject" active={isRejected} onClick={handleRejectClick} title="Reject (X)" disabled={isCurating}>
           <RejectIcon />
           <span>Reject</span>
-        </button>
-        <button className="action-button unflag" onClick={handleUnflagClick} title="Unflag (U)" disabled={isCurating}>
+        </IconButton>
+        <IconButton onClick={handleUnflagClick} title="Unflag (U)" disabled={isCurating}>
           <UnflagIcon />
           <span>Unflag</span>
-        </button>
+        </IconButton>
         <div className="rating-buttons">
           {starElements}
         </div>
-        <button className="action-button add-to-album" onClick={() => setIsAlbumModalOpen(true)} title="Add to Album">
+        <IconButton onClick={() => setIsAlbumModalOpen(true)} title="Add to Album">
           <FolderIcon />
           <span>Add to Album</span>
-        </button>
+        </IconButton>
       </div>
     );
   }
 
   let selectionCountElement = null;
   if (!isLoading && !error && photos.length > 0) {
-    selectionCountElement = <span className="selection-count">{selectedIndices.size} selected</span>;
+    selectionCountElement = <SelectionCount count={selectedIndices.size} />;
   }
 
   let albumModal = null;
