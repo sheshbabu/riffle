@@ -3,19 +3,10 @@ import { ModalBackdrop, ModalContainer, ModalContent } from '../../commons/compo
 import Badge from '../../commons/components/Badge.jsx';
 import formatDateTime from '../../commons/utils/formatDateTime.js';
 
-export default function ExportSessionDetail({
-  session,
-  isLiveProgress = false,
-  onClose
-}) {
+export default function ExportSessionDetail({ session, isLiveProgress = false, onClose }) {
   let modalBody = null;
-  let title = 'Export Details';
-  let canClose = true;
 
   if (isLiveProgress) {
-    title = 'Export Progress';
-    canClose = session.status === 'export_complete' || session.status === 'export_error';
-
     if (session.status === 'export_complete') {
       modalBody = (
         <div className="export-message export-message-success">
@@ -76,6 +67,26 @@ export default function ExportSessionDetail({
       criteriaText += session.curation_status === 'pick' ? ', Picked only' : ', All photos';
     }
 
+    let durationEl = null;
+    if (durationText) {
+      durationEl = (
+        <div className="session-detail-section">
+          <div className="session-detail-label">Duration</div>
+          <div className="session-detail-value">{durationText}</div>
+        </div>
+      );
+    }
+
+    let errorsEl = null;
+    if (session.error_count > 0) {
+      errorsEl = (
+        <div className="session-detail-section">
+          <div className="session-detail-label">Errors</div>
+          <div className="session-detail-value session-detail-error">{session.error_count}</div>
+        </div>
+      );
+    }
+
     let errorMessageEl = null;
     if (session.error_message) {
       errorMessageEl = (
@@ -88,33 +99,34 @@ export default function ExportSessionDetail({
 
     modalBody = (
       <div className="session-detail-container">
-        <div className="session-detail-header">
-          <div className="session-detail-date">{formattedDateTime}</div>
-          <div className="session-detail-badges">
-            <Badge variant="neutral">{criteriaText}</Badge>
-            {statusBadge}
-          </div>
+        <div className="session-detail-section">
+          <div className="session-detail-label">Date</div>
+          <div className="session-detail-value">{formattedDateTime}</div>
+        </div>
+
+        <div className="session-detail-section">
+          <div className="session-detail-label">Destination Folder</div>
+          <div className="session-detail-value">{session.export_path}</div>
+        </div>
+
+        <div className="session-detail-section">
+          <div className="session-detail-label">Criteria</div>
+          <div className="session-detail-value">{criteriaText}</div>
+        </div>
+
+        {durationEl}
+
+        <div className="session-detail-section">
+          <div className="session-detail-label">Status</div>
+          <div>{statusBadge}</div>
         </div>
 
         <div className="session-detail-section">
           <div className="session-detail-label">Exported Photos</div>
-          <div className="session-detail-value">{session.exported_photos} / {session.total_photos}</div>
+          <div className="session-detail-value">{session.exported_photos}/{session.total_photos}</div>
         </div>
 
-        {session.error_count > 0 && (
-          <div className="session-detail-section">
-            <div className="session-detail-label">Errors</div>
-            <div className="session-detail-value session-detail-error">{session.error_count}</div>
-          </div>
-        )}
-
-        {durationText && (
-          <div className="session-detail-section">
-            <div className="session-detail-label">Duration</div>
-            <div className="session-detail-value">{durationText}</div>
-          </div>
-        )}
-
+        {errorsEl}
         {errorMessageEl}
       </div>
     );

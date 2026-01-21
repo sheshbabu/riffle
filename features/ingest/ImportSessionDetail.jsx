@@ -6,20 +6,10 @@ import formatCount from '../../commons/utils/formatCount.js';
 
 const stepOrder = ["scanning", "hashing", "checking_imported", "finding_duplicates", "scanning_complete", "importing", "importing_complete"];
 
-export default function ImportSessionDetail({
-  session,
-  isLiveProgress = false,
-  importMode,
-  onClose
-}) {
+export default function ImportSessionDetail({ session, isLiveProgress = false, importMode, onClose }) {
   let modalBody = null;
-  let title = 'Import Details';
-  let canClose = true;
 
   if (isLiveProgress) {
-    title = 'Import Progress';
-    canClose = session.status === 'importing_complete';
-
     modalBody = (
       <div className="import-progress-container">
         <div className="import-help">This may take a few minutes depending on folder size.</div>
@@ -53,6 +43,66 @@ export default function ImportSessionDetail({
 
     const modeText = session.import_mode === 'copy' ? 'Copy' : 'Move';
 
+    let uniqueFilesEl = null;
+    if (session.unique_files > 0) {
+      uniqueFilesEl = (
+        <div className="session-detail-section">
+          <div className="session-detail-label">Unique Files</div>
+          <div className="session-detail-value">{session.unique_files}</div>
+        </div>
+      );
+    }
+
+    let duplicatesRemovedEl = null;
+    if (session.duplicates_removed > 0) {
+      duplicatesRemovedEl = (
+        <div className="session-detail-section">
+          <div className="session-detail-label">Duplicates Removed</div>
+          <div className="session-detail-value">{session.duplicates_removed}</div>
+        </div>
+      );
+    }
+
+    let duplicateGroupsEl = null;
+    if (session.duplicate_groups > 0) {
+      duplicateGroupsEl = (
+        <div className="session-detail-section">
+          <div className="session-detail-label">Duplicate Groups</div>
+          <div className="session-detail-value">{session.duplicate_groups}</div>
+        </div>
+      );
+    }
+
+    let alreadyImportedEl = null;
+    if (session.already_imported > 0) {
+      alreadyImportedEl = (
+        <div className="session-detail-section">
+          <div className="session-detail-label">Already Imported</div>
+          <div className="session-detail-value">{session.already_imported}</div>
+        </div>
+      );
+    }
+
+    let errorsEl = null;
+    if (session.error_count > 0) {
+      errorsEl = (
+        <div className="session-detail-section">
+          <div className="session-detail-label">Errors</div>
+          <div className="session-detail-value session-detail-error">{session.error_count}</div>
+        </div>
+      );
+    }
+
+    let durationEl = null;
+    if (durationText) {
+      durationEl = (
+        <div className="session-detail-section">
+          <div className="session-detail-label">Duration</div>
+          <div className="session-detail-value">{durationText}</div>
+        </div>
+      );
+    }
+
     let errorMessageEl = null;
     if (session.error_message) {
       errorMessageEl = (
@@ -65,47 +115,44 @@ export default function ImportSessionDetail({
 
     modalBody = (
       <div className="session-detail-container">
-        <div className="session-detail-header">
-          <div className="session-detail-date">{formattedDateTime}</div>
-          <div className="session-detail-badges">
-            <Badge variant="neutral">{modeText}</Badge>
-            {statusBadge}
-          </div>
+        <div className="session-detail-section">
+          <div className="session-detail-label">Date</div>
+          <div className="session-detail-value">{formattedDateTime}</div>
         </div>
 
         <div className="session-detail-section">
-          <div className="session-detail-label">Photos Imported</div>
-          <div className="session-detail-value">{session.moved_to_library} / {session.total_scanned}</div>
+          <div className="session-detail-label">Source Folder</div>
+          <div className="session-detail-value">{session.import_path}</div>
         </div>
 
-        {session.already_imported > 0 && (
-          <div className="session-detail-section">
-            <div className="session-detail-label">Already Imported</div>
-            <div className="session-detail-value">{session.already_imported}</div>
-          </div>
-        )}
+        <div className="session-detail-section">
+          <div className="session-detail-label">Import Mode</div>
+          <div className="session-detail-value">{modeText}</div>
+        </div>
 
-        {session.duplicate_groups > 0 && (
-          <div className="session-detail-section">
-            <div className="session-detail-label">Duplicate Groups</div>
-            <div className="session-detail-value">{session.duplicate_groups}</div>
-          </div>
-        )}
+        {durationEl}
 
-        {session.error_count > 0 && (
-          <div className="session-detail-section">
-            <div className="session-detail-label">Errors</div>
-            <div className="session-detail-value session-detail-error">{session.error_count}</div>
-          </div>
-        )}
+        <div className="session-detail-section">
+          <div className="session-detail-label">Status</div>
+          <div>{statusBadge}</div>
+        </div>
 
-        {durationText && (
-          <div className="session-detail-section">
-            <div className="session-detail-label">Duration</div>
-            <div className="session-detail-value">{durationText}</div>
-          </div>
-        )}
+        <div className="session-detail-section">
+          <div className="session-detail-label">Total Scanned</div>
+          <div className="session-detail-value">{session.total_scanned}</div>
+        </div>
 
+        {uniqueFilesEl}
+        {duplicatesRemovedEl}
+        {duplicateGroupsEl}
+        {alreadyImportedEl}
+
+        <div className="session-detail-section">
+          <div className="session-detail-label">Moved to Library</div>
+          <div className="session-detail-value">{session.moved_to_library}</div>
+        </div>
+
+        {errorsEl}
         {errorMessageEl}
       </div>
     );

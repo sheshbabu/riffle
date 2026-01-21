@@ -237,7 +237,7 @@ export default function ImportPage() {
   }
 
   return (
-    <div className="page-container">
+    <div className="page-container import-page">
       <div className="import-action">
         <Button variant="primary" onClick={handleImportClick} isDisabled={isProcessing}>
           Import

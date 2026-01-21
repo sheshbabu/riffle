@@ -227,7 +227,7 @@ export default function ExportPage() {
   }
 
   return (
-    <div className="page-container">
+    <div className="page-container export-page">
       <div className="export-content">
         <div className="export-action">
           <Button variant="primary" onClick={handleStartExport} isDisabled={isExporting}>

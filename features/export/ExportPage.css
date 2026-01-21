@@ -1,3 +1,8 @@
+.export-page {
+  padding: 8px;
+  padding-top: 0;
+}
+
 .export-content {
   display: flex;
   flex-direction: column;
@@ -6,8 +11,7 @@
 .export-action {
   display: flex;
   justify-content: flex-start;
-  padding-bottom: var(--spacing-4);
-  padding-top: 16px;
+  padding: 16px 8px;
 }
 
 .export-progress-section {
@@ -52,8 +56,7 @@
 .export-sessions {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
-  margin-top: var(--spacing-6);
+  margin-top: 16px;
 }
 
 .export-sessions h3 {
@@ -65,7 +68,6 @@
 .sessions-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
 }
 
 .export-empty-state {
@@ -83,7 +85,7 @@
 .session-item {
   border-bottom: 1px solid var(--neutral-100);
   border-radius: 8px;
-  padding: var(--spacing-4) 0;
+  padding: var(--spacing-4) 8px;
   display: flex;
   flex-direction: column;
 }
@@ -143,42 +145,27 @@
 .session-detail-container {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-.session-detail-header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-}
-
-.session-detail-date {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.session-detail-badges {
-  display: flex;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
 }
 
 .session-detail-section {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
-}
+  margin-bottom: var(--spacing-3);
 
-.session-detail-label {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
+  .session-detail-label {
+    font-size: 12px;
+    color: var(--neutral-400);
+    font-weight: 500;
+  }
 
-.session-detail-value {
-  font-size: 14px;
-}
+  .session-detail-value {
+    font: var(--code);
+    color: var(--text-primary);
+    word-break: break-all;
+  }
 
-.session-detail-error {
-  color: var(--red-600);
+  .session-detail-error {
+    color: var(--red-600);
+  }
 }
