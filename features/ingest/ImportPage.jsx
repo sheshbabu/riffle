@@ -43,6 +43,12 @@ export default function ImportPage() {
     document.title = getProgressTitle(phase, progress, importMode);
   }, [phase, progress, importMode]);
 
+  useEffect(() => {
+    if (showModal && !progress) {
+      setShowModal(false);
+    }
+  }, [showModal, progress]);
+
   async function loadSettings() {
     try {
       const settings = await ApiClient.getSettings();
