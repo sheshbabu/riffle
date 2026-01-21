@@ -28,7 +28,7 @@ export default function ImportPage() {
   async function checkActiveImport() {
     try {
       const progressData = await ApiClient.getImportProgress();
-      if (progressData && progressData.status !== 'importing_complete') {
+      if (progressData && progressData.status !== "" && progressData.status !== 'importing_complete') {
         setProgress(progressData);
         setIsProcessing(true);
         setPhase('importing');
