@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"riffle/commons/sqlite"
+	"time"
 )
 
 type ExportCriteria struct {
@@ -23,19 +24,31 @@ type ExportResult struct {
 
 func StartExport(exportPath string, criteria ExportCriteria) {
 	go func() {
-		result, err := ProcessExport(exportPath, criteria)
+		startedAt := time.Now()
+		exportID, err := CreateExportSession(exportPath, criteria)
+		if err != nil {
+			slog.Error("failed to create export log", "error", err)
+		}
+
+		result, err := ProcessExport(exportPath, criteria, exportID)
 		if err != nil {
 			slog.Error("export failed", "error", err)
 			UpdateProgress(StatusExportError, 0, 0, err.Error())
+			if exportID > 0 {
+				CompleteExportSession(exportID, startedAt, &ExportResult{}, err.Error())
+			}
 			return
 		}
 		message := fmt.Sprintf("Exported %d photos", result.ExportedPhotos)
 		UpdateProgress(StatusExportComplete, result.ExportedPhotos, result.TotalPhotos, message)
+		if exportID > 0 {
+			CompleteExportSession(exportID, startedAt, result, "")
+		}
 		slog.Info("export completed", "result", result)
 	}()
 }
 
-func ProcessExport(exportPath string, criteria ExportCriteria) (*ExportResult, error) {
+func ProcessExport(exportPath string, criteria ExportCriteria, exportID int64) (*ExportResult, error) {
 	UpdateProgress(StatusCollecting, 0, 0, "Collecting photos to export")
 
 	photos, err := getPhotosForExport(criteria)
@@ -47,6 +60,10 @@ func ProcessExport(exportPath string, criteria ExportCriteria) (*ExportResult, e
 		TotalPhotos: len(photos),
 	}
 
+	if exportID > 0 {
+		UpdateExportSessionStats(exportID, len(photos))
+	}
+
 	if len(photos) == 0 {
 		UpdateProgress(StatusExportComplete, 0, 0, "No photos match export criteria")
 		return result, nil
@@ -54,16 +71,28 @@ func ProcessExport(exportPath string, criteria ExportCriteria) (*ExportResult, e
 
 	slog.Info("starting export", "totalPhotos", len(photos), "criteria", criteria)
 
+	if exportID > 0 {
+		UpdateExportSessionStatus(exportID, "exporting")
+	}
+
 	for i, photo := range photos {
 		UpdateProgress(StatusExporting, i, len(photos), fmt.Sprintf("Exporting %d/%d", i+1, len(photos)))
 
 		if err := exportPhoto(photo, exportPath); err != nil {
 			slog.Error("error exporting photo", "error", err, "path", photo.FilePath)
 			result.ErrorCount++
+			if exportID > 0 {
+				RecordExportedPhoto(exportID, photo.FilePath, "error", err.Error())
+				IncrementExportErrors(exportID)
+			}
 			continue
 		}
 
 		result.ExportedPhotos++
+		if exportID > 0 {
+			RecordExportedPhoto(exportID, photo.FilePath, "success", "")
+			IncrementExportedPhotos(exportID)
+		}
 	}
 
 	return result, nil

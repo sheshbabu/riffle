@@ -1,0 +1,29 @@
+.settings-tab-content {
+  padding: var(--spacing-6);
+}
+
+.settings-tab-content h3 {
+  margin: 0 0 var(--spacing-1) 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.settings-tab-description {
+  margin: 0 0 var(--spacing-6) 0;
+  color: var(--text-secondary);
+}
+
+.settings-section {
+  margin-bottom: var(--spacing-6);
+}
+
+.settings-section h4 {
+  margin: 0 0 var(--spacing-1) 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.settings-section p {
+  margin: 0 0 var(--spacing-3) 0;
+  color: var(--text-secondary);
+}

@@ -64,22 +64,6 @@ async function request(method, url, payload) {
   }
 }
 
-async function scanImportFolder(payload) {
-  return await request('POST', '/api/import/scan/', payload);
-}
-
-async function getScanResults() {
-  return await request('GET', '/api/import/scan/results/');
-}
-
-async function getImportProgress() {
-  return await request('GET', '/api/import/progress/');
-}
-
-async function importToLibrary() {
-  return await request('POST', '/api/import/move/', {});
-}
-
 function buildFilterParams(filters) {
   if (!filters) {
     return ''
@@ -196,20 +180,32 @@ async function getPhotoAlbums(filePath) {
   return await request('GET', `/api/photo/albums/?path=${encodeURIComponent(filePath)}`);
 }
 
-async function startExport(minRating, curationStatus) {
-  return await request('POST', '/api/export/start/', { minRating, curationStatus });
+async function startImportSession(payload) {
+  return await request('POST', '/api/import/sessions/', payload);
+}
+
+async function getImportProgress() {
+  return await request('GET', '/api/import/sessions/progress/');
+}
+
+async function getImportSessions() {
+  return await request('GET', '/api/import/sessions/');
+}
+
+async function startExportSession(minRating, curationStatus) {
+  return await request('POST', '/api/export/sessions/', { minRating, curationStatus });
 }
 
 async function getExportProgress() {
-  return await request('GET', '/api/export/progress/');
+  return await request('GET', '/api/export/sessions/progress/');
+}
+
+async function getExportSessions() {
+  return await request('GET', '/api/export/sessions/');
 }
 
 export default {
   request,
-  scanImportFolder,
-  getScanResults,
-  getImportProgress,
-  importToLibrary,
   getPhotos,
   getUncuratedPhotos,
   getTrashedPhotos,
@@ -228,6 +224,10 @@ export default {
   deleteAlbum,
   getAlbumPhotos,
   getPhotoAlbums,
-  startExport,
-  getExportProgress
+  startImportSession,
+  getImportProgress,
+  getImportSessions,
+  startExportSession,
+  getExportProgress,
+  getExportSessions
 };

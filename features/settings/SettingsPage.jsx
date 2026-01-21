@@ -1,15 +1,17 @@
-import { ImportIcon, DatabaseIcon } from '../../commons/components/Icon.jsx';
+import { ImportIcon, DatabaseIcon, ExportIcon } from '../../commons/components/Icon.jsx';
 import Link, { navigateTo } from '../../commons/components/Link.jsx';
 import { useRouter } from '../../commons/components/Router.jsx';
 import ImportPane from './ImportPane.jsx';
 import LibraryPane from './LibraryPane.jsx';
+import ExportPane from './ExportPane.jsx';
 import './SettingsPage.css';
 
 const { useEffect } = React;
 
 const tabs = [
   { id: 'import', path: '/settings/import', label: 'Import', icon: <ImportIcon className="settings-tab-icon" />, component: ImportPane },
-  { id: 'library', path: '/settings/library', label: 'Library', icon: <DatabaseIcon className="settings-tab-icon" />, component: LibraryPane }
+  { id: 'library', path: '/settings/library', label: 'Library', icon: <DatabaseIcon className="settings-tab-icon" />, component: LibraryPane },
+  { id: 'export', path: '/settings/export', label: 'Export', icon: <ExportIcon className="settings-tab-icon" />, component: ExportPane }
 ];
 
 export default function SettingsPage() {

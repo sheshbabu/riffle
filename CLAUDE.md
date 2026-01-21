@@ -60,8 +60,8 @@ Month-by-month grid showing curated/uncurated counts and cover photos. Click to 
 ### 6. Settings
 Tabbed interface for import/library folder configuration and storage statistics.
 
-### 7. Export (PLANNED)
-Filter and export photos to local folder or cloud (S3, Google Drive).
+### 7. Export
+Filter and export photos to local folder based on rating and curation status. Export sessions are tracked in the database with per-photo status logging. Supports filtering by minimum rating (0-5) and curation status (all photos or picked only). Files are copied to the configured export folder with original timestamps preserved.
 
 ### Photo Groups
 Photos are automatically grouped during import using time-gap clustering and location-based analysis. Groups persisted in `photo_groups` table.
@@ -112,18 +112,19 @@ Files renamed as `YYYY-MM-DD-HHMMSS-<hash>.<ext>` (hash = first 16 chars of SHA2
 
 **Thumbnails:**
 - `THUMBNAILS_PATH` - Pre-generated 300x300px JPEG thumbnails mirroring library structure
+- Supports both image and video thumbnails
 
 **Trash:**
 - Virtual only (flagged with `is_trashed=true`); files remain in library folder
 
 **Export:**
-- `EXPORT_PATH` - Future destination for filtered exports
+- `EXPORT_PATH` - Destination for filtered exports based on rating and curation criteria
 
 ### Photo Database
 
 Photos stored in `riffle.db` (SQLite) with EXIF metadata.
 
-**Main tables:** `photos`, `photo_groups`, `tags`, `photo_tags`, `albums`, `album_photos`
+**Main tables:** `photos`, `photo_groups`, `tags`, `photo_tags`, `albums`, `album_photos`, `import_sessions`, `imported_photos`, `export_sessions`, `exported_photos`
 
 **Key photo fields:** `is_curated`, `is_trashed`, `rating` (0-5), `sha256_hash`, `dhash`, `thumbnail_path`, `group_id`, `notes`
 

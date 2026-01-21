@@ -1,0 +1,27 @@
+.badge {
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-success {
+  background-color: color-mix(in srgb, var(--green-600) 10%, transparent);
+  color: var(--green-600);
+}
+
+.badge-error {
+  background-color: color-mix(in srgb, var(--red-600) 10%, transparent);
+  color: var(--red-600);
+}
+
+.badge-warning {
+  background-color: color-mix(in srgb, var(--yellow-500) 10%, transparent);
+  color: var(--yellow-500);
+}
+
+.badge-neutral {
+  background-color: var(--neutral-100);
+  color: var(--neutral-400);
+}

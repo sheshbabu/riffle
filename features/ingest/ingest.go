@@ -72,6 +72,7 @@ type AnalysisStats struct {
 
 func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	slog.Info("starting import analysis")
+	sessionID := GetCurrentImportSessionID()
 
 	UpdateProgress(StatusScanning, 0, 0)
 	photos, err := ScanDirectory(importPath)
@@ -94,6 +95,10 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 		return stats, nil
 	}
 
+	if sessionID > 0 {
+		UpdateImportSessionStatus(sessionID, "hashing")
+	}
+
 	UpdateProgress(StatusHashing, 0, len(photos))
 	workers := runtime.NumCPU()
 	if workers > 16 {
@@ -101,6 +106,10 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	}
 	slog.Info("processing files with parallel workers", "workers", workers, "cpus", runtime.NumCPU())
 	processFilesParallel(photos, workers)
+
+	if sessionID > 0 {
+		UpdateImportSessionStatus(sessionID, "checking_imported")
+	}
 
 	UpdateProgress(StatusCheckingImported, 0, len(photos))
 	var newPhotos []PhotoFile
@@ -150,6 +159,10 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 		AlreadyImported:   alreadyImported,
 		FilesToImport:     make([]FileAction, 0),
 		DuplicatesSkipped: make([]FileAction, 0),
+	}
+
+	if sessionID > 0 {
+		UpdateImportSessionStatus(sessionID, "finding_duplicates")
 	}
 
 	UpdateProgress(StatusFindingDuplicates, 0, 0)
@@ -355,6 +368,7 @@ func processFilesParallel(files []PhotoFile, workerCount int) []PhotoFile {
 
 func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copyMode bool) error {
 	total := len(stats.FilesToImport)
+	sessionID := GetCurrentImportSessionID()
 
 	if copyMode {
 		slog.Info("starting file copies", "toLibrary", total)
@@ -383,9 +397,15 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copy
 			photo.Size = fileInfo.Size()
 		}
 
+		originalPath := photo.Path
+
 		newPath, err := transferFile(photo, libraryPath, copyMode)
 		if err != nil {
 			slog.Error("failed to transfer file to library", "file", photo.Path, "error", err)
+			if sessionID > 0 {
+				RecordImportedPhoto(sessionID, originalPath, "error", err.Error())
+				IncrementImportErrors(sessionID)
+			}
 			continue
 		}
 
@@ -395,6 +415,11 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copy
 
 		if err := CreatePhoto(photo); err != nil {
 			slog.Error("failed to insert photo to database", "file", photo.Path, "error", err)
+			if sessionID > 0 {
+				RecordImportedPhoto(sessionID, photo.Path, "error", err.Error())
+				IncrementImportErrors(sessionID)
+			}
+			continue
 		}
 
 		thumbnailPath := media.GetThumbnailPath(libraryPath, thumbnailsPath, photo.Path)
@@ -404,6 +429,10 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copy
 			if err := UpdatePhotoThumbnail(photo.Path, thumbnailPath); err != nil {
 				slog.Error("failed to update photo thumbnail path", "file", photo.Path, "error", err)
 			}
+		}
+
+		if sessionID > 0 {
+			RecordImportedPhoto(sessionID, photo.Path, "success", "")
 		}
 
 		movedToLibrary++

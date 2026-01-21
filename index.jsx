@@ -8,7 +8,7 @@ import ImportPage from './features/ingest/ImportPage.jsx';
 import PhotoListPage from './features/photos/PhotoListPage.jsx';
 import CalendarPage from './features/calendar/CalendarPage.jsx';
 import SettingsPage from './features/settings/SettingsPage.jsx';
-import ExportPage from './features/settings/ExportPage.jsx';
+import ExportPage from './features/export/ExportPage.jsx';
 import AlbumsPage from './features/albums/AlbumsPage.jsx';
 import AlbumDetailPage from './features/albums/AlbumDetailPage.jsx';
 
@@ -31,6 +31,7 @@ function App() {
             <Route path="/settings" component={SettingsPage} />
             <Route path="/settings/import" component={SettingsPage} />
             <Route path="/settings/library" component={SettingsPage} />
+            <Route path="/settings/export" component={SettingsPage} />
           </Router>
         </div>
       </div>

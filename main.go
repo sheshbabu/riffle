@@ -95,10 +95,9 @@ func loadEnv() {
 func newRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /api/import/scan/", ingest.HandleScanImportFolder)
-	mux.HandleFunc("GET /api/import/scan/results/", ingest.HandleGetScanResults)
-	mux.HandleFunc("GET /api/import/progress/", ingest.HandleImportProgress)
-	mux.HandleFunc("POST /api/import/move/", ingest.HandleImport)
+	mux.HandleFunc("POST /api/import/sessions/", ingest.HandleCreateImportSession)
+	mux.HandleFunc("GET /api/import/sessions/", ingest.HandleGetImportSessions)
+	mux.HandleFunc("GET /api/import/sessions/progress/", ingest.HandleImportProgress)
 	mux.HandleFunc("GET /api/photos/", photos.HandleGetPhotos)
 	mux.HandleFunc("GET /api/photos/uncurated/", photos.HandleGetUncuratedPhotos)
 	mux.HandleFunc("GET /api/photos/trashed/", photos.HandleGetTrashedPhotos)
@@ -119,8 +118,9 @@ func newRouter() *http.ServeMux {
 	mux.HandleFunc("DELETE /api/albums/{id}/photos/", albums.HandleRemovePhotosFromAlbum)
 	mux.HandleFunc("DELETE /api/albums/{id}/", albums.HandleDeleteAlbum)
 	mux.HandleFunc("GET /api/photo/albums/", albums.HandleGetPhotoAlbums)
-	mux.HandleFunc("POST /api/export/start/", export.HandleStartExport)
-	mux.HandleFunc("GET /api/export/progress/", export.HandleGetExportProgress)
+	mux.HandleFunc("POST /api/export/sessions/", export.HandleCreateExportSession)
+	mux.HandleFunc("GET /api/export/sessions/", export.HandleGetExportSessions)
+	mux.HandleFunc("GET /api/export/sessions/progress/", export.HandleExportProgress)
 
 	mux.HandleFunc("GET /assets/", handleStaticAssets)
 	mux.HandleFunc("GET /", handleRoot)

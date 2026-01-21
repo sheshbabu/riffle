@@ -41,7 +41,7 @@
         .settings-main {
             flex: 1;
             padding: var(--spacing-3) 24px;
-            padding-top: 60px;
+            padding-top: 32px;
             overflow-y: auto;
 
             .settings-tab-content {

@@ -35,6 +35,20 @@ Import → Curate → Library → Export
 * No immediate file deletion
 * Easy recovery of mistakenly rejected photos
 
+**Calendar**
+* Month-by-month grid
+* Cover photos for each month
+
+**Albums**
+* Organize photos into custom collections
+* Add/remove photos from multiple albums
+
+**Export**
+* Filter photos by minimum rating (0-5) and curation status
+* Export to configured local folder
+* Session tracking with per-photo export status logging
+* Preserves original file timestamps
+
 ### Docker
 
 ```yaml
