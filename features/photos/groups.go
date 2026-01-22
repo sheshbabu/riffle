@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"riffle/commons/geo"
 	"riffle/commons/sqlite"
 	"riffle/commons/utils"
 	"time"
@@ -340,7 +341,7 @@ func detectGroupAssignments(photos []Photo) map[int]int64 {
 
 		if !shouldSplit && groupStartLat != nil && groupStartLon != nil {
 			if photo.Latitude != nil && photo.Longitude != nil {
-				distance := haversineDistance(*groupStartLat, *groupStartLon, *photo.Latitude, *photo.Longitude)
+				distance := geo.HaversineDistance(*groupStartLat, *groupStartLon, *photo.Latitude, *photo.Longitude)
 				if distance > LocationRadiusKm {
 					shouldSplit = true
 				}
@@ -384,26 +385,6 @@ func parsePhotoDateTime(photo Photo) *time.Time {
 
 func parseDateTimeString(dtStr string) *time.Time {
 	return utils.ParseDateTime(dtStr)
-}
-
-func haversineDistance(lat1, lon1, lat2, lon2 float64) float64 {
-	const earthRadiusKm = 6371.0
-
-	dLat := degreesToRadians(lat2 - lat1)
-	dLon := degreesToRadians(lon2 - lon1)
-
-	lat1Rad := degreesToRadians(lat1)
-	lat2Rad := degreesToRadians(lat2)
-
-	a := math.Sin(dLat/2)*math.Sin(dLat/2) +
-		math.Sin(dLon/2)*math.Sin(dLon/2)*math.Cos(lat1Rad)*math.Cos(lat2Rad)
-	c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-
-	return earthRadiusKm * c
-}
-
-func degreesToRadians(degrees float64) float64 {
-	return degrees * math.Pi / 180
 }
 
 func formatGroupLocation(city, state, countryName *string) *string {
