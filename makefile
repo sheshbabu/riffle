@@ -8,3 +8,6 @@ dev:
 
 watch:
 	DEV_MODE=true air --build.cmd 'go build -o ./tmp/main .' & esbuild index.jsx --bundle --outfile=assets/bundle.js --jsx=transform --jsx-factory=React.createElement --jsx-fragment=React.Fragment --watch
+
+test:
+	go test -v ./...

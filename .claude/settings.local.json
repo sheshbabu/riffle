@@ -27,7 +27,9 @@
       "Bash(ffprobe:*)",
       "Bash(go vet:*)",
       "Bash(go mod tidy:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(make test:*)",
+      "Bash(go test:*)"
     ]
   }
 }
