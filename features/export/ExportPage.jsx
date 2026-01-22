@@ -3,6 +3,7 @@ import Button from '../../commons/components/Button.jsx';
 import Badge from '../../commons/components/Badge.jsx';
 import ExportSessionDetail from './ExportSessionDetail.jsx';
 import formatDateTime from '../../commons/utils/formatDateTime.js';
+import formatDuration from '../../commons/utils/formatDuration.js';
 import '../../commons/components/Badge.css';
 import './ExportPage.css';
 
@@ -27,7 +28,7 @@ export default function ExportPage() {
   async function checkActiveExport() {
     try {
       const progressData = await ApiClient.getExportProgress();
-      if (progressData && progressData.status !== 'export_complete' && progressData.status !== 'export_error') {
+      if (progressData && progressData.status !== '' && progressData.status !== 'export_complete' && progressData.status !== 'export_error') {
         setExportProgress(progressData);
         setIsExporting(true);
         setShowModal(true);
@@ -36,6 +37,12 @@ export default function ExportPage() {
       // No active export
     }
   }
+
+  useEffect(() => {
+    if (showModal && !exportProgress) {
+      setShowModal(false);
+    }
+  }, [showModal, exportProgress]);
 
   useEffect(() => {
     let intervalId;
@@ -154,12 +161,7 @@ export default function ExportPage() {
       statusBadge = <Badge variant="warning">Running</Badge>;
     }
 
-    let durationText = '';
-    if (session.duration_seconds) {
-      const minutes = Math.floor(session.duration_seconds / 60);
-      const seconds = session.duration_seconds % 60;
-      durationText = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-    }
+    const durationText = formatDuration(session.duration_seconds);
 
     let criteriaText = `Rating ≥ ${session.min_rating}`;
     if (session.curation_status) {

@@ -5,8 +5,6 @@ import (
 	"log/slog"
 	"riffle/commons/sqlite"
 	"strings"
-	"sync"
-	"time"
 )
 
 type FilterOptions struct {
@@ -31,13 +29,6 @@ type PhotoFilters struct {
 	Cities       []string `json:"cities"`
 	FileFormats  []string `json:"fileFormats"`
 }
-
-var (
-	filterOptionsCache     *FilterOptions
-	filterOptionsCacheTime time.Time
-	filterOptionsCacheMu   sync.RWMutex
-	filterOptionsCacheTTL  = 5 * time.Minute
-)
 
 func BuildFilterConditions(filters *PhotoFilters) (string, []any) {
 	if filters == nil {
@@ -143,21 +134,6 @@ func BuildFilterConditions(filters *PhotoFilters) (string, []any) {
 }
 
 func GetFilterOptions() (*FilterOptions, error) {
-	filterOptionsCacheMu.RLock()
-	if filterOptionsCache != nil && time.Since(filterOptionsCacheTime) < filterOptionsCacheTTL {
-		cached := filterOptionsCache
-		filterOptionsCacheMu.RUnlock()
-		return cached, nil
-	}
-	filterOptionsCacheMu.RUnlock()
-
-	filterOptionsCacheMu.Lock()
-	defer filterOptionsCacheMu.Unlock()
-
-	if filterOptionsCache != nil && time.Since(filterOptionsCacheTime) < filterOptionsCacheTTL {
-		return filterOptionsCache, nil
-	}
-
 	options := &FilterOptions{
 		CameraMakes:  []string{},
 		CameraModels: []string{},
@@ -209,9 +185,6 @@ func GetFilterOptions() (*FilterOptions, error) {
 		return nil, err
 	}
 	options.Years = years
-
-	filterOptionsCache = options
-	filterOptionsCacheTime = time.Now()
 
 	return options, nil
 }

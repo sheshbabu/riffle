@@ -79,7 +79,7 @@
 }
 
 .export-empty-state p {
-  margin: 0;
+  font: var(--sm);
 }
 
 .session-item {

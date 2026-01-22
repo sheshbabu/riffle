@@ -4,6 +4,7 @@ import Button from '../../commons/components/Button.jsx';
 import ImportSessionDetail from './ImportSessionDetail.jsx';
 import DuplicateGroups from './DuplicateGroups.jsx';
 import formatDateTime from '../../commons/utils/formatDateTime.js';
+import formatDuration from '../../commons/utils/formatDuration.js';
 import '../../commons/components/Badge.css';
 import './ImportPage.css';
 
@@ -136,13 +137,7 @@ export default function ImportPage() {
       statusBadge = <Badge variant="warning">Running</Badge>;
     }
 
-    let durationText = '';
-    if (session.duration_seconds) {
-      const seconds = session.duration_seconds;
-      const minutes = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      durationText = minutes > 0 ? `${minutes}m ${secs}s` : `${secs}s`;
-    }
+    const durationText = formatDuration(session.duration_seconds);
 
     const modeText = session.import_mode === 'copy' ? 'Copy' : 'Move';
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"riffle/commons/cache"
 	"riffle/commons/utils"
 )
 
@@ -12,6 +13,10 @@ type CalendarResponse struct {
 }
 
 func HandleGetCalendarMonths(w http.ResponseWriter, r *http.Request) {
+	if cache.CalendarCache.CheckAndRespond(w, r, 3600) {
+		return
+	}
+
 	months, err := GetCalendarMonths()
 	if err != nil {
 		slog.Error("failed to get calendar months", "error", err)

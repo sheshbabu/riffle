@@ -182,7 +182,8 @@ export default function PhotoListPage({ mode = 'library' }) {
 
       try {
         const data = await config.fetchPhotos(offset, filters);
-        setPhotos(data.photos || []);
+        const newPhotos = data.photos || [];
+        setPhotos(newPhotos);
         setGroups(data.groups || []);
         setBursts(data.bursts || []);
         setExpandedBursts(new Set());
@@ -191,6 +192,14 @@ export default function PhotoListPage({ mode = 'library' }) {
         setTotalRecords(data.totalRecords || 0);
         setLimit(data.limit || 100);
         setNextOffset(data.nextOffset !== undefined ? data.nextOffset : null);
+
+        if (newPhotos.length === 0) {
+          setSelectedIndices(new Set());
+        } else if (config.initialSelectedIndex !== null) {
+          setSelectedIndices(new Set([config.initialSelectedIndex]));
+        } else {
+          setSelectedIndices(new Set());
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -609,7 +618,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     );
   }
 
-  const hasSelection = selectedIndices.size > 0;
+  const hasSelection = selectedIndices.size > 0 && photos.length > 0;
   const firstSelectedIndex = hasSelection ? Array.from(selectedIndices)[0] : null;
   const selectedPhoto = firstSelectedIndex !== null ? photos[firstSelectedIndex] : null;
 

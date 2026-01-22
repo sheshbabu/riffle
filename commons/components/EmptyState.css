@@ -9,18 +9,24 @@
 }
 
 .empty-state-icon {
-  color: var(--neutral-300);
   margin-bottom: var(--spacing-3);
 
   svg {
     width: 48px;
     height: 48px;
+
+    line,
+    circle,
+    rect,
+    path {
+      stroke: var(--neutral-700);
+    }
   }
 }
 
 .empty-state-title {
   font: var(--h6);
-  color: var(--text-primary);
+  color: var(--neutral-700);
   margin: 0 0 var(--spacing-1) 0;
 }
 

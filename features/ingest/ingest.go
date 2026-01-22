@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"riffle/commons/cache"
 	"riffle/commons/exif"
 	"riffle/commons/hash"
 	"riffle/commons/media"
@@ -446,6 +447,7 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copy
 	}
 
 	UpdateProgress(StatusImportingComplete, movedToLibrary, total)
+	cache.InvalidateOnImport()
 
 	if copyMode {
 		slog.Info("file copies completed", "copiedToLibrary", movedToLibrary)

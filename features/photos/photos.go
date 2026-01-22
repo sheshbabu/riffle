@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"riffle/commons/cache"
 	"riffle/commons/media"
 	"riffle/commons/utils"
 	"strconv"
@@ -267,6 +268,10 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetFilterOptions(w http.ResponseWriter, r *http.Request) {
+	if cache.FiltersCache.CheckAndRespond(w, r, 3600) {
+		return
+	}
+
 	options, err := GetFilterOptions()
 	if err != nil {
 		slog.Error("failed to get filter options", "error", err)
@@ -309,6 +314,8 @@ func HandleCuratePhoto(w http.ResponseWriter, r *http.Request) {
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "CURATE_ERROR", "Failed to update photo")
 		return
 	}
+
+	cache.InvalidateOnPhotoCuration()
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

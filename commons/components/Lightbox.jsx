@@ -102,7 +102,6 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
         src={photoUrl}
         className="lightbox-image"
         controls
-        autoPlay
       />
     );
   } else {

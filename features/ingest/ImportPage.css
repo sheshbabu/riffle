@@ -29,7 +29,7 @@
 }
 
 .import-empty-state p {
-  margin: 0;
+  font: var(--sm);
 }
 
 .session-item {
@@ -145,7 +145,7 @@
 
 .import-step-container {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--spacing-3);
 }
 

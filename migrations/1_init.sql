@@ -110,8 +110,7 @@ CREATE TABLE IF NOT EXISTS imported_photos (
     error_message  TEXT,
     imported_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (import_id, file_path),
-    FOREIGN KEY (import_id) REFERENCES import_sessions (import_id),
-    FOREIGN KEY (file_path) REFERENCES photos (file_path)
+    FOREIGN KEY (import_id) REFERENCES import_sessions (import_id)
 );
 
 CREATE TABLE IF NOT EXISTS export_sessions (
@@ -138,8 +137,7 @@ CREATE TABLE IF NOT EXISTS exported_photos (
     error_message  TEXT,
     exported_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (export_id, file_path),
-    FOREIGN KEY (export_id) REFERENCES export_sessions (export_id),
-    FOREIGN KEY (file_path) REFERENCES photos (file_path)
+    FOREIGN KEY (export_id) REFERENCES export_sessions (export_id)
 );
 
 CREATE TABLE IF NOT EXISTS cities (
@@ -171,25 +169,13 @@ INSERT OR IGNORE INTO settings (key, value) VALUES ('export_min_rating', '0');
 INSERT OR IGNORE INTO settings (key, value) VALUES ('export_curation_status', 'pick'); -- "all", "pick"
 
 CREATE INDEX IF NOT EXISTS idx_photos_sha256_hash ON photos(sha256_hash);
-CREATE INDEX IF NOT EXISTS idx_photos_dhash ON photos(dhash);
 CREATE INDEX IF NOT EXISTS idx_photos_date_time ON photos(date_time);
-CREATE INDEX IF NOT EXISTS idx_photos_imported_at ON photos(imported_at);
-CREATE INDEX IF NOT EXISTS idx_photos_is_curated ON photos(is_curated);
-CREATE INDEX IF NOT EXISTS idx_photos_is_trashed ON photos(is_trashed);
 CREATE INDEX IF NOT EXISTS idx_photos_rating ON photos(rating);
 CREATE INDEX IF NOT EXISTS idx_photos_is_video ON photos(is_video);
 CREATE INDEX IF NOT EXISTS idx_photos_camera ON photos(camera_make, camera_model);
-CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);
-CREATE INDEX IF NOT EXISTS idx_cities_country ON cities(country_code);
 CREATE INDEX IF NOT EXISTS idx_photos_group_id ON photos(group_id);
 CREATE INDEX IF NOT EXISTS idx_photo_groups_start_time ON photo_groups(start_time);
+CREATE INDEX IF NOT EXISTS idx_photos_trashed_date ON photos(is_trashed, date_time DESC);
+CREATE INDEX IF NOT EXISTS idx_photos_curated_trashed_group_date ON photos(is_curated, is_trashed, group_id, date_time DESC);
 CREATE INDEX IF NOT EXISTS idx_import_sessions_started_at ON import_sessions(started_at);
-CREATE INDEX IF NOT EXISTS idx_import_sessions_status ON import_sessions(status);
-CREATE INDEX IF NOT EXISTS idx_imported_photos_import_id ON imported_photos(import_id);
-CREATE INDEX IF NOT EXISTS idx_imported_photos_file_path ON imported_photos(file_path);
-CREATE INDEX IF NOT EXISTS idx_imported_photos_status ON imported_photos(status);
 CREATE INDEX IF NOT EXISTS idx_export_sessions_started_at ON export_sessions(started_at);
-CREATE INDEX IF NOT EXISTS idx_export_sessions_status ON export_sessions(status);
-CREATE INDEX IF NOT EXISTS idx_exported_photos_export_id ON exported_photos(export_id);
-CREATE INDEX IF NOT EXISTS idx_exported_photos_file_path ON exported_photos(file_path);
-CREATE INDEX IF NOT EXISTS idx_exported_photos_status ON exported_photos(status);
