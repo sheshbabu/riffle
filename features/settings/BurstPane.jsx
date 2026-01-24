@@ -1,5 +1,6 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
+import Button from '../../commons/components/Button.jsx';
 
 const { useState, useEffect } = React;
 
@@ -8,10 +9,25 @@ export default function BurstPane() {
   const [burstTimeThreshold, setBurstTimeThreshold] = useState('3');
   const [burstDhashThreshold, setBurstDhashThreshold] = useState('4');
   const [isLoading, setIsLoading] = useState(true);
+  const [rebuildProgress, setRebuildProgress] = useState({ status: 'idle', completed: 0, total: 0, percent: 0 });
+  const [isRebuilding, setIsRebuilding] = useState(false);
 
   useEffect(() => {
     loadSettings();
+    checkRebuildProgress();
   }, []);
+
+  useEffect(() => {
+    let intervalId = null;
+    if (isRebuilding) {
+      intervalId = setInterval(checkRebuildProgress, 1000);
+    }
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isRebuilding]);
 
   async function loadSettings() {
     try {
@@ -83,6 +99,30 @@ export default function BurstPane() {
     }
   }
 
+  async function handleRebuildBurstData() {
+    try {
+      await ApiClient.rebuildBurstData();
+      setIsRebuilding(true);
+    } catch (error) {
+      console.error('Failed to start burst data rebuild:', error);
+    }
+  }
+
+  async function checkRebuildProgress() {
+    try {
+      const progress = await ApiClient.getBurstRebuildProgress();
+      setRebuildProgress(progress);
+
+      if (progress.status === 'processing') {
+        setIsRebuilding(true);
+      } else if (progress.status === 'complete' || progress.status === 'idle') {
+        setIsRebuilding(false);
+      }
+    } catch (error) {
+      console.error('Failed to check rebuild progress:', error);
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="settings-tab-content">
@@ -134,6 +174,52 @@ export default function BurstPane() {
     );
   }
 
+  let rebuildSection = null;
+  if (burstDetectionEnabled === 'true') {
+    const isProcessing = rebuildProgress.status === 'processing';
+    const isComplete = rebuildProgress.status === 'complete';
+
+    let progressContent = null;
+    if (isProcessing) {
+      progressContent = (
+        <div className="export-progress-section">
+          <div className="export-progress-content">
+            <div className="export-progress-text">
+              <div>Rebuilding burst data for existing photos...</div>
+              <div className="export-progress-count">
+                {rebuildProgress.completed} of {rebuildProgress.total} photos processed
+              </div>
+            </div>
+          </div>
+          <div className="export-progress-bar">
+            <div className="export-progress-fill" style={{ width: `${rebuildProgress.percent}%` }}></div>
+          </div>
+        </div>
+      );
+    }
+
+    let messageContent = null;
+    if (isComplete) {
+      messageContent = (
+        <div className="export-message export-message-success">
+          Burst data rebuild complete! Processed {rebuildProgress.total} photos. Burst detection is now active for all photos.
+        </div>
+      );
+    }
+
+    rebuildSection = (
+      <div className="settings-section">
+        <h4>Rebuild Burst Data</h4>
+        <p>For burst detection to work on existing photos, you need to compute perceptual hashes for all images in your library. This is a one-time operation that will process all image files.</p>
+        <Button onClick={handleRebuildBurstData} disabled={isProcessing}>
+          {isProcessing ? 'Rebuilding...' : 'Rebuild Burst Data'}
+        </Button>
+        {progressContent}
+        {messageContent}
+      </div>
+    );
+  }
+
   return (
     <div className="settings-tab-content">
       <h3>Burst Detection</h3>
@@ -149,6 +235,7 @@ export default function BurstPane() {
         />
       </div>
       {configSection}
+      {rebuildSection}
     </div>
   );
 }
