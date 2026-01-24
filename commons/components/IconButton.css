@@ -104,7 +104,10 @@
     svg {
       width: 18px;
       height: 18px;
-      stroke: var(--yellow-500);
+
+      path {
+        stroke: var(--yellow-500);
+      }
     }
 
     &:hover {
@@ -116,11 +119,9 @@
       color: var(--yellow-500);
 
       svg {
-        line,
-        circle,
-        rect,
         path {
           fill: var(--yellow-500);
+          stroke: var(--yellow-500);
         }
       }
     }
