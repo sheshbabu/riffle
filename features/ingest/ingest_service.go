@@ -97,12 +97,12 @@ func HandleCreateImportSession(w http.ResponseWriter, r *http.Request) {
 	libraryPath := os.Getenv("LIBRARY_PATH")
 	thumbnailsPath := os.Getenv("THUMBNAILS_PATH")
 
-	importMode, _ := settings.GetSetting("import_mode")
+	importMode, _ := settings.GetImportMode()
 
 	ClearResults()
 	UpdateProgress(StatusScanning, 0, 0)
 
-	sessionID, err := CreateImportSession(importPath, importMode)
+	sessionID, err := CreateImportSession(importPath, string(importMode))
 	if err != nil {
 		slog.Error("failed to create import session", "error", err)
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "SESSION_CREATE_ERROR", "Failed to create import session")

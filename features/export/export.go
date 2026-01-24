@@ -8,12 +8,13 @@ import (
 	"os"
 	"path/filepath"
 	"riffle/commons/sqlite"
+	"riffle/features/settings"
 	"time"
 )
 
 type ExportCriteria struct {
-	MinRating       int
-	CurationStatus  string // "all", "pick"
+	MinRating      int
+	CurationStatus settings.ExportCurationStatus
 }
 
 type ExportResult struct {
@@ -99,8 +100,8 @@ func ProcessExport(exportPath string, criteria ExportCriteria, exportID int64) (
 }
 
 type PhotoToExport struct {
-	FilePath   string
-	DateTime   sql.NullTime
+	FilePath string
+	DateTime sql.NullTime
 }
 
 func getPhotosForExport(criteria ExportCriteria) ([]PhotoToExport, error) {
@@ -117,7 +118,7 @@ func getPhotosForExport(criteria ExportCriteria) ([]PhotoToExport, error) {
 	}
 
 	switch criteria.CurationStatus {
-	case "pick":
+	case settings.ExportCurationPick:
 		query += ` AND is_curated = 1 AND is_trashed = 0`
 	}
 

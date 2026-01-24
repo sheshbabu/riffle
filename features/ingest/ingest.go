@@ -12,6 +12,7 @@ import (
 	"riffle/commons/hash"
 	"riffle/commons/media"
 	"riffle/features/photos"
+	"riffle/features/settings"
 	"runtime"
 	"strings"
 	"sync"
@@ -367,11 +368,11 @@ func processFilesParallel(files []PhotoFile, workerCount int) []PhotoFile {
 	return files
 }
 
-func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, importMode string) error {
+func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, importMode settings.ImportMode) error {
 	total := len(stats.FilesToImport)
 	sessionID := GetCurrentImportSessionID()
 
-	if importMode == "copy" {
+	if importMode == settings.ImportModeCopy {
 		slog.Info("starting file copies", "toLibrary", total)
 	} else {
 		slog.Info("starting file moves", "toLibrary", total)
@@ -449,7 +450,7 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, impo
 	UpdateProgress(StatusImportingComplete, movedToLibrary, total)
 	cache.InvalidateOnImport()
 
-	if importMode == "copy" {
+	if importMode == settings.ImportModeCopy {
 		slog.Info("file copies completed", "copiedToLibrary", movedToLibrary)
 	} else {
 		slog.Info("file moves completed", "movedToLibrary", movedToLibrary)
@@ -460,7 +461,7 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, impo
 
 	fmt.Println()
 	fmt.Println("=== Execution Summary ===")
-	if importMode == "copy" {
+	if importMode == settings.ImportModeCopy {
 		fmt.Printf("Files copied to library:  %d\n", movedToLibrary)
 	} else {
 		fmt.Printf("Files moved to library:   %d\n", movedToLibrary)
@@ -472,7 +473,7 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, impo
 	return nil
 }
 
-func transferFile(photo PhotoFile, destDir string, importMode string) (string, error) {
+func transferFile(photo PhotoFile, destDir string, importMode settings.ImportMode) (string, error) {
 	var dateTime time.Time
 	var hasDateTime bool
 
@@ -539,7 +540,7 @@ func transferFile(photo PhotoFile, destDir string, importMode string) (string, e
 		}
 	}
 
-	if importMode == "copy" {
+	if importMode == settings.ImportModeCopy {
 		if err := copyFile(photo.Path, destPath); err != nil {
 			return "", fmt.Errorf("failed to copy file: %w", err)
 		}

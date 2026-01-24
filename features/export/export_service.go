@@ -2,7 +2,6 @@ package export
 
 import (
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -38,11 +37,8 @@ func HandleCreateExportSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	minRatingStr, _ := settings.GetSetting("export_min_rating")
-	curationStatus, _ := settings.GetSetting("export_curation_status")
-
-	minRating := 0
-	fmt.Sscanf(minRatingStr, "%d", &minRating)
+	minRating, _ := settings.GetExportMinRating()
+	curationStatus, _ := settings.GetExportCurationStatus()
 
 	criteria := ExportCriteria{
 		MinRating:      minRating,

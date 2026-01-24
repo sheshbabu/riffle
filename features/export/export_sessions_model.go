@@ -34,7 +34,7 @@ func CreateExportSession(exportPath string, criteria ExportCriteria) (int64, err
 		query,
 		exportPath,
 		criteria.MinRating,
-		sql.NullString{String: criteria.CurationStatus, Valid: criteria.CurationStatus != ""},
+		sql.NullString{String: string(criteria.CurationStatus), Valid: criteria.CurationStatus != ""},
 		time.Now(),
 		"collecting",
 	)
