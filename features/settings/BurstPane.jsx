@@ -1,0 +1,154 @@
+import ApiClient from '../../commons/http/ApiClient.js';
+import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
+
+const { useState, useEffect } = React;
+
+export default function BurstPane() {
+  const [burstDetectionEnabled, setBurstDetectionEnabled] = useState('false');
+  const [burstTimeThreshold, setBurstTimeThreshold] = useState('3');
+  const [burstDhashThreshold, setBurstDhashThreshold] = useState('4');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  async function loadSettings() {
+    try {
+      const settings = await ApiClient.getSettings();
+      setBurstDetectionEnabled(settings.burst_detection_enabled || 'false');
+      setBurstTimeThreshold(settings.burst_time_threshold || '3');
+      setBurstDhashThreshold(settings.burst_dhash_threshold || '4');
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleBurstDetectionEnabledChange(newValue) {
+    const previousValue = burstDetectionEnabled;
+    setBurstDetectionEnabled(newValue);
+    try {
+      await ApiClient.updateSetting('burst_detection_enabled', newValue);
+    } catch (error) {
+      console.error('Failed to save setting:', error);
+      setBurstDetectionEnabled(previousValue);
+    }
+  }
+
+  async function handleBurstTimeThresholdChange(event) {
+    const newValue = event.target.value;
+    const previousValue = burstTimeThreshold;
+    setBurstTimeThreshold(newValue);
+
+    if (newValue === '') {
+      return;
+    }
+
+    const numValue = parseInt(newValue, 10);
+    if (isNaN(numValue) || numValue < 1 || numValue > 60) {
+      setBurstTimeThreshold(previousValue);
+      return;
+    }
+
+    try {
+      await ApiClient.updateSetting('burst_time_threshold', newValue);
+    } catch (error) {
+      console.error('Failed to save setting:', error);
+      setBurstTimeThreshold(previousValue);
+    }
+  }
+
+  async function handleBurstDhashThresholdChange(event) {
+    const newValue = event.target.value;
+    const previousValue = burstDhashThreshold;
+    setBurstDhashThreshold(newValue);
+
+    if (newValue === '') {
+      return;
+    }
+
+    const numValue = parseInt(newValue, 10);
+    if (isNaN(numValue) || numValue < 0 || numValue > 64) {
+      setBurstDhashThreshold(previousValue);
+      return;
+    }
+
+    try {
+      await ApiClient.updateSetting('burst_dhash_threshold', newValue);
+    } catch (error) {
+      console.error('Failed to save setting:', error);
+      setBurstDhashThreshold(previousValue);
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="settings-tab-content">
+        <p>Loading settings...</p>
+      </div>
+    );
+  }
+
+  const enabledOptions = [
+    { value: 'false', label: 'Disabled' },
+    { value: 'true', label: 'Enabled' }
+  ];
+
+  let configSection = null;
+  if (burstDetectionEnabled === 'true') {
+    configSection = (
+      <div className="settings-section">
+        <h4>Burst Detection Configuration</h4>
+        <p>Configure how bursts are detected during import. Photos taken within the time threshold and with similar visual content (based on dHash distance) are grouped as bursts.</p>
+
+        <div className="settings-field">
+          <label htmlFor="burst-time-threshold">Time Threshold (seconds)</label>
+          <input
+            id="burst-time-threshold"
+            type="number"
+            min="1"
+            max="60"
+            value={burstTimeThreshold}
+            onChange={handleBurstTimeThresholdChange}
+            className="settings-input"
+          />
+          <p className="settings-field-description">Photos taken within this many seconds of each other may be grouped as a burst. Range: 1-60 seconds.</p>
+        </div>
+
+        <div className="settings-field">
+          <label htmlFor="burst-dhash-threshold">dHash Distance Threshold</label>
+          <input
+            id="burst-dhash-threshold"
+            type="number"
+            min="0"
+            max="64"
+            value={burstDhashThreshold}
+            onChange={handleBurstDhashThresholdChange}
+            className="settings-input"
+          />
+          <p className="settings-field-description">Maximum perceptual hash difference between photos. Lower values mean photos must be more visually similar. Range: 0-64, recommended: 4.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="settings-tab-content">
+      <h3>Burst Detection</h3>
+      <p>Control how burst photos are detected and grouped during import.</p>
+
+      <div className="settings-section">
+        <h4>Enable Burst Detection</h4>
+        <p>When enabled, photos taken in rapid succession with similar content are automatically grouped as bursts. This requires computing perceptual hashes (dHash) during import, which adds processing time.</p>
+        <SegmentedControl
+          options={enabledOptions}
+          value={burstDetectionEnabled}
+          onChange={handleBurstDetectionEnabledChange}
+        />
+      </div>
+      {configSection}
+    </div>
+  );
+}

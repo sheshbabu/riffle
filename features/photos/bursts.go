@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"riffle/commons/hash"
+	"riffle/features/settings"
 )
 
 type Burst struct {
@@ -13,15 +14,18 @@ type Burst struct {
 	CoverIndex int    `json:"coverIndex"`
 }
 
-const (
-	BurstTimeWindowSeconds = 3
-	BurstDhashThreshold    = 4
-)
-
 func DetectBursts(photos []Photo) []Burst {
 	if len(photos) < 2 {
 		return []Burst{}
 	}
+
+	burstDetectionEnabled, _ := settings.GetBurstDetectionEnabled()
+	if !burstDetectionEnabled {
+		return []Burst{}
+	}
+
+	timeThreshold, _ := settings.GetBurstTimeThreshold()
+	dhashThreshold, _ := settings.GetBurstDhashThreshold()
 
 	var bursts []Burst
 	visited := make([]bool, len(photos))
@@ -58,7 +62,7 @@ func DetectBursts(photos []Photo) []Burst {
 			}
 
 			timeDiff := math.Abs(baseTime.Sub(*photoTime).Seconds())
-			if timeDiff > BurstTimeWindowSeconds {
+			if timeDiff > float64(timeThreshold) {
 				break
 			}
 
@@ -67,7 +71,7 @@ func DetectBursts(photos []Photo) []Burst {
 				continue
 			}
 
-			if distance <= BurstDhashThreshold {
+			if distance <= dhashThreshold {
 				burstIndices = append(burstIndices, j)
 				visited[j] = true
 			}

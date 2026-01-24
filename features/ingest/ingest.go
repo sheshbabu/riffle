@@ -321,7 +321,8 @@ func processFile(photo *PhotoFile) {
 	}
 	photo.Hash = sha256Hash
 
-	if media.IsImageFile(photo.Path) {
+	burstDetectionEnabled, _ := settings.GetBurstDetectionEnabled()
+	if burstDetectionEnabled && media.IsImageFile(photo.Path) {
 		dhash, err := hash.ComputeDhash(photo.Path)
 		if err != nil {
 			slog.Error("failed to compute dhash", "file", photo.Path, "error", err)

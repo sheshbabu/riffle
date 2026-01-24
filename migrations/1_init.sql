@@ -167,6 +167,9 @@ INSERT OR IGNORE INTO settings (key, value) VALUES ('import_mode', 'copy'); -- "
 INSERT OR IGNORE INTO settings (key, value) VALUES ('import_duplicate_handling', 'keep'); -- "keep", "delete"
 INSERT OR IGNORE INTO settings (key, value) VALUES ('export_min_rating', '0');
 INSERT OR IGNORE INTO settings (key, value) VALUES ('export_curation_status', 'pick'); -- "all", "pick"
+INSERT OR IGNORE INTO settings (key, value) VALUES ('burst_detection_enabled', 'false'); -- "true", "false"
+INSERT OR IGNORE INTO settings (key, value) VALUES ('burst_time_threshold', '3'); -- seconds
+INSERT OR IGNORE INTO settings (key, value) VALUES ('burst_dhash_threshold', '4'); -- hamming distance
 
 CREATE INDEX IF NOT EXISTS idx_photos_sha256_hash ON photos(sha256_hash);
 CREATE INDEX IF NOT EXISTS idx_photos_date_time ON photos(date_time);

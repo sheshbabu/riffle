@@ -55,6 +55,38 @@ func GetExportCurationStatus() (ExportCurationStatus, error) {
 	return ExportCurationStatus(value), nil
 }
 
+func GetBurstDetectionEnabled() (bool, error) {
+	value, err := GetSetting("burst_detection_enabled")
+	if err != nil {
+		return false, err
+	}
+	return value == "true", nil
+}
+
+func GetBurstTimeThreshold() (int, error) {
+	value, err := GetSetting("burst_time_threshold")
+	if err != nil {
+		return 3, err
+	}
+	threshold, err := strconv.Atoi(value)
+	if err != nil {
+		return 3, fmt.Errorf("invalid burst_time_threshold value: %w", err)
+	}
+	return threshold, nil
+}
+
+func GetBurstDhashThreshold() (int, error) {
+	value, err := GetSetting("burst_dhash_threshold")
+	if err != nil {
+		return 4, err
+	}
+	threshold, err := strconv.Atoi(value)
+	if err != nil {
+		return 4, fmt.Errorf("invalid burst_dhash_threshold value: %w", err)
+	}
+	return threshold, nil
+}
+
 func HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := GetAllSettings()
 	if err != nil {
@@ -114,6 +146,26 @@ func validate(key, value string) error {
 		mode := ImportMode(value)
 		if mode != ImportModeMove && mode != ImportModeCopy {
 			return fmt.Errorf("import_mode must be '%s' or '%s'", ImportModeMove, ImportModeCopy)
+		}
+	case "burst_detection_enabled":
+		if value != "true" && value != "false" {
+			return fmt.Errorf("burst_detection_enabled must be 'true' or 'false'")
+		}
+	case "burst_time_threshold":
+		threshold, err := strconv.Atoi(value)
+		if err != nil {
+			return fmt.Errorf("burst_time_threshold must be a number")
+		}
+		if threshold < 1 || threshold > 60 {
+			return fmt.Errorf("burst_time_threshold must be between 1 and 60")
+		}
+	case "burst_dhash_threshold":
+		threshold, err := strconv.Atoi(value)
+		if err != nil {
+			return fmt.Errorf("burst_dhash_threshold must be a number")
+		}
+		if threshold < 0 || threshold > 64 {
+			return fmt.Errorf("burst_dhash_threshold must be between 0 and 64")
 		}
 	}
 	return nil
