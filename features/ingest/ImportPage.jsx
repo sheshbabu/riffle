@@ -77,7 +77,7 @@ export default function ImportPage() {
 
   async function handleImportClick() {
     try {
-      await ApiClient.startImportSession({});
+      await ApiClient.startImportSession();
       await checkActiveImport();
     } catch (error) {
       setProgress(null);

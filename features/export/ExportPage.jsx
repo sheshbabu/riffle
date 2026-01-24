@@ -13,12 +13,10 @@ const POLL_INTERVAL = 5 * 1000; // 5s
 export default function ExportPage() {
   const [progress, setProgress] = useState(null);
   const [sessions, setSessions] = useState([]);
-  const [settings, setSettings] = useState(null);
   const [selectedSession, setSelectedSession] = useState(null);
   const [shouldShowModal, setShouldShowModal] = useState(false);
 
   useEffect(() => {
-    loadSettings();
     loadExportSessions();
     checkActiveExport();
   }, []);
@@ -55,15 +53,6 @@ export default function ExportPage() {
     }
   }
 
-  async function loadSettings() {
-    try {
-      const data = await ApiClient.getSettings();
-      setSettings(data);
-    } catch (error) {
-      console.error('Failed to load settings:', error);
-    }
-  }
-
   async function loadExportSessions() {
     try {
       const sessions = await ApiClient.getExportSessions();
@@ -75,7 +64,7 @@ export default function ExportPage() {
 
   async function handleStartExport() {
     try {
-      await ApiClient.startExportSession(parseInt(settings.export_min_rating), settings.export_curation_status);
+      await ApiClient.startExportSession();
       await checkActiveExport();
     } catch (error) {
       setProgress(null);

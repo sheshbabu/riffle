@@ -180,8 +180,8 @@ async function getPhotoAlbums(filePath) {
   return await request('GET', `/api/photo/albums/?path=${encodeURIComponent(filePath)}`);
 }
 
-async function startImportSession(payload) {
-  return await request('POST', '/api/import/sessions/', payload);
+async function startImportSession() {
+  return await request('POST', '/api/import/sessions/');
 }
 
 /**
@@ -202,8 +202,8 @@ async function getImportSessions() {
   return await request('GET', '/api/import/sessions/');
 }
 
-async function startExportSession(minRating, curationStatus) {
-  return await request('POST', '/api/export/sessions/', { minRating, curationStatus });
+async function startExportSession() {
+  return await request('POST', '/api/export/sessions/');
 }
 
 /**

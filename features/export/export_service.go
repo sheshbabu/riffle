@@ -2,10 +2,12 @@ package export
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"riffle/commons/utils"
+	"riffle/features/settings"
 )
 
 type ExportSessionRequest struct {
@@ -30,30 +32,21 @@ type ExportSessionsResponse struct {
 }
 
 func HandleCreateExportSession(w http.ResponseWriter, r *http.Request) {
-	var req ExportSessionRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
-		return
-	}
-
-	if req.CurationStatus == "" {
-		req.CurationStatus = "all"
-	}
-
-	if req.MinRating < 0 || req.MinRating > 5 {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_RATING", "Rating must be between 0 and 5")
-		return
-	}
-
 	exportPath := os.Getenv("EXPORT_PATH")
 	if exportPath == "" {
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "EXPORT_PATH_NOT_SET", "Export path not configured")
 		return
 	}
 
+	minRatingStr, _ := settings.GetSetting("export_min_rating")
+	curationStatus, _ := settings.GetSetting("export_curation_status")
+
+	minRating := 0
+	fmt.Sscanf(minRatingStr, "%d", &minRating)
+
 	criteria := ExportCriteria{
-		MinRating:      req.MinRating,
-		CurationStatus: req.CurationStatus,
+		MinRating:      minRating,
+		CurationStatus: curationStatus,
 	}
 
 	StartExport(exportPath, criteria)
