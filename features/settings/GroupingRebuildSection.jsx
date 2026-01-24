@@ -20,7 +20,7 @@ export default function GroupingRebuildSection() {
     <div className="settings-section">
       <h4>Photo Grouping</h4>
       <p>Recompute automatic photo groups using time and location clustering. Updates all group assignments based on current algorithms.</p>
-      <Button className="primary" onClick={handleRecalculate} disabled={isRecalculating}>
+      <Button onClick={handleRecalculate} disabled={isRecalculating}>
         {buttonText}
       </Button>
     </div>

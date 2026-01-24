@@ -86,7 +86,7 @@ export default function ThumbnailRebuildSection() {
     <div className="settings-section">
       <h4>Thumbnail Cache</h4>
       <p>Rebuild all 300×300 preview thumbnails. Useful after updating images or if thumbnails appear corrupted.</p>
-      <Button className="primary" onClick={handleRebuildClick} isLoading={isProcessing}>
+      <Button onClick={handleRebuildClick} isLoading={isProcessing}>
         {buttonText}
       </Button>
       {progressElement}
