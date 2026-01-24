@@ -1,10 +1,7 @@
 import ApiClient from '../../commons/http/ApiClient.js';
-import Badge from '../../commons/components/Badge.jsx';
 import Button from '../../commons/components/Button.jsx';
+import ImportTable from './ImportTable.jsx';
 import ImportSessionDetail from './ImportSessionDetail.jsx';
-import formatDateTime from '../../commons/utils/formatDateTime.js';
-import formatDuration from '../../commons/utils/formatDuration.js';
-import '../../commons/components/Badge.css';
 import './ImportPage.css';
 
 const { useState, useEffect } = React;
@@ -94,84 +91,11 @@ export default function ImportPage() {
     setSelectedSession(session);
   }
 
-  function renderSessionItem(session) {
-    const formattedDateTime = formatDateTime(session.started_at);
-
-    let statusBadge = null;
-    if (session.status === 'completed') {
-      statusBadge = <Badge variant="success">Completed</Badge>;
-    } else if (session.status === 'error') {
-      statusBadge = <Badge variant="error">Error</Badge>;
-    } else {
-      statusBadge = <Badge variant="warning">Running</Badge>;
-    }
-
-    const durationText = formatDuration(session.duration_seconds);
-
-    let alreadyImportedStat = null;
-    if (session.already_imported > 0) {
-      alreadyImportedStat = <span>{session.already_imported} already imported</span>;
-    }
-
-    let duplicateGroupsStat = null;
-    if (session.duplicate_groups > 0) {
-      duplicateGroupsStat = <span>{session.duplicate_groups} duplicate groups</span>;
-    }
-
-    let errorsStat = null;
-    if (session.error_count > 0) {
-      errorsStat = <span className="session-errors">{session.error_count} errors</span>;
-    }
-
-    let durationStat = null;
-    if (durationText) {
-      durationStat = <span>{durationText}</span>;
-    }
-
-    let errorMessageEl = null;
-    if (session.error_message) {
-      errorMessageEl = <div className="session-error-message">{session.error_message}</div>;
-    }
-
-    return (
-      <div key={session.import_id} className="session-item" onClick={() => handleSessionClick(session)}>
-        <div className="session-header">
-          <div className="session-date">
-            {formattedDateTime}
-          </div>
-          <div className="session-tags">
-            <Badge variant="neutral">{session.import_mode}</Badge>
-            {statusBadge}
-          </div>
-        </div>
-        <div className="session-details">
-          <div className="session-stats">
-            <span>{session.moved_to_library}/{session.total_scanned} photos imported</span>
-            {alreadyImportedStat}
-            {duplicateGroupsStat}
-            {errorsStat}
-            {durationStat}
-          </div>
-
-        </div>
-        {errorMessageEl}
-      </div>
-    );
-  }
-
-  let sessionsList = null;
+  let mainContent = null;
   if (sessions.length > 0) {
-    const sessionsItems = sessions.map(session => renderSessionItem(session));
-
-    sessionsList = (
-      <div className="import-sessions">
-        <div className="sessions-list">
-          {sessionsItems}
-        </div>
-      </div>
-    );
+    mainContent = <ImportTable sessions={sessions} onSessionClick={handleSessionClick} />;
   } else {
-    sessionsList = (
+    mainContent = (
       <div className="import-sessions">
         <div className="import-empty-state">
           <p>No imports yet. Click the Import button above to start your first import.</p>
@@ -210,7 +134,7 @@ export default function ImportPage() {
           Import
         </Button>
       </div>
-      {sessionsList}
+      {mainContent}
       {modalContent}
     </div>
   );

@@ -1,3 +1,5 @@
+import './Badge.css';
+
 export default function Badge({ children, variant = 'neutral' }) {
   const className = `badge badge-${variant}`;
 
