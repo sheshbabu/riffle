@@ -1,9 +1,3 @@
-.photo-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--spacing-4);
-}
-
 .group-container {
   margin-bottom: 48px;
 }
@@ -54,21 +48,19 @@
   color: var(--text-secondary);
 }
 
-.group-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--spacing-4);
+.masonry-grid {
+  width: 100%;
 }
 
 .gallery-item {
   position: relative;
-  aspect-ratio: 1;
   overflow: hidden;
   border-radius: 4px;
   background-color: var(--neutral-100);
   cursor: pointer;
   transition: opacity 0.3s ease, border 0.2s ease;
   border: 3px solid transparent;
+  box-sizing: border-box;
 
   &:hover {
     opacity: 0.9;
@@ -99,8 +91,8 @@
 
 .gallery-media {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  display: block;
 }
 
 .video-indicator {

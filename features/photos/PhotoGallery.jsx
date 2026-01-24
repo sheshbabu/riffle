@@ -1,6 +1,7 @@
 import Lightbox from '../../commons/components/Lightbox.jsx';
 import IconButton from '../../commons/components/IconButton.jsx';
 import Button from '../../commons/components/Button.jsx';
+import MasonryGrid from '../../commons/components/MasonryGrid.jsx';
 import { StackIcon } from '../../commons/components/Icon.jsx';
 import getThumbnailUrl from '../../commons/utils/getThumbnailUrl.js';
 import isVideoFile from '../../commons/utils/isVideoFile.js';
@@ -105,14 +106,7 @@ export default function PhotoGallery({
   }, [selectedIndex, photos, lightboxIndex, fadingSet, isCurateMode]);
 
   function getGridColumns() {
-    const gridSelector = isGroupView ? '.group-grid' : '.photo-gallery';
-    const gridElement = document.querySelector(gridSelector);
-    if (!gridElement) {
-      return 5;
-    }
-    const style = window.getComputedStyle(gridElement);
-    const columns = style.gridTemplateColumns.split(' ').length;
-    return columns;
+    return 5;
   }
 
   function handlePhotoClick(index, e) {
@@ -180,7 +174,7 @@ export default function PhotoGallery({
     const thumbnailUrl = getThumbnailUrl(photo.filePath);
     const isSelected = selectedSet.has(index);
 
-    let className = 'gallery-item burst-stack';
+    let className = 'gallery-item burst-stack masonry-item';
     if (isSelected) {
       className += ' selected';
     }
@@ -215,7 +209,7 @@ export default function PhotoGallery({
     const isSelected = selectedSet.has(index);
     const isFading = fadingSet.has(photo.filePath);
 
-    let className = 'gallery-item';
+    let className = 'gallery-item masonry-item';
     if (isSelected) {
       className += ' selected';
     }
@@ -385,9 +379,9 @@ export default function PhotoGallery({
             </div>
             {selectAllButton}
           </div>
-          <div className="group-grid">
+          <MasonryGrid className="group-grid">
             {photoElements}
-          </div>
+          </MasonryGrid>
         </div>
       );
     });
@@ -401,9 +395,9 @@ export default function PhotoGallery({
     const photoElements = renderPhotosWithBursts(0, photos.length);
 
     galleryContent = (
-      <div className="photo-gallery">
+      <MasonryGrid>
         {photoElements}
-      </div>
+      </MasonryGrid>
     );
   }
 
