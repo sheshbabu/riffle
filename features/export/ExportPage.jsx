@@ -8,16 +8,14 @@ import '../../commons/components/Badge.css';
 import './ExportPage.css';
 
 const { useState, useEffect } = React;
+const POLL_INTERVAL = 5 * 1000; // 5s
 
 export default function ExportPage() {
-  const [minRating, setMinRating] = useState('0');
-  const [curationStatus, setCurationStatus] = useState('pick');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isExporting, setIsExporting] = useState(false);
-  const [exportProgress, setExportProgress] = useState(null);
-  const [exportSessions, setExportSessions] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+  const [progress, setProgress] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [settings, setSettings] = useState(null);
   const [selectedSession, setSelectedSession] = useState(null);
+  const [shouldShowModal, setShouldShowModal] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -25,53 +23,51 @@ export default function ExportPage() {
     checkActiveExport();
   }, []);
 
+  useEffect(() => {
+    if (!hasActiveExport(progress)) {
+      return;
+    }
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const data = await ApiClient.getExportProgress();
+        setProgress(data);
+        if (data.status === 'export_complete' || data.status === 'export_error') {
+          loadExportSessions();
+        }
+      } catch (error) {
+        // Continue
+      }
+    }, POLL_INTERVAL);
+
+    return () => clearInterval(pollInterval);
+  }, [progress]);
+
   async function checkActiveExport() {
     try {
-      const progressData = await ApiClient.getExportProgress();
-      if (progressData && progressData.status !== '' && progressData.status !== 'export_complete' && progressData.status !== 'export_error') {
-        setExportProgress(progressData);
-        setIsExporting(true);
-        setShowModal(true);
+      const data = await ApiClient.getExportProgress();
+      if (hasActiveExport(data)) {
+        setProgress(data);
+        setShouldShowModal(true);
       }
     } catch (error) {
       // No active export
     }
   }
 
-  useEffect(() => {
-    if (showModal && !exportProgress) {
-      setShowModal(false);
-    }
-  }, [showModal, exportProgress]);
-
-  useEffect(() => {
-    let intervalId;
-    if (isExporting) {
-      intervalId = setInterval(pollExportProgress, 1000);
-    }
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [isExporting]);
-
   async function loadSettings() {
     try {
-      const settings = await ApiClient.getSettings();
-      setMinRating(settings.export_min_rating || '0');
-      setCurationStatus(settings.export_curation_status || 'pick');
+      const data = await ApiClient.getSettings();
+      setSettings(data);
     } catch (error) {
       console.error('Failed to load settings:', error);
-    } finally {
-      setIsLoading(false);
     }
   }
 
   async function loadExportSessions() {
     try {
       const sessions = await ApiClient.getExportSessions();
-      setExportSessions(sessions);
+      setSessions(sessions);
     } catch (error) {
       console.error('Failed to load export sessions:', error);
     }
@@ -79,74 +75,42 @@ export default function ExportPage() {
 
   async function handleStartExport() {
     try {
-      setIsExporting(true);
-      setShowModal(true);
-      setExportProgress(null);
-      await ApiClient.startExportSession(parseInt(minRating), curationStatus);
+      await ApiClient.startExportSession(parseInt(settings.export_min_rating), settings.export_curation_status);
+      await checkActiveExport();
     } catch (error) {
-      console.error('Failed to start export:', error);
-      setIsExporting(false);
-      setShowModal(false);
-    }
-  }
-
-  async function pollExportProgress() {
-    try {
-      const progress = await ApiClient.getExportProgress();
-      setExportProgress(progress);
-
-      if (progress.status === 'export_complete' || progress.status === 'export_error') {
-        setIsExporting(false);
-        loadExportSessions();
-      }
-    } catch (error) {
-      console.error('Failed to poll export progress:', error);
+      setProgress(null);
     }
   }
 
   function handleCloseModal() {
-    if (!isExporting) {
-      setShowModal(false);
-      setExportProgress(null);
-    }
+    setSelectedSession(null);
+    setShouldShowModal(false);
   }
 
   function handleSessionClick(session) {
+    setShouldShowModal(true);
     setSelectedSession(session);
   }
 
-  function handleCloseSessionDetail() {
-    setSelectedSession(null);
-  }
-
-  if (isLoading) {
-    return (
-      <div className="export-page">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
   let modalContent = null;
-  if (showModal && exportProgress) {
-    modalContent = (
-      <ExportSessionDetail
-        session={exportProgress}
-        isLiveProgress={true}
-        onClose={handleCloseModal}
-      />
-    );
-  }
-
-  let sessionDetailModal = null;
-  if (selectedSession) {
-    sessionDetailModal = (
-      <ExportSessionDetail
-        session={selectedSession}
-        isLiveProgress={false}
-        onClose={handleCloseSessionDetail}
-      />
-    );
+  if (shouldShowModal) {
+    if (hasActiveExport(progress)) {
+      modalContent = (
+        <ExportSessionDetail
+          session={progress}
+          hasCompleted={false}
+          onClose={handleCloseModal}
+        />
+      );
+    } else if (selectedSession !== null) {
+      modalContent = (
+        <ExportSessionDetail
+          session={selectedSession}
+          hasCompleted={true}
+          onClose={handleCloseModal}
+        />
+      );
+    }
   }
 
   function renderSessionItem(session) {
@@ -208,8 +172,8 @@ export default function ExportPage() {
   }
 
   let sessionsList = null;
-  if (exportSessions.length > 0) {
-    const sessionsItems = exportSessions.map(session => renderSessionItem(session));
+  if (sessions.length > 0) {
+    const sessionsItems = sessions.map(session => renderSessionItem(session));
 
     sessionsList = (
       <div className="export-sessions">
@@ -232,14 +196,17 @@ export default function ExportPage() {
     <div className="page-container export-page">
       <div className="export-content">
         <div className="export-action">
-          <Button variant="primary" onClick={handleStartExport} isDisabled={isExporting}>
+          <Button variant="primary" onClick={handleStartExport} isDisabled={hasActiveExport(progress)}>
             Export
           </Button>
         </div>
         {sessionsList}
       </div>
       {modalContent}
-      {sessionDetailModal}
     </div>
   );
+}
+
+function hasActiveExport(progress) {
+  return progress && progress.status !== '' && progress.status !== 'export_complete' && progress.status !== 'export_error';
 }

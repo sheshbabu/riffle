@@ -206,6 +206,17 @@ async function startExportSession(minRating, curationStatus) {
   return await request('POST', '/api/export/sessions/', { minRating, curationStatus });
 }
 
+/**
+ * @returns {
+ *  Promise<{
+ *    status: '' | 'idle' | 'collecting' | 'exporting' | 'export_complete' | 'export_error',
+ *    completed: number,
+ *    total: number,
+ *    percent: number,
+ *    message: string
+ *  }>
+ * }
+ */
 async function getExportProgress() {
   return await request('GET', '/api/export/sessions/progress/');
 }

@@ -3,10 +3,10 @@ import { ModalBackdrop, ModalContainer, ModalContent } from '../../commons/compo
 import Badge from '../../commons/components/Badge.jsx';
 import formatDateTime from '../../commons/utils/formatDateTime.js';
 
-export default function ExportSessionDetail({ session, isLiveProgress = false, onClose }) {
+export default function ExportSessionDetail({ session, hasCompleted = true, onClose }) {
   let modalBody = null;
 
-  if (isLiveProgress) {
+  if (!hasCompleted) {
     if (session.status === 'export_complete') {
       modalBody = (
         <div className="export-message export-message-success">
