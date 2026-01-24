@@ -22,10 +22,10 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
 
   async function loadAlbums() {
     try {
-      const albumsData = await ApiClient.getAlbums();
-      setAlbums(albumsData);
+      const data = await ApiClient.getAlbums();
+      setAlbums(data);
     } catch (error) {
-      console.error('Failed to load albums:', error);
+      showToast('Failed to load albums');
     }
   }
 
@@ -51,9 +51,9 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
       setNewAlbumName('');
       setNewAlbumDescription('');
       setIsCreatingNew(false);
-      showToast('Album created');
+      showToast('Album created!');
     } catch (error) {
-      console.error('Failed to create album:', error);
+      showToast('Failed to create album');
     } finally {
       setIsLoading(false);
     }
@@ -73,24 +73,10 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
       showToast(`Added ${photoCount} ${pluralize(photoCount, 'photo')} to ${albumCount} ${pluralize(albumCount, 'album')}`);
       onClose();
     } catch (error) {
-      console.error('Failed to add photos to albums:', error);
+      showToast('Failed to add photos to albums');
     } finally {
       setIsLoading(false);
     }
-  }
-
-  const sortedAlbums = [...albums].sort((a, b) => a.name.localeCompare(b.name));
-
-  function renderAlbumCount(album) {
-    let photoCountElement = null;
-    if (album.photoCount > 0) {
-      photoCountElement = (
-        <div className="add-to-album-modal-album-count">
-          {album.photoCount} {pluralize(album.photoCount, 'photo')}
-        </div>
-      );
-    }
-    return photoCountElement;
   }
 
   let newAlbumSection = null;
@@ -126,14 +112,14 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
   }
 
   let albumListItems = null;
-  if (sortedAlbums.length === 0 && !isCreatingNew) {
+  if (albums.length === 0 && !isCreatingNew) {
     albumListItems = (
       <div className="add-to-album-modal-empty">
         No albums yet. Create one to get started.
       </div>
     );
   } else {
-    albumListItems = sortedAlbums.map(album => {
+    albumListItems = albums.map(album => {
       const isSelected = selectedAlbumIds.includes(album.albumId);
       const itemClass = `add-to-album-modal-album-item ${isSelected ? 'is-selected' : ''}`;
 
@@ -142,7 +128,7 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
           <input type="checkbox" checked={isSelected} onChange={() => { }} className="add-to-album-modal-checkbox" />
           <div className="add-to-album-modal-album-info">
             <div className="add-to-album-modal-album-name">{album.name}</div>
-            {renderAlbumCount(album)}
+            <AlbumCount album={album} />
           </div>
         </div>
       );
@@ -164,15 +150,23 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
             {albumListItems}
           </div>
         </ModalContent>
-        <ModalFooter>
-          <Button onClick={handleAddToAlbums} disabled={isLoading || selectedAlbumIds.length === 0} variant="primary">
-            Add to {selectedAlbumIds.length > 0 ? selectedAlbumIds.length : ''} Album{selectedAlbumIds.length !== 1 ? 's' : ''}
-          </Button>
+        <ModalFooter isRightAligned>
           <Button onClick={onClose} variant="secondary">
             Cancel
+          </Button>
+          <Button onClick={handleAddToAlbums} disabled={isLoading || selectedAlbumIds.length === 0} variant="primary">
+            Add to {pluralize(selectedAlbumIds.length, 'album')}
           </Button>
         </ModalFooter>
       </ModalContainer>
     </ModalBackdrop>
+  );
+}
+
+function AlbumCount({ album }) {
+  return (
+    <div className="add-to-album-modal-album-count">
+      {album.photoCount} {pluralize(album.photoCount, 'photo')}
+    </div>
   );
 }
