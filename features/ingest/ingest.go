@@ -367,11 +367,11 @@ func processFilesParallel(files []PhotoFile, workerCount int) []PhotoFile {
 	return files
 }
 
-func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copyMode bool) error {
+func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, importMode string) error {
 	total := len(stats.FilesToImport)
 	sessionID := GetCurrentImportSessionID()
 
-	if copyMode {
+	if importMode == "copy" {
 		slog.Info("starting file copies", "toLibrary", total)
 	} else {
 		slog.Info("starting file moves", "toLibrary", total)
@@ -400,7 +400,7 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copy
 
 		originalPath := photo.Path
 
-		newPath, err := transferFile(photo, libraryPath, copyMode)
+		newPath, err := transferFile(photo, libraryPath, importMode)
 		if err != nil {
 			slog.Error("failed to transfer file to library", "file", photo.Path, "error", err)
 			if sessionID > 0 {
@@ -449,7 +449,7 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copy
 	UpdateProgress(StatusImportingComplete, movedToLibrary, total)
 	cache.InvalidateOnImport()
 
-	if copyMode {
+	if importMode == "copy" {
 		slog.Info("file copies completed", "copiedToLibrary", movedToLibrary)
 	} else {
 		slog.Info("file moves completed", "movedToLibrary", movedToLibrary)
@@ -460,7 +460,7 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copy
 
 	fmt.Println()
 	fmt.Println("=== Execution Summary ===")
-	if copyMode {
+	if importMode == "copy" {
 		fmt.Printf("Files copied to library:  %d\n", movedToLibrary)
 	} else {
 		fmt.Printf("Files moved to library:   %d\n", movedToLibrary)
@@ -472,7 +472,7 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, copy
 	return nil
 }
 
-func transferFile(photo PhotoFile, destDir string, copyMode bool) (string, error) {
+func transferFile(photo PhotoFile, destDir string, importMode string) (string, error) {
 	var dateTime time.Time
 	var hasDateTime bool
 
@@ -539,7 +539,7 @@ func transferFile(photo PhotoFile, destDir string, copyMode bool) (string, error
 		}
 	}
 
-	if copyMode {
+	if importMode == "copy" {
 		if err := copyFile(photo.Path, destPath); err != nil {
 			return "", fmt.Errorf("failed to copy file: %w", err)
 		}

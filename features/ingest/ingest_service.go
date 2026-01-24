@@ -97,12 +97,7 @@ func HandleCreateImportSession(w http.ResponseWriter, r *http.Request) {
 	libraryPath := os.Getenv("LIBRARY_PATH")
 	thumbnailsPath := os.Getenv("THUMBNAILS_PATH")
 
-	importMode, err := settings.GetSetting("import_mode")
-	if err != nil {
-		slog.Error("failed to get import mode setting, using default (copy)", "error", err)
-		importMode = "copy"
-	}
-	copyMode := importMode == "copy"
+	importMode, _ := settings.GetSetting("import_mode")
 
 	ClearResults()
 	UpdateProgress(StatusScanning, 0, 0)
@@ -136,7 +131,7 @@ func HandleCreateImportSession(w http.ResponseWriter, r *http.Request) {
 		UpdateProgress(StatusScanningComplete, stats.TotalScanned, stats.TotalScanned)
 		slog.Info("scan complete, starting import", "totalScanned", stats.TotalScanned)
 
-		if err := ExecuteMoves(libraryPath, thumbnailsPath, stats, copyMode); err != nil {
+		if err := ExecuteMoves(libraryPath, thumbnailsPath, stats, importMode); err != nil {
 			slog.Error("failed to execute import", "error", err)
 			if sessionID > 0 {
 				CompleteImportSession(sessionID, stats, startedAt, err.Error())
@@ -149,7 +144,7 @@ func HandleCreateImportSession(w http.ResponseWriter, r *http.Request) {
 		}
 
 		SetResults(stats)
-		slog.Info("import complete", "movedToLibrary", stats.MovedToLibrary, "copyMode", copyMode)
+		slog.Info("import complete", "movedToLibrary", stats.MovedToLibrary, "importMode", importMode)
 	}()
 
 	w.Header().Set("Content-Type", "application/json")
