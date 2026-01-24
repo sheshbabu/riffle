@@ -4,7 +4,7 @@ import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
 const { useState, useEffect } = React;
 
 export default function ImportPane() {
-  const [importMode, setImportMode] = useState('move');
+  const [importMode, setImportMode] = useState('copy');
   const [duplicateHandling, setDuplicateHandling] = useState('keep');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -15,8 +15,8 @@ export default function ImportPane() {
   async function loadSettings() {
     try {
       const settings = await ApiClient.getSettings();
-      setImportMode(settings.import_mode || 'move');
-      setDuplicateHandling(settings.import_duplicate_handling || 'keep');
+      setImportMode(settings.import_mode);
+      setDuplicateHandling(settings.import_duplicate_handling);
     } catch (error) {
       console.error('Failed to load settings:', error);
     } finally {

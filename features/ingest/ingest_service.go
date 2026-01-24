@@ -99,8 +99,8 @@ func HandleCreateImportSession(w http.ResponseWriter, r *http.Request) {
 
 	importMode, err := settings.GetSetting("import_mode")
 	if err != nil {
-		slog.Error("failed to get import mode setting, using default (move)", "error", err)
-		importMode = "move"
+		slog.Error("failed to get import mode setting, using default (copy)", "error", err)
+		importMode = "copy"
 	}
 	copyMode := importMode == "copy"
 
