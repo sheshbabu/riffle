@@ -6,6 +6,7 @@ import LoadingContainer from '../../commons/components/LoadingContainer.jsx';
 import MessageBox from '../../commons/components/MessageBox.jsx';
 import { FolderIcon } from '../../commons/components/Icon.jsx';
 import AddToAlbumModal from './AddToAlbumModal.jsx';
+import getThumbnailUrl from '../../commons/utils/getThumbnailUrl.js';
 import pluralize from '../../commons/utils/pluralize.js';
 import './AlbumsPage.css';
 
@@ -25,8 +26,8 @@ export default function AlbumsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const albumsData = await ApiClient.getAlbums();
-      setAlbums(albumsData);
+      const data = await ApiClient.getAlbums();
+      setAlbums(data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -67,49 +68,12 @@ export default function AlbumsPage() {
       />
     );
   } else {
-    const sortedAlbums = [...albums].sort((a, b) => a.name.localeCompare(b.name));
-
-    const albumCards = sortedAlbums.map(album => {
-      let coverImage = null;
-      if (album.coverPath) {
-        const thumbnailUrl = `/api/thumbnails/?path=${encodeURIComponent(btoa(album.coverPath))}`;
-        coverImage = (<img src={thumbnailUrl} alt={album.name} className="albums-page-card-cover" />);
-      } else {
-        coverImage = (
-          <div className="albums-page-card-cover-placeholder">
-            <FolderIcon />
-          </div>
-        );
-      }
-
-      return (
-        <Link key={album.albumId} to={`/albums/${album.albumId}`} className="albums-page-card">
-          {coverImage}
-          <div className="albums-page-card-info">
-            <div className="albums-page-card-name">{album.name}</div>
-            <div className="albums-page-card-count">
-              {album.photoCount} {pluralize(album.photoCount, 'photo')}
-            </div>
-          </div>
-        </Link>
-      );
-    });
-
-    content = (
-      <div className="albums-page-grid">
-        {albumCards}
-      </div>
-    );
+    content = <AlbumGrid albums={albums} />
   }
 
-  let createModal = null;
+  let modalContent = null;
   if (isCreatingNew) {
-    createModal = (
-      <AddToAlbumModal
-        selectedPhotos={[]}
-        onClose={handleModalClose}
-      />
-    );
+    modalContent = <AddToAlbumModal selectedPhotos={[]} onClose={handleModalClose} />;
   }
 
   let headerButton = null;
@@ -128,7 +92,41 @@ export default function AlbumsPage() {
         {headerButton}
       </div>
       {content}
-      {createModal}
+      {modalContent}
+    </div>
+  );
+}
+
+function AlbumGrid({ albums }) {
+  const cards = albums.map(album => {
+    let coverImage = null;
+    if (album.coverPath) {
+      const thumbnailUrl = getThumbnailUrl(album.coverPath);
+      coverImage = (<img src={thumbnailUrl} alt={album.name} className="albums-page-card-cover" />);
+    } else {
+      coverImage = (
+        <div className="albums-page-card-cover-placeholder">
+          <FolderIcon />
+        </div>
+      );
+    }
+
+    return (
+      <Link key={album.albumId} to={`/albums/${album.albumId}`} className="albums-page-card">
+        {coverImage}
+        <div className="albums-page-card-info">
+          <div className="albums-page-card-name">{album.name}</div>
+          <div className="albums-page-card-count">
+            {album.photoCount} {pluralize(album.photoCount, 'photo')}
+          </div>
+        </div>
+      </Link>
+    );
+  });
+
+  return (
+    <div className="albums-page-grid">
+      {cards}
     </div>
   );
 }

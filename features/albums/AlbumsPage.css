@@ -1,61 +1,60 @@
-
 .albums-page-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 24px;
   margin-top: 24px;
-}
 
-.albums-page-card {
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-secondary);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.15s ease;
-  cursor: pointer;
-  text-decoration: none;
-  box-shadow: none;
-  transition: box-shadow 300ms ease;
+  .albums-page-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: none;
+    transition: box-shadow 300ms ease;
 
-  &:hover {
-    box-shadow: var(--shadow-3);
+    &:hover {
+      box-shadow: var(--shadow-3);
+    }
+
+    .albums-page-card-cover {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      background: var(--neutral-100);
+    }
+
+    .albums-page-card-cover-placeholder {
+      width: 100%;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--neutral-100);
+      color: var(--neutral-400);
+
+      svg {
+        width: 64px;
+        height: 64px;
+      }
+    }
+
+    .albums-page-card-info {
+      padding: 16px;
+
+      .albums-page-card-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .albums-page-card-count {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+    }
   }
-}
-
-.albums-page-card-cover {
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-  background: var(--neutral-100);
-}
-
-.albums-page-card-cover-placeholder {
-  width: 100%;
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--neutral-100);
-  color: var(--neutral-400);
-
-  svg {
-    width: 64px;
-    height: 64px;
-  }
-}
-
-.albums-page-card-info {
-  padding: 16px;
-}
-
-.albums-page-card-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.albums-page-card-count {
-  font-size: 13px;
-  color: var(--text-secondary);
 }

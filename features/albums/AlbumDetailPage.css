@@ -1,20 +1,4 @@
-.album-detail-page {
-  padding-top: var(--spacing-4);
-}
-
-.album-detail-page-header {
-  margin-bottom: 24px;
-  padding: 0 8px;
-}
-
-.album-detail-page-description {
-  color: var(--text-secondary);
-  margin: 0 0 12px 0;
-  font-size: 15px;
-}
-
-.album-detail-page-meta {
+.album-detail-page-count {
   color: var(--neutral-500);
   font-size: 14px;
 }
-

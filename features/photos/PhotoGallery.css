@@ -2,11 +2,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: var(--spacing-4);
-  padding: var(--spacing-2);
-}
-
-.group-gallery {
-  padding: var(--spacing-2);
 }
 
 .group-container {

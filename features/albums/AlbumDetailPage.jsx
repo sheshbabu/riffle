@@ -20,17 +20,16 @@ export default function AlbumDetailPage({ albumId }) {
   const [error, setError] = useState(null);
 
   useEffect(function () {
-    loadAlbumData();
+    loadAlbum();
   }, [albumId]);
 
-  async function loadAlbumData() {
+  async function loadAlbum() {
     setIsLoading(true);
     setError(null);
 
     try {
       const albumData = await ApiClient.getAlbum(albumId);
       setAlbum(albumData);
-
       const albumPhotos = await ApiClient.getAlbumPhotos(albumId);
       setPhotos(albumPhotos);
     } catch (err) {
@@ -56,7 +55,7 @@ export default function AlbumDetailPage({ albumId }) {
       await ApiClient.removePhotosFromAlbum(albumId, selectedPhotoPaths);
       showToast(`Removed ${selectedPhotoPaths.length} photo${selectedPhotoPaths.length > 1 ? 's' : ''} from album`);
       setSelectedIndices(new Set());
-      loadAlbumData();
+      loadAlbum();
     } catch (error) {
       console.error('Failed to remove photos from album:', error);
     }
@@ -97,15 +96,10 @@ export default function AlbumDetailPage({ albumId }) {
   }
 
   let albumTitle = 'Album';
-  let albumDescription = null;
   let photoCount = 0;
-
   if (album) {
     albumTitle = album.name;
     photoCount = album.photoCount;
-    if (album.description) {
-      albumDescription = <p className="album-detail-page-description">{album.description}</p>;
-    }
   }
 
   let removeButton = null;
@@ -123,16 +117,14 @@ export default function AlbumDetailPage({ albumId }) {
   }
 
   return (
-    <div className="page-container album-detail-page">
-      <div className="album-detail-page-header">
-        <h3 className="album-detail-page-title">{albumTitle}</h3>
-        {albumDescription}
-        <div className="album-detail-page-meta">
-          {photoCount} {pluralize(photoCount, 'photo')}
-        </div>
-      </div>
-
+    <div className="page-container">
       <div className="page-header">
+        <div>
+          <h3>{albumTitle}</h3>
+          <div className="album-detail-page-count">
+            {photoCount} {pluralize(photoCount, 'photo')}
+          </div>
+        </div>
         {selectionCountElement}
         {removeButton}
       </div>

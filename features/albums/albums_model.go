@@ -29,10 +29,14 @@ func GetAllAlbums() ([]Album, error) {
 			COALESCE(MIN(ap.file_path), '') as cover_path,
 			a.created_at,
 			a.updated_at
-		FROM albums a
-		LEFT JOIN album_photos ap ON a.album_id = ap.album_id
-		GROUP BY a.album_id
-		ORDER BY a.name ASC
+		FROM
+			albums a
+		LEFT JOIN
+			album_photos ap ON a.album_id = ap.album_id
+		GROUP BY
+			a.album_id
+		ORDER BY
+			a.name ASC
 	`
 
 	rows, err := sqlite.DB.Query(query)
@@ -75,10 +79,14 @@ func GetAlbumByID(albumID int) (*Album, error) {
 			COALESCE(MIN(ap.file_path), '') as cover_path,
 			a.created_at,
 			a.updated_at
-		FROM albums a
-		LEFT JOIN album_photos ap ON a.album_id = ap.album_id
-		WHERE a.album_id = ?
-		GROUP BY a.album_id
+		FROM
+			albums a
+		LEFT JOIN
+			album_photos ap ON a.album_id = ap.album_id
+		WHERE
+			a.album_id = ?
+		GROUP BY
+			a.album_id
 	`
 
 	var album Album
@@ -105,10 +113,14 @@ func GetAlbumByID(albumID int) (*Album, error) {
 }
 
 func CreateAlbum(name, description string) (*Album, error) {
-	result, err := sqlite.DB.Exec(
-		"INSERT INTO albums (name, description) VALUES (?, ?)",
-		name, description,
-	)
+	query := `
+		INSERT INTO
+			albums (name, description)
+		VALUES
+			(?, ?)
+	`
+
+	result, err := sqlite.DB.Exec(query, name, description)
 	if err != nil {
 		err = fmt.Errorf("failed to create album: %w", err)
 		slog.Error(err.Error())
@@ -134,7 +146,14 @@ func AddPhotosToAlbum(albumID int, filePaths []string) error {
 	}
 	defer tx.Rollback()
 
-	stmt, err := tx.Prepare("INSERT OR IGNORE INTO album_photos (album_id, file_path) VALUES (?, ?)")
+	query := `
+		INSERT OR IGNORE INTO
+			album_photos (album_id, file_path)
+		VALUES
+			(?, ?)
+	`
+
+	stmt, err := tx.Prepare(query)
 	if err != nil {
 		err = fmt.Errorf("failed to prepare statement: %w", err)
 		slog.Error(err.Error())
@@ -151,7 +170,16 @@ func AddPhotosToAlbum(albumID int, filePaths []string) error {
 		}
 	}
 
-	_, err = tx.Exec("UPDATE albums SET updated_at = CURRENT_TIMESTAMP WHERE album_id = ?", albumID)
+	updateQuery := `
+		UPDATE
+			albums
+		SET
+			updated_at = CURRENT_TIMESTAMP
+		WHERE
+			album_id = ?
+	`
+
+	_, err = tx.Exec(updateQuery, albumID)
 	if err != nil {
 		err = fmt.Errorf("failed to update album timestamp: %w", err)
 		slog.Error(err.Error())
@@ -176,7 +204,14 @@ func RemovePhotosFromAlbum(albumID int, filePaths []string) error {
 	}
 	defer tx.Rollback()
 
-	stmt, err := tx.Prepare("DELETE FROM album_photos WHERE album_id = ? AND file_path = ?")
+	query := `
+		DELETE FROM
+			album_photos
+		WHERE
+			album_id = ? AND file_path = ?
+	`
+
+	stmt, err := tx.Prepare(query)
 	if err != nil {
 		err = fmt.Errorf("failed to prepare statement: %w", err)
 		slog.Error(err.Error())
@@ -193,7 +228,16 @@ func RemovePhotosFromAlbum(albumID int, filePaths []string) error {
 		}
 	}
 
-	_, err = tx.Exec("UPDATE albums SET updated_at = CURRENT_TIMESTAMP WHERE album_id = ?", albumID)
+	updateQuery := `
+		UPDATE
+			albums
+		SET
+			updated_at = CURRENT_TIMESTAMP
+		WHERE
+			album_id = ?
+	`
+
+	_, err = tx.Exec(updateQuery, albumID)
 	if err != nil {
 		err = fmt.Errorf("failed to update album timestamp: %w", err)
 		slog.Error(err.Error())
@@ -210,7 +254,14 @@ func RemovePhotosFromAlbum(albumID int, filePaths []string) error {
 }
 
 func GetPhotoAlbums(filePath string) ([]int, error) {
-	query := "SELECT album_id FROM album_photos WHERE file_path = ?"
+	query := `
+		SELECT
+			album_id
+		FROM
+			album_photos
+		WHERE
+			file_path = ?
+	`
 	rows, err := sqlite.DB.Query(query, filePath)
 	if err != nil {
 		err = fmt.Errorf("failed to get photo albums: %w", err)
@@ -233,7 +284,16 @@ func GetPhotoAlbums(filePath string) ([]int, error) {
 }
 
 func GetAlbumPhotoPaths(albumID int) ([]string, error) {
-	query := "SELECT file_path FROM album_photos WHERE album_id = ? ORDER BY created_at DESC"
+	query := `
+		SELECT
+			file_path
+		FROM
+			album_photos
+		WHERE
+			album_id = ?
+		ORDER BY
+			created_at DESC
+	`
 	rows, err := sqlite.DB.Query(query, albumID)
 	if err != nil {
 		err = fmt.Errorf("failed to get album photos: %w", err)
@@ -274,10 +334,14 @@ func GetAlbumPhotosWithMetadata(albumID int) ([]map[string]interface{}, error) {
 			p.is_curated,
 			p.is_trashed,
 			p.notes
-		FROM photos p
-		INNER JOIN album_photos ap ON p.file_path = ap.file_path
-		WHERE ap.album_id = ?
-		ORDER BY p.date_time DESC
+		FROM
+			photos p
+		INNER JOIN
+			album_photos ap ON p.file_path = ap.file_path
+		WHERE
+			ap.album_id = ?
+		ORDER BY
+			p.date_time DESC
 	`
 
 	rows, err := sqlite.DB.Query(query, albumID)
@@ -358,14 +422,28 @@ func DeleteAlbum(albumID int) error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("DELETE FROM album_photos WHERE album_id = ?", albumID)
+	deletePhotosQuery := `
+		DELETE FROM
+			album_photos
+		WHERE
+			album_id = ?
+	`
+
+	_, err = tx.Exec(deletePhotosQuery, albumID)
 	if err != nil {
 		err = fmt.Errorf("failed to delete album photos: %w", err)
 		slog.Error(err.Error())
 		return err
 	}
 
-	_, err = tx.Exec("DELETE FROM albums WHERE album_id = ?", albumID)
+	deleteAlbumQuery := `
+		DELETE FROM
+			albums
+		WHERE
+			album_id = ?
+	`
+
+	_, err = tx.Exec(deleteAlbumQuery, albumID)
 	if err != nil {
 		err = fmt.Errorf("failed to delete album: %w", err)
 		slog.Error(err.Error())
