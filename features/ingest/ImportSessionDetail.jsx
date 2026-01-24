@@ -6,10 +6,10 @@ import formatCount from '../../commons/utils/formatCount.js';
 
 const stepOrder = ["scanning", "hashing", "checking_imported", "finding_duplicates", "scanning_complete", "importing", "importing_complete"];
 
-export default function ImportSessionDetail({ session, isLiveProgress = false, importMode, onClose }) {
+export default function ImportSessionDetail({ session, hasCompleted = true, importMode, onClose }) {
   let modalBody = null;
 
-  if (isLiveProgress) {
+  if (!hasCompleted) {
     modalBody = (
       <div className="import-progress-container">
         <div className="import-help">This may take a few minutes depending on folder size.</div>

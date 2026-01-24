@@ -184,6 +184,16 @@ async function startImportSession(payload) {
   return await request('POST', '/api/import/sessions/', payload);
 }
 
+/**
+ * @returns {
+ *  Promise<{
+ *    status: '' | 'scanning' | 'hashing' | 'checking_imported' | 'finding_duplicates' | 'scanning_complete' | 'importing' | 'importing_complete',
+ *    completed: number,
+ *    total: number,
+ *    percent: number
+ *  }>
+ * }
+ */
 async function getImportProgress() {
   return await request('GET', '/api/import/sessions/progress/');
 }

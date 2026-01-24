@@ -2,23 +2,20 @@ import ApiClient from '../../commons/http/ApiClient.js';
 import Badge from '../../commons/components/Badge.jsx';
 import Button from '../../commons/components/Button.jsx';
 import ImportSessionDetail from './ImportSessionDetail.jsx';
-import DuplicateGroups from './DuplicateGroups.jsx';
 import formatDateTime from '../../commons/utils/formatDateTime.js';
 import formatDuration from '../../commons/utils/formatDuration.js';
 import '../../commons/components/Badge.css';
 import './ImportPage.css';
 
 const { useState, useEffect } = React;
+const POLL_INTERVAL = 5 * 1000; // 5s
 
 export default function ImportPage() {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [phase, setPhase] = useState('idle'); // 'idle' | 'scanning' | 'importing' | 'complete'
-  const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(null);
-  const [importMode, setImportMode] = useState('move');
-  const [importSessions, setImportSessions] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [settings, setSettings] = useState(null);
   const [selectedSession, setSelectedSession] = useState(null);
+  const [shouldShowModal, setShouldShowModal] = useState(false); // shows on import click and page nav while active import
 
   useEffect(() => {
     loadSettings();
@@ -26,34 +23,44 @@ export default function ImportPage() {
     checkActiveImport();
   }, []);
 
+  useEffect(() => {
+    document.title = getProgressTitle(progress);
+
+    if (!hasActiveImport(progress)) {
+      return;
+    }
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const data = await ApiClient.getImportProgress();
+        setProgress(data);
+        if (data.status === 'importing_complete') {
+          loadImportSessions();
+        }
+      } catch (error) {
+        // Continue
+      }
+    }, POLL_INTERVAL);
+
+    return () => clearInterval(pollInterval);
+  }, [progress]);
+
   async function checkActiveImport() {
     try {
-      const progressData = await ApiClient.getImportProgress();
-      if (progressData && progressData.status !== "" && progressData.status !== 'importing_complete') {
-        setProgress(progressData);
-        setIsProcessing(true);
-        setPhase('importing');
-        setShowModal(true);
+      const data = await ApiClient.getImportProgress();
+      if (hasActiveImport(data)) {
+        setProgress(data);
+        setShouldShowModal(true);
       }
     } catch (error) {
       // No active import
     }
   }
 
-  useEffect(() => {
-    document.title = getProgressTitle(phase, progress, importMode);
-  }, [phase, progress, importMode]);
-
-  useEffect(() => {
-    if (showModal && !progress) {
-      setShowModal(false);
-    }
-  }, [showModal, progress]);
-
   async function loadSettings() {
     try {
-      const settings = await ApiClient.getSettings();
-      setImportMode(settings.import_mode || 'move');
+      const data = await ApiClient.getSettings();
+      setSettings(data);
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
@@ -62,67 +69,29 @@ export default function ImportPage() {
   async function loadImportSessions() {
     try {
       const sessions = await ApiClient.getImportSessions();
-      setImportSessions(sessions);
+      setSessions(sessions);
     } catch (error) {
       console.error('Failed to load import sessions:', error);
     }
   }
 
-  useEffect(() => {
-    if (phase === 'idle' || phase === 'complete') {
-      return;
-    }
-
-    const pollInterval = setInterval(async () => {
-      try {
-        const progressData = await ApiClient.getImportProgress();
-        setProgress(progressData);
-
-        // Complete importing
-        if (progressData.status === 'importing_complete') {
-          setPhase('complete');
-          setIsProcessing(false);
-          setResults({ imported: true });
-          loadImportSessions();
-          setShowModal(false);
-        }
-      } catch (error) {
-        // Progress not ready yet, keep polling
-      }
-    }, 1000);
-
-    return () => clearInterval(pollInterval);
-  }, [phase, importMode]);
-
   async function handleImportClick() {
-    setIsProcessing(true);
-    setPhase('scanning');
-    setResults(null);
-    setProgress({ status: 'scanning', completed: 0, total: 0, percent: 0 });
-    setShowModal(true);
-
     try {
       await ApiClient.startImportSession({});
+      await checkActiveImport();
     } catch (error) {
-      setIsProcessing(false);
-      setPhase('idle');
       setProgress(null);
-      setShowModal(false);
     }
   }
 
   function handleCloseModal() {
-    if (!isProcessing) {
-      setShowModal(false);
-    }
+    setSelectedSession(null);
+    setShouldShowModal(false);
   }
 
   function handleSessionClick(session) {
+    setShouldShowModal(true);
     setSelectedSession(session);
-  }
-
-  function handleCloseSessionDetail() {
-    setSelectedSession(null);
   }
 
   function renderSessionItem(session) {
@@ -138,8 +107,6 @@ export default function ImportPage() {
     }
 
     const durationText = formatDuration(session.duration_seconds);
-
-    const modeText = session.import_mode === 'copy' ? 'Copy' : 'Move';
 
     let alreadyImportedStat = null;
     if (session.already_imported > 0) {
@@ -173,7 +140,7 @@ export default function ImportPage() {
             {formattedDateTime}
           </div>
           <div className="session-tags">
-            <Badge variant="neutral">{modeText}</Badge>
+            <Badge variant="neutral">{session.import_mode}</Badge>
             {statusBadge}
           </div>
         </div>
@@ -193,8 +160,8 @@ export default function ImportPage() {
   }
 
   let sessionsList = null;
-  if (importSessions.length > 0) {
-    const sessionsItems = importSessions.map(session => renderSessionItem(session));
+  if (sessions.length > 0) {
+    const sessionsItems = sessions.map(session => renderSessionItem(session));
 
     sessionsList = (
       <div className="import-sessions">
@@ -214,49 +181,42 @@ export default function ImportPage() {
   }
 
   let modalContent = null;
-  if (showModal && progress) {
-    modalContent = (
-      <ImportSessionDetail
-        session={progress}
-        isLiveProgress={true}
-        importMode={importMode}
-        onClose={handleCloseModal}
-      />
-    );
-  }
-
-  let sessionDetailModal = null;
-  if (selectedSession) {
-    sessionDetailModal = (
-      <ImportSessionDetail
-        session={selectedSession}
-        isLiveProgress={false}
-        importMode={selectedSession.import_mode}
-        onClose={handleCloseSessionDetail}
-      />
-    );
+  if (shouldShowModal) {
+    if (selectedSession !== null) {
+      modalContent = (
+        <ImportSessionDetail
+          session={selectedSession}
+          hasCompleted={true}
+          importMode={selectedSession.import_mode}
+          onClose={handleCloseModal}
+        />
+      );
+    } else if (hasActiveImport(progress)) {
+      modalContent = (
+        <ImportSessionDetail
+          session={progress}
+          hasCompleted={false}
+          importMode={settings.import_mode}
+          onClose={handleCloseModal}
+        />
+      );
+    }
   }
 
   return (
     <div className="page-container import-page">
       <div className="import-action">
-        <Button variant="primary" onClick={handleImportClick} isDisabled={isProcessing}>
+        <Button variant="primary" onClick={handleImportClick} isDisabled={hasActiveImport(progress)}>
           Import
         </Button>
       </div>
-      <DuplicateGroups duplicates={results?.duplicates} importPath={results?.importPath} hasResults={results != null} />
       {sessionsList}
       {modalContent}
-      {sessionDetailModal}
     </div>
   );
 }
 
-function getProgressTitle(phase, progress) {
-  if (phase === 'idle' || phase === 'complete') {
-    return 'riffle';
-  }
-
+function getProgressTitle(progress) {
   if (progress === null) {
     return 'riffle';
   }
@@ -276,4 +236,8 @@ function getProgressTitle(phase, progress) {
   }
 
   return titlePrefix ? `${titlePrefix} - riffle` : 'riffle';
+}
+
+function hasActiveImport(progress) {
+  return progress && progress.status !== '' && progress.status !== 'importing_complete'
 }
