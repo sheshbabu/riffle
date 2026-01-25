@@ -10,6 +10,21 @@ export default function ThumbnailRebuildSection() {
   const pollingIntervalRef = useRef(null);
 
   useEffect(() => {
+    async function checkOngoingRebuild() {
+      try {
+        const progressData = await ApiClient.getThumbnailRebuildProgress();
+        if (progressData.status === 'processing') {
+          setIsProcessing(true);
+          setProgress(progressData);
+          startPollingProgress();
+        }
+      } catch (error) {
+        console.error('Failed to check thumbnail rebuild status', error);
+      }
+    }
+
+    checkOngoingRebuild();
+
     return () => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);

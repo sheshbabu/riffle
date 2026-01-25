@@ -13,8 +13,6 @@ import (
 func RebuildThumbnails(libraryPath, thumbnailsPath string) error {
 	slog.Info("starting thumbnail rebuild")
 
-	UpdateThumbnailProgress(StatusThumbnailRebuildProcessing, 0, 0)
-
 	allPhotos, err := GetAllPhotos()
 	if err != nil {
 		err = fmt.Errorf("failed to get photos from database: %w", err)
@@ -58,7 +56,7 @@ func RebuildThumbnails(libraryPath, thumbnailsPath string) error {
 		}
 
 		completed.Add(1)
-		if completed.Load()%100 == 0 {
+		if completed.Load()%10 == 0 || int(completed.Load()) == totalPhotos {
 			UpdateThumbnailProgress(StatusThumbnailRebuildProcessing, int(completed.Load()), totalPhotos)
 		}
 	}
