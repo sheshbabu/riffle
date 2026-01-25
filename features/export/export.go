@@ -50,11 +50,62 @@ func StartExport(exportPath string, criteria ExportCriteria) {
 }
 
 func ProcessExport(exportPath string, criteria ExportCriteria, exportID int64) (*ExportResult, error) {
+	cleanupEnabled, err := settings.GetExportCleanupEnabled()
+	if err != nil {
+		slog.Warn("failed to get export cleanup setting, using default", "error", err)
+		cleanupEnabled = false
+	}
+
+	if cleanupEnabled {
+		slog.Info("cleaning export directory", "path", exportPath)
+		if err := cleanupExportDirectory(exportPath); err != nil {
+			errMsg := fmt.Sprintf("failed to cleanup export directory: %v", err)
+			UpdateProgress(StatusExportError, 0, 0, errMsg)
+			if exportID > 0 {
+				UpdateExportSessionStatus(exportID, "error")
+			}
+			return nil, fmt.Errorf("cleanup failed: %w", err)
+		}
+	}
+
 	UpdateProgress(StatusCollecting, 0, 0, "Collecting photos to export")
 
 	photos, err := getPhotosForExport(criteria)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get photos for export: %w", err)
+	}
+
+	deduplicationEnabled, err := settings.GetExportDeduplicationEnabled()
+	if err != nil {
+		slog.Warn("failed to get export deduplication setting, using default", "error", err)
+		deduplicationEnabled = true
+	}
+
+	if deduplicationEnabled {
+		filteredPhotos := []PhotoToExport{}
+		skippedCount := 0
+
+		for _, photo := range photos {
+			wasExported, err := WasPhotoExported(photo.FilePath)
+			if err != nil {
+				slog.Error("error checking export history", "error", err)
+				continue
+			}
+
+			if wasExported {
+				skippedCount++
+				if exportID > 0 {
+					RecordExportedPhoto(exportID, photo.FilePath, "skipped", "already exported")
+				}
+			} else {
+				filteredPhotos = append(filteredPhotos, photo)
+			}
+		}
+
+		photos = filteredPhotos
+		if exportID > 0 && skippedCount > 0 {
+			UpdateExportSessionSkippedCount(exportID, skippedCount)
+		}
 	}
 
 	result := &ExportResult{
@@ -76,10 +127,16 @@ func ProcessExport(exportPath string, criteria ExportCriteria, exportID int64) (
 		UpdateExportSessionStatus(exportID, "exporting")
 	}
 
+	organizationMode, err := settings.GetExportOrganizationMode()
+	if err != nil {
+		slog.Warn("failed to get export organization mode, using default", "error", err)
+		organizationMode = settings.ExportOrgOrganized
+	}
+
 	for i, photo := range photos {
 		UpdateProgress(StatusExporting, i, len(photos), fmt.Sprintf("Exporting %d/%d", i+1, len(photos)))
 
-		if err := exportPhoto(photo, exportPath); err != nil {
+		if err := exportPhoto(photo, exportPath, organizationMode); err != nil {
 			slog.Error("error exporting photo", "error", err, "path", photo.FilePath)
 			result.ErrorCount++
 			if exportID > 0 {
@@ -145,8 +202,44 @@ func getPhotosForExport(criteria ExportCriteria) ([]PhotoToExport, error) {
 	return photos, nil
 }
 
-func exportPhoto(photo PhotoToExport, exportPath string) error {
-	destPath := filepath.Join(exportPath, filepath.Base(photo.FilePath))
+func cleanupExportDirectory(exportPath string) error {
+	entries, err := os.ReadDir(exportPath)
+	if err != nil {
+		return fmt.Errorf("failed to read export directory: %w", err)
+	}
+
+	for _, entry := range entries {
+		path := filepath.Join(exportPath, entry.Name())
+		if err := os.RemoveAll(path); err != nil {
+			slog.Error("failed to delete export file", "path", path, "error", err)
+			return fmt.Errorf("failed to delete %s: %w", path, err)
+		}
+		slog.Info("deleted export file", "path", path)
+	}
+
+	return nil
+}
+
+func exportPhoto(photo PhotoToExport, exportPath string, organizationMode settings.ExportOrganizationMode) error {
+	var destPath string
+
+	if organizationMode == settings.ExportOrgOrganized {
+		var destDir string
+		if !photo.DateTime.Valid {
+			destDir = filepath.Join(exportPath, "Unknown")
+		} else {
+			year := photo.DateTime.Time.Format("2006")
+			month := photo.DateTime.Time.Format("01 - January")
+			destDir = filepath.Join(exportPath, year, month)
+		}
+
+		if err := os.MkdirAll(destDir, 0755); err != nil {
+			return fmt.Errorf("error creating destination directory: %w", err)
+		}
+		destPath = filepath.Join(destDir, filepath.Base(photo.FilePath))
+	} else {
+		destPath = filepath.Join(exportPath, filepath.Base(photo.FilePath))
+	}
 
 	sourceFile, err := os.Open(photo.FilePath)
 	if err != nil {

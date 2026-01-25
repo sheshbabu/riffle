@@ -1,5 +1,6 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
+import { showToast } from '../../commons/components/Toast.jsx';
 import './ExportPane.css';
 
 const { useState, useEffect } = React;
@@ -7,6 +8,9 @@ const { useState, useEffect } = React;
 export default function ExportPane() {
   const [minRating, setMinRating] = useState('0');
   const [curationStatus, setCurationStatus] = useState('pick');
+  const [organizationMode, setOrganizationMode] = useState('organized');
+  const [deduplicationEnabled, setDeduplicationEnabled] = useState('true');
+  const [cleanupEnabled, setCleanupEnabled] = useState('false');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -18,6 +22,9 @@ export default function ExportPane() {
       const settings = await ApiClient.getSettings();
       setMinRating(settings.export_min_rating || '0');
       setCurationStatus(settings.export_curation_status || 'pick');
+      setOrganizationMode(settings.export_organization_mode || 'organized');
+      setDeduplicationEnabled(settings.export_deduplication_enabled || 'true');
+      setCleanupEnabled(settings.export_cleanup_enabled || 'false');
     } catch (error) {
       console.error('Failed to load settings:', error);
     } finally {
@@ -30,9 +37,11 @@ export default function ExportPane() {
     setMinRating(newValue);
     try {
       await ApiClient.updateSetting('export_min_rating', newValue);
+      showToast('Minimum rating updated');
     } catch (error) {
       console.error('Failed to save setting:', error);
       setMinRating(previousValue);
+      showToast('Failed to update setting');
     }
   }
 
@@ -41,9 +50,50 @@ export default function ExportPane() {
     setCurationStatus(newValue);
     try {
       await ApiClient.updateSetting('export_curation_status', newValue);
+      showToast('Curation status updated');
     } catch (error) {
       console.error('Failed to save setting:', error);
       setCurationStatus(previousValue);
+      showToast('Failed to update setting');
+    }
+  }
+
+  async function handleOrganizationModeChange(newValue) {
+    const previousValue = organizationMode;
+    setOrganizationMode(newValue);
+    try {
+      await ApiClient.updateSetting('export_organization_mode', newValue);
+      showToast('Organization mode updated');
+    } catch (error) {
+      console.error('Failed to save setting:', error);
+      setOrganizationMode(previousValue);
+      showToast('Failed to update setting');
+    }
+  }
+
+  async function handleDeduplicationEnabledChange(newValue) {
+    const previousValue = deduplicationEnabled;
+    setDeduplicationEnabled(newValue);
+    try {
+      await ApiClient.updateSetting('export_deduplication_enabled', newValue);
+      showToast('Deduplication setting updated');
+    } catch (error) {
+      console.error('Failed to save setting:', error);
+      setDeduplicationEnabled(previousValue);
+      showToast('Failed to update setting');
+    }
+  }
+
+  async function handleCleanupEnabledChange(newValue) {
+    const previousValue = cleanupEnabled;
+    setCleanupEnabled(newValue);
+    try {
+      await ApiClient.updateSetting('export_cleanup_enabled', newValue);
+      showToast('Cleanup setting updated');
+    } catch (error) {
+      console.error('Failed to save setting:', error);
+      setCleanupEnabled(previousValue);
+      showToast('Failed to update setting');
     }
   }
 
@@ -69,6 +119,21 @@ export default function ExportPane() {
     { value: 'pick', label: 'Picked Only' }
   ];
 
+  const organizationOptions = [
+    { value: 'organized', label: 'Organized' },
+    { value: 'flat', label: 'Flat' }
+  ];
+
+  const deduplicationOptions = [
+    { value: 'true', label: 'Skip Duplicates' },
+    { value: 'false', label: 'Export All' }
+  ];
+
+  const cleanupOptions = [
+    { value: 'false', label: 'Keep Existing' },
+    { value: 'true', label: 'Clear Folder' }
+  ];
+
   return (
     <div className="settings-tab-content">
       <h3>Export Settings</h3>
@@ -91,6 +156,36 @@ export default function ExportPane() {
           options={curationOptions}
           value={curationStatus}
           onChange={handleCurationStatusChange}
+        />
+      </div>
+
+      <div className="settings-section">
+        <h4>Organization</h4>
+        <p>Choose folder structure for exported photos. Organized mode mirrors library structure with Year/Month folders.</p>
+        <SegmentedControl
+          options={organizationOptions}
+          value={organizationMode}
+          onChange={handleOrganizationModeChange}
+        />
+      </div>
+
+      <div className="settings-section">
+        <h4>Previously Exported Photos</h4>
+        <p>Choose whether to skip photos that have already been exported in previous sessions.</p>
+        <SegmentedControl
+          options={deduplicationOptions}
+          value={deduplicationEnabled}
+          onChange={handleDeduplicationEnabledChange}
+        />
+      </div>
+
+      <div className="settings-section">
+        <h4>Export Folder Cleanup</h4>
+        <p>Choose whether to clear export folder before each export. Clear requires confirmation before starting export.</p>
+        <SegmentedControl
+          options={cleanupOptions}
+          value={cleanupEnabled}
+          onChange={handleCleanupEnabledChange}
         />
       </div>
     </div>

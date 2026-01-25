@@ -164,6 +164,42 @@ func RecordExportedPhoto(exportID int64, filePath, status, errorMessage string) 
 	return nil
 }
 
+func UpdateExportSessionSkippedCount(exportID int64, skippedCount int) error {
+	query := `UPDATE export_sessions SET skipped_photos = ? WHERE export_id = ?`
+
+	_, err := sqlite.DB.Exec(query, skippedCount, exportID)
+	if err != nil {
+		err = fmt.Errorf("error updating export session skipped count: %w", err)
+		slog.Error(err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func WasPhotoExported(filePath string) (bool, error) {
+	query := `
+		SELECT EXISTS(
+			SELECT 1
+			FROM exported_photos ep
+			JOIN export_sessions es ON ep.export_id = es.export_id
+			WHERE ep.file_path = ?
+			AND ep.status = 'success'
+			AND es.status = 'completed'
+		)
+	`
+
+	var exists bool
+	err := sqlite.DB.QueryRow(query, filePath).Scan(&exists)
+	if err != nil {
+		err = fmt.Errorf("error checking if photo was exported: %w", err)
+		slog.Error(err.Error())
+		return false, err
+	}
+
+	return exists, nil
+}
+
 func GetExportSessions(limit int) ([]ExportSession, error) {
 	query := `
 		SELECT export_id, export_path, min_rating, curation_status, started_at,

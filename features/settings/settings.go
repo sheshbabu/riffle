@@ -16,6 +16,7 @@ type UpdateSettingRequest struct {
 
 type ImportMode string
 type ExportCurationStatus string
+type ExportOrganizationMode string
 
 const (
 	ImportModeMove ImportMode = "move"
@@ -25,6 +26,11 @@ const (
 const (
 	ExportCurationAll  ExportCurationStatus = "all"
 	ExportCurationPick ExportCurationStatus = "pick"
+)
+
+const (
+	ExportOrgFlat      ExportOrganizationMode = "flat"
+	ExportOrgOrganized ExportOrganizationMode = "organized"
 )
 
 func GetImportMode() (ImportMode, error) {
@@ -53,6 +59,30 @@ func GetExportCurationStatus() (ExportCurationStatus, error) {
 		return ExportCurationAll, err
 	}
 	return ExportCurationStatus(value), nil
+}
+
+func GetExportOrganizationMode() (ExportOrganizationMode, error) {
+	value, err := GetSetting("export_organization_mode")
+	if err != nil {
+		return ExportOrgOrganized, err
+	}
+	return ExportOrganizationMode(value), nil
+}
+
+func GetExportDeduplicationEnabled() (bool, error) {
+	value, err := GetSetting("export_deduplication_enabled")
+	if err != nil {
+		return true, err
+	}
+	return value == "true", nil
+}
+
+func GetExportCleanupEnabled() (bool, error) {
+	value, err := GetSetting("export_cleanup_enabled")
+	if err != nil {
+		return false, err
+	}
+	return value == "true", nil
 }
 
 func GetBurstDetectionEnabled() (bool, error) {
@@ -165,6 +195,19 @@ func validate(key, value string) error {
 		status := ExportCurationStatus(value)
 		if status != ExportCurationAll && status != ExportCurationPick {
 			return fmt.Errorf("export_curation_status must be '%s' or '%s'", ExportCurationAll, ExportCurationPick)
+		}
+	case "export_organization_mode":
+		mode := ExportOrganizationMode(value)
+		if mode != ExportOrgFlat && mode != ExportOrgOrganized {
+			return fmt.Errorf("export_organization_mode must be '%s' or '%s'", ExportOrgFlat, ExportOrgOrganized)
+		}
+	case "export_deduplication_enabled":
+		if value != "true" && value != "false" {
+			return fmt.Errorf("export_deduplication_enabled must be 'true' or 'false'")
+		}
+	case "export_cleanup_enabled":
+		if value != "true" && value != "false" {
+			return fmt.Errorf("export_cleanup_enabled must be 'true' or 'false'")
 		}
 	case "import_mode":
 		mode := ImportMode(value)

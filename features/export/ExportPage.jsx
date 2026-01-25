@@ -1,5 +1,7 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import Button from '../../commons/components/Button.jsx';
+import { ModalBackdrop, ModalContainer, ModalHeader, ModalContent, ModalFooter } from '../../commons/components/Modal.jsx';
+import { showToast } from '../../commons/components/Toast.jsx';
 import ExportTable from './ExportTable.jsx';
 import ExportSessionDetail from './ExportSessionDetail.jsx';
 import './ExportPage.css';
@@ -12,6 +14,7 @@ export default function ExportPage() {
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const [shouldShowModal, setShouldShowModal] = useState(false);
+  const [shouldShowCleanupConfirm, setShouldShowCleanupConfirm] = useState(false);
 
   useEffect(() => {
     loadExportSessions();
@@ -27,8 +30,12 @@ export default function ExportPage() {
       try {
         const data = await ApiClient.getExportProgress();
         setProgress(data);
-        if (data.status === 'export_complete' || data.status === 'export_error') {
+        if (data.status === 'export_complete') {
           loadExportSessions();
+          showToast(`Export completed: ${data.current} photos exported`, 4000);
+        } else if (data.status === 'export_error') {
+          loadExportSessions();
+          showToast('Export failed: ' + (data.message || 'Unknown error'), 4000);
         }
       } catch (error) {
         // Continue
@@ -61,11 +68,36 @@ export default function ExportPage() {
 
   async function handleStartExport() {
     try {
+      const settings = await ApiClient.getSettings();
+      const cleanupEnabled = settings.export_cleanup_enabled === 'true';
+
+      if (cleanupEnabled) {
+        setShouldShowCleanupConfirm(true);
+      } else {
+        startExport();
+      }
+    } catch (error) {
+      console.error('Failed to check export settings:', error);
+      startExport();
+    }
+  }
+
+  async function startExport() {
+    try {
       await ApiClient.startExportSession();
       await checkActiveExport();
     } catch (error) {
       setProgress(null);
     }
+  }
+
+  function handleConfirmCleanup() {
+    setShouldShowCleanupConfirm(false);
+    startExport();
+  }
+
+  function handleCancelCleanup() {
+    setShouldShowCleanupConfirm(false);
   }
 
   function handleCloseModal() {
@@ -76,6 +108,25 @@ export default function ExportPage() {
   function handleSessionClick(session) {
     setShouldShowModal(true);
     setSelectedSession(session);
+  }
+
+  let cleanupConfirmModal = null;
+  if (shouldShowCleanupConfirm) {
+    cleanupConfirmModal = (
+      <ModalBackdrop onClose={handleCancelCleanup}>
+        <ModalContainer>
+          <ModalHeader title="Confirm Export Cleanup" onClose={handleCancelCleanup} />
+          <ModalContent>
+            <p className="modal-description">Clear export folder is enabled. All existing files will be <b>permanently deleted</b> before export.</p>
+            <p className="modal-description">Continue with export?</p>
+          </ModalContent>
+          <ModalFooter isRightAligned={true}>
+            <Button variant="secondary" onClick={handleCancelCleanup}>Cancel</Button>
+            <Button variant="primary" onClick={handleConfirmCleanup}>Continue</Button>
+          </ModalFooter>
+        </ModalContainer>
+      </ModalBackdrop>
+    );
   }
 
   let modalContent = null;
@@ -122,6 +173,7 @@ export default function ExportPage() {
         </div>
         {mainContent}
       </div>
+      {cleanupConfirmModal}
       {modalContent}
     </div>
   );
