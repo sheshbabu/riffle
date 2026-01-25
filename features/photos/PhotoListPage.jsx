@@ -11,7 +11,6 @@ import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmpt
 import { showToast } from '../../commons/components/Toast.jsx';
 import useSearchParams from '../../commons/hooks/useSearchParams.js';
 import { updateSearchParams } from '../../commons/components/Link.jsx';
-import pluralize from '../../commons/utils/pluralize.js';
 import './LibraryPage.css';
 import './Loading.css';
 
@@ -26,7 +25,6 @@ const PAGE_CONFIG = {
       description: 'Picked photos will appear here.',
     },
     initialSelectedIndex: null,
-    fadeOnlyOnTrash: true,
   },
   curate: {
     fetchPhotos: (afterGroup, beforeGroup, filters) => ApiClient.getUncuratedPhotos(afterGroup, beforeGroup, filters),
@@ -36,7 +34,6 @@ const PAGE_CONFIG = {
       description: 'New imports will appear here for curation.',
     },
     initialSelectedIndex: 0,
-    fadeOnlyOnTrash: false,
   },
   trash: {
     fetchPhotos: (afterGroup, beforeGroup, filters) => ApiClient.getTrashedPhotos(afterGroup, beforeGroup, filters),
@@ -46,7 +43,6 @@ const PAGE_CONFIG = {
       description: 'Rejected photos will appear here.',
     },
     initialSelectedIndex: null,
-    fadeOnlyOnTrash: true,
   },
 };
 
@@ -169,7 +165,6 @@ export default function PhotoListPage({ mode = 'library' }) {
   const initialSelection = config.initialSelectedIndex !== null ? new Set([config.initialSelectedIndex]) : new Set();
   const [selectedIndices, setSelectedIndices] = useState(initialSelection);
   const [fadingPhotos, setFadingPhotos] = useState(new Set());
-  const [undoTimers, setUndoTimers] = useState(new Map());
   const [isCurating, setIsCurating] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isAlbumModalOpen, setIsAlbumModalOpen] = useState(false);
@@ -319,34 +314,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     setSelectedIndices(indices);
   }
 
-  function handlePhotoRemoved(filePath) {
-    setPhotos(prevPhotos => {
-      const removedIndex = prevPhotos.findIndex(p => p.filePath === filePath);
-      const newPhotos = prevPhotos.filter(p => p.filePath !== filePath);
-
-      if (removedIndex !== -1) {
-        setGroups(prevGroups => {
-          let photoOffset = 0;
-          return prevGroups.map(group => {
-            const groupStart = photoOffset;
-            const groupEnd = photoOffset + group.photoCount;
-            photoOffset = groupEnd;
-
-            if (removedIndex >= groupStart && removedIndex < groupEnd) {
-              return { ...group, photoCount: group.photoCount - 1 };
-            }
-            return group;
-          }).filter(group => group.photoCount > 0);
-        });
-      }
-
-      return newPhotos;
-    });
-    setTotalRecords(prev => Math.max(0, prev - 1));
-    setPageEndRecord(prev => Math.max(0, prev - 1));
-  }
-
-  async function curatePhoto(filePath, isCurated, isTrashed, rating, shouldSkipToast = false) {
+  async function curatePhoto(filePath, isCurated, isTrashed, rating) {
     setIsCurating(true);
     try {
       const response = await fetch('/api/photos/curate/', {
@@ -366,49 +334,18 @@ export default function PhotoListPage({ mode = 'library' }) {
         throw new Error('Failed to curate photo');
       }
 
-      const shouldFade = config.fadeOnlyOnTrash ? isTrashed : true;
-
-      if (shouldFade) {
+      if (isCurated && !isTrashed && rating === 0) {
         setFadingPhotos(prev => new Set([...prev, filePath]));
-
-        const timerId = setTimeout(() => {
-          handlePhotoRemoved(filePath);
-          setFadingPhotos(prev => {
-            const next = new Set(prev);
-            next.delete(filePath);
-            return next;
-          });
-          setUndoTimers(prev => {
-            const next = new Map(prev);
-            next.delete(filePath);
-            return next;
-          });
-        }, 10000);
-
-        setUndoTimers(prev => new Map([...prev, [filePath, timerId]]));
-      } else {
-        setPhotos(prevPhotos => prevPhotos.map(p => {
-          if (p.filePath === filePath) {
-            return { ...p, isCurated: true, isTrashed: false, rating };
-          }
-          return p;
-        }));
+      } else if (isTrashed) {
+        setFadingPhotos(prev => new Set([...prev, filePath]));
       }
 
-      if (!shouldSkipToast) {
-        let toastMessage = 'Photo updated';
-        if (isTrashed) {
-          toastMessage = 'Photo rejected';
-        } else if (rating > 0) {
-          const stars = rating === 1 ? 'star' : 'stars';
-          toastMessage = `Photo rated ${rating} ${stars}`;
-        } else if (isCurated) {
-          toastMessage = 'Photo picked';
-        } else {
-          toastMessage = 'Photo unflagged';
+      setPhotos(prevPhotos => prevPhotos.map(p => {
+        if (p.filePath === filePath) {
+          return { ...p, isCurated, isTrashed, rating };
         }
-        showToast(toastMessage, 2000);
-      }
+        return p;
+      }));
     } catch (err) {
       showToast('Failed to update photo', 3000);
     } finally {
@@ -417,20 +354,11 @@ export default function PhotoListPage({ mode = 'library' }) {
   }
 
   function handleUndo(filePath) {
-    const timerId = undoTimers.get(filePath);
-    if (timerId) {
-      clearTimeout(timerId);
-      setFadingPhotos(prev => {
-        const next = new Set(prev);
-        next.delete(filePath);
-        return next;
-      });
-      setUndoTimers(prev => {
-        const next = new Map(prev);
-        next.delete(filePath);
-        return next;
-      });
-    }
+    setFadingPhotos(prev => {
+      const next = new Set(prev);
+      next.delete(filePath);
+      return next;
+    });
   }
 
   function getSelectedFilePaths() {
@@ -442,11 +370,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, true, false, 0, true));
-    setSelectedIndices(new Set());
-    const count = filePaths.length;
-    const label = count === 1 ? 'Photo' : `${count} ${pluralize(count, 'photo')}`;
-    showToast(`${label} picked`, 2000);
+    filePaths.forEach(filePath => curatePhoto(filePath, true, false, 0));
   }
 
   function handleRejectClick() {
@@ -454,11 +378,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, true, true, 0, true));
-    setSelectedIndices(new Set());
-    const count = filePaths.length;
-    const label = count === 1 ? 'Photo' : `${count} ${pluralize(count, 'photo')}`;
-    showToast(`${label} rejected`, 2000);
+    filePaths.forEach(filePath => curatePhoto(filePath, true, true, 0));
   }
 
   function handleUnflagClick() {
@@ -466,11 +386,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, false, false, 0, true));
-    setSelectedIndices(new Set());
-    const count = filePaths.length;
-    const label = count === 1 ? 'Photo' : `${count} ${pluralize(count, 'photo')}`;
-    showToast(`${label} unflagged`, 2000);
+    filePaths.forEach(filePath => curatePhoto(filePath, false, false, 0));
   }
 
   function handleRateClick(rating) {
@@ -478,12 +394,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, true, false, rating, true));
-    setSelectedIndices(new Set());
-    const count = filePaths.length;
-    const label = count === 1 ? 'Photo' : `${count} ${pluralize(count, 'photo')}`;
-    const stars = pluralize(rating, 'star');
-    showToast(`${label} rated ${rating} ${stars}`, 2000);
+    filePaths.forEach(filePath => curatePhoto(filePath, true, false, rating));
   }
 
   function handlePrevPage() {
