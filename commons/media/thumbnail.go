@@ -12,7 +12,7 @@ const (
 	ThumbnailHeight = 300
 )
 
-func GenerateThumbnail(sourcePath, thumbnailPath string) error {
+func GenerateThumbnail(sourcePath, thumbnailPath string, orientation int, isVideo bool) error {
 	if err := os.MkdirAll(filepath.Dir(thumbnailPath), 0755); err != nil {
 		return fmt.Errorf("failed to create thumbnail directory: %w", err)
 	}
@@ -20,22 +20,20 @@ func GenerateThumbnail(sourcePath, thumbnailPath string) error {
 	var thumbnailData []byte
 	var err error
 
-	if IsVideoFile(sourcePath) {
+	if isVideo {
 		thumbnailData, _, err = GenerateVideoThumbnail(sourcePath, ThumbnailWidth, ThumbnailHeight)
 		if err != nil {
 			return fmt.Errorf("failed to generate video thumbnail: %w", err)
 		}
-	} else if IsImageFile(sourcePath) {
+	} else {
 		imageData, err := os.ReadFile(sourcePath)
 		if err != nil {
 			return fmt.Errorf("failed to read image file: %w", err)
 		}
-		thumbnailData, _, err = ResizeImage(imageData, sourcePath, ThumbnailWidth, ThumbnailHeight)
+		thumbnailData, _, err = ResizeImage(imageData, sourcePath, ThumbnailWidth, ThumbnailHeight, orientation)
 		if err != nil {
 			return fmt.Errorf("failed to resize image: %w", err)
 		}
-	} else {
-		return fmt.Errorf("unsupported file type: %s", sourcePath)
 	}
 
 	if err := os.WriteFile(thumbnailPath, thumbnailData, 0644); err != nil {

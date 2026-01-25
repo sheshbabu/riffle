@@ -3,19 +3,16 @@ package media
 import (
 	"fmt"
 	"path/filepath"
-	"riffle/commons/exif"
-	"riffle/commons/normalization"
 	"strings"
 
 	"github.com/h2non/bimg"
 )
 
-func ResizeImage(imageData []byte, filePath string, maxWidth, maxHeight int) ([]byte, string, error) {
+func ResizeImage(imageData []byte, filePath string, maxWidth, maxHeight int, orientation int) ([]byte, string, error) {
 	ext := strings.ToLower(filepath.Ext(filePath))
 	isHEIC := ext == ".heic" || ext == ".heif"
 
 	img := bimg.NewImage(imageData)
-	orientation := getOrientation(filePath)
 
 	var width, height int
 
@@ -72,22 +69,6 @@ func ResizeImage(imageData []byte, filePath string, maxWidth, maxHeight int) ([]
 	}
 
 	return resized, "image/jpeg", nil
-}
-
-func getOrientation(filePath string) int {
-	data, err := exif.ExtractExif(filePath)
-	if err != nil {
-		return 1
-	}
-	orientationStr, ok := data["Orientation"].(string)
-	if !ok {
-		return 1
-	}
-	orientationPtr := normalization.NormalizeOrientation(orientationStr)
-	if orientationPtr == nil {
-		return 1
-	}
-	return *orientationPtr
 }
 
 func calculateDimensions(width, height, maxWidth, maxHeight int) (int, int) {

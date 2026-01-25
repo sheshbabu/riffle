@@ -426,7 +426,11 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, impo
 		}
 
 		thumbnailPath := media.GetThumbnailPath(libraryPath, thumbnailsPath, photo.Path)
-		if err := media.GenerateThumbnail(photo.Path, thumbnailPath); err != nil {
+		orientation := 1
+		if o, ok := photo.ExifData["Orientation"].(int); ok {
+			orientation = o
+		}
+		if err := media.GenerateThumbnail(photo.Path, thumbnailPath, orientation, photo.IsVideo); err != nil {
 			slog.Error("failed to generate thumbnail", "file", photo.Path, "error", err)
 		} else {
 			if err := UpdatePhotoThumbnail(photo.Path, thumbnailPath); err != nil {

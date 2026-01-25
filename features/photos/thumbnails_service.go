@@ -7,13 +7,18 @@ import (
 	"path/filepath"
 	"riffle/commons/media"
 	"riffle/commons/sqlite"
-	"sync/atomic"
 )
+
+type PhotoForThumbnail struct {
+	FilePath    string
+	Orientation int
+	IsVideo     bool
+}
 
 func RebuildThumbnails(libraryPath, thumbnailsPath string) error {
 	slog.Info("starting thumbnail rebuild")
 
-	allPhotos, err := GetAllPhotos()
+	allPhotos, err := GetAllPhotosForThumbnails()
 	if err != nil {
 		err = fmt.Errorf("failed to get photos from database: %w", err)
 		slog.Error(err.Error())
@@ -31,61 +36,62 @@ func RebuildThumbnails(libraryPath, thumbnailsPath string) error {
 	slog.Info("rebuilding thumbnails", "totalPhotos", totalPhotos)
 	UpdateThumbnailProgress(StatusThumbnailRebuildProcessing, 0, totalPhotos)
 
-	var completed atomic.Int32
-	var failed atomic.Int32
+	completed := 0
+	failed := 0
 
 	for _, photo := range allPhotos {
-		photoPath := photo.FilePath
-		thumbnailPath := media.GetThumbnailPath(libraryPath, thumbnailsPath, photoPath)
+		thumbnailPath := media.GetThumbnailPath(libraryPath, thumbnailsPath, photo.FilePath)
 
-		if _, err := os.Stat(photoPath); os.IsNotExist(err) {
-			slog.Warn("photo file does not exist, skipping", "path", photoPath)
-			failed.Add(1)
+		if _, err := os.Stat(photo.FilePath); os.IsNotExist(err) {
+			slog.Warn("photo file does not exist, skipping", "path", photo.FilePath)
+			failed++
+			completed++
 			continue
 		}
 
 		if err := os.MkdirAll(filepath.Dir(thumbnailPath), 0755); err != nil {
 			slog.Error("failed to create thumbnail directory", "path", thumbnailPath, "error", err)
-			failed.Add(1)
+			failed++
+			completed++
 			continue
 		}
 
-		if err := media.GenerateThumbnail(photoPath, thumbnailPath); err != nil {
-			slog.Error("failed to generate thumbnail", "photo", photoPath, "error", err)
-			failed.Add(1)
+		if err := media.GenerateThumbnail(photo.FilePath, thumbnailPath, photo.Orientation, photo.IsVideo); err != nil {
+			slog.Error("failed to generate thumbnail", "photo", photo.FilePath, "error", err)
+			failed++
 		}
 
-		completed.Add(1)
-		if completed.Load()%10 == 0 || int(completed.Load()) == totalPhotos {
-			UpdateThumbnailProgress(StatusThumbnailRebuildProcessing, int(completed.Load()), totalPhotos)
+		completed++
+		if completed%100 == 0 || completed == totalPhotos {
+			UpdateThumbnailProgress(StatusThumbnailRebuildProcessing, completed, totalPhotos)
 		}
 	}
 
 	UpdateThumbnailProgress(StatusThumbnailRebuildComplete, totalPhotos, totalPhotos)
-	slog.Info("thumbnail rebuild complete", "total", totalPhotos, "failed", failed.Load())
+	slog.Info("thumbnail rebuild complete", "total", totalPhotos, "failed", failed)
 
 	return nil
 }
 
-func GetAllPhotos() ([]Photo, error) {
+func GetAllPhotosForThumbnails() ([]PhotoForThumbnail, error) {
 	query := `
-		SELECT file_path
+		SELECT file_path, COALESCE(orientation, 1), is_video
 		FROM photos
 		ORDER BY date_time DESC
 	`
 
 	rows, err := sqlite.DB.Query(query)
 	if err != nil {
-		err = fmt.Errorf("error getting all photos: %w", err)
+		err = fmt.Errorf("error getting all photos for thumbnails: %w", err)
 		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
 
-	var photosList []Photo
+	var photosList []PhotoForThumbnail
 	for rows.Next() {
-		var photo Photo
-		if err := rows.Scan(&photo.FilePath); err != nil {
+		var photo PhotoForThumbnail
+		if err := rows.Scan(&photo.FilePath, &photo.Orientation, &photo.IsVideo); err != nil {
 			slog.Error("error scanning photo row", "error", err)
 			continue
 		}
