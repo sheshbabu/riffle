@@ -175,8 +175,8 @@ async function getGroupRebuildProgress() {
   return await request('GET', '/api/groups/rebuild/progress/');
 }
 
-async function curatePhoto(filePath, action, rating) {
-  return await request('POST', '/api/photos/curate/', { filePath, action, rating });
+async function curatePhoto(filePath, isCurated, isTrashed, rating) {
+  return await request('POST', '/api/photos/curate/', { filePath, isCurated, isTrashed, rating });
 }
 
 async function getAlbums() {

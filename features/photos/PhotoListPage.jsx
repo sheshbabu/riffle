@@ -314,25 +314,10 @@ export default function PhotoListPage({ mode = 'library' }) {
     setSelectedIndices(indices);
   }
 
-  async function curatePhoto(filePath, isCurated, isTrashed, rating) {
+  async function handleCurate(filePath, isCurated, isTrashed, rating) {
     setIsCurating(true);
     try {
-      const response = await fetch('/api/photos/curate/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          filePath,
-          isCurated,
-          isTrashed,
-          rating,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to curate photo');
-      }
+      await ApiClient.curatePhoto(filePath, isCurated, isTrashed, rating);
 
       if (isCurated && !isTrashed && rating === 0) {
         setFadingPhotos(prev => new Set([...prev, filePath]));
@@ -353,12 +338,30 @@ export default function PhotoListPage({ mode = 'library' }) {
     }
   }
 
-  function handleUndo(filePath) {
-    setFadingPhotos(prev => {
-      const next = new Set(prev);
-      next.delete(filePath);
-      return next;
-    });
+  async function handleUndo(filePath) {
+    const photo = photos.find(p => p.filePath === filePath);
+    if (!photo) {
+      return;
+    }
+
+    try {
+      await ApiClient.curatePhoto(filePath, false, false, 0);
+
+      setPhotos(prevPhotos => prevPhotos.map(p => {
+        if (p.filePath === filePath) {
+          return { ...p, isCurated: false, isTrashed: false, rating: 0 };
+        }
+        return p;
+      }));
+
+      setFadingPhotos(prev => {
+        const next = new Set(prev);
+        next.delete(filePath);
+        return next;
+      });
+    } catch (err) {
+      showToast('Failed to undo', 3000);
+    }
   }
 
   function getSelectedFilePaths() {
@@ -370,7 +373,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, true, false, 0));
+    filePaths.forEach(filePath => handleCurate(filePath, true, false, 0));
   }
 
   function handleRejectClick() {
@@ -378,7 +381,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, true, true, 0));
+    filePaths.forEach(filePath => handleCurate(filePath, true, true, 0));
   }
 
   function handleUnflagClick() {
@@ -386,7 +389,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, false, false, 0));
+    filePaths.forEach(filePath => handleCurate(filePath, false, false, 0));
   }
 
   function handleRateClick(rating) {
@@ -394,7 +397,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => curatePhoto(filePath, true, false, rating));
+    filePaths.forEach(filePath => handleCurate(filePath, true, false, rating));
   }
 
   function handlePrevPage() {
@@ -470,7 +473,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         selectedIndices={selectedIndices}
         onSelectionChange={handleSelectionChange}
         fadingPhotos={fadingPhotos}
-        onCurate={curatePhoto}
+        onCurate={handleCurate}
         onUndo={handleUndo}
         isCurateMode={isCurateMode}
         onAddToAlbum={handleAddToAlbumFromGroup}
