@@ -1,6 +1,7 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
 import Button from '../../commons/components/Button.jsx';
+import SettingsInput from '../../commons/components/SettingsInput.jsx';
 
 const { useState, useEffect } = React;
 
@@ -143,33 +144,27 @@ export default function BurstPane() {
         <h4>Burst Detection Configuration</h4>
         <p>Configure how bursts are detected during import. Photos taken within the time threshold and with similar visual content (based on dHash distance) are grouped as bursts.</p>
 
-        <div className="settings-field">
-          <label htmlFor="burst-time-threshold">Time Threshold (seconds)</label>
-          <input
-            id="burst-time-threshold"
-            type="number"
-            min="1"
-            max="60"
-            value={burstTimeThreshold}
-            onChange={handleBurstTimeThresholdChange}
-            className="settings-input"
-          />
-          <p className="settings-field-description">Photos taken within this many seconds of each other may be grouped as a burst. Range: 1-60 seconds.</p>
-        </div>
+        <SettingsInput
+          id="burst-time-threshold"
+          label="Time Threshold (seconds)"
+          type="number"
+          min="1"
+          max="60"
+          value={burstTimeThreshold}
+          onChange={handleBurstTimeThresholdChange}
+          description="Photos taken within this many seconds of each other may be grouped as a burst. Range: 1-60 seconds."
+        />
 
-        <div className="settings-field">
-          <label htmlFor="burst-dhash-threshold">dHash Distance Threshold</label>
-          <input
-            id="burst-dhash-threshold"
-            type="number"
-            min="0"
-            max="64"
-            value={burstDhashThreshold}
-            onChange={handleBurstDhashThresholdChange}
-            className="settings-input"
-          />
-          <p className="settings-field-description">Maximum perceptual hash difference between photos. Lower values mean photos must be more visually similar. Range: 0-64, recommended: 4.</p>
-        </div>
+        <SettingsInput
+          id="burst-dhash-threshold"
+          label="dHash Distance Threshold"
+          type="number"
+          min="0"
+          max="64"
+          value={burstDhashThreshold}
+          onChange={handleBurstDhashThresholdChange}
+          description="Maximum perceptual hash difference between photos. Lower values mean photos must be more visually similar. Range: 0-64, recommended: 4."
+        />
       </div>
     );
   }

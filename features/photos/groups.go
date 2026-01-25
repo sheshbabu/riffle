@@ -7,6 +7,7 @@ import (
 	"riffle/commons/geo"
 	"riffle/commons/sqlite"
 	"riffle/commons/utils"
+	"riffle/features/settings"
 	"time"
 )
 
@@ -259,7 +260,10 @@ func AssignGroupsToUngroupedPhotos() error {
 
 	slog.Info("assigning groups to ungrouped photos", "count", len(photos))
 
-	groupAssignments := detectGroupAssignments(photos)
+	timeGap, _ := settings.GetGroupTimeGap()
+	distance, _ := settings.GetGroupDistance()
+
+	groupAssignments := detectGroupAssignments(photos, timeGap, distance)
 
 	groupIDMap := make(map[int64]int64)
 	for photoIdx, tempGroupID := range groupAssignments {
@@ -297,7 +301,7 @@ func AssignGroupsToUngroupedPhotos() error {
 	return nil
 }
 
-func detectGroupAssignments(photos []Photo) map[int]int64 {
+func detectGroupAssignments(photos []Photo, timeGapMinutes int, distanceKm float64) map[int]int64 {
 	assignments := make(map[int]int64)
 	if len(photos) == 0 {
 		return assignments
@@ -331,7 +335,7 @@ func detectGroupAssignments(photos []Photo) map[int]int64 {
 		groupDuration := math.Abs(photoTime.Sub(*groupStartTime).Hours())
 		shouldSplit := false
 
-		if timeSinceLastPhoto > TimeGapThresholdMinutes {
+		if timeSinceLastPhoto > float64(timeGapMinutes) {
 			shouldSplit = true
 		}
 
@@ -342,7 +346,7 @@ func detectGroupAssignments(photos []Photo) map[int]int64 {
 		if !shouldSplit && groupStartLat != nil && groupStartLon != nil {
 			if photo.Latitude != nil && photo.Longitude != nil {
 				distance := geo.HaversineDistance(*groupStartLat, *groupStartLon, *photo.Latitude, *photo.Longitude)
-				if distance > LocationRadiusKm {
+				if distance > distanceKm {
 					shouldSplit = true
 				}
 			}

@@ -152,6 +152,14 @@ async function getBurstRebuildProgress() {
   return await request('GET', '/api/burst/rebuild/progress/');
 }
 
+async function rebuildGroups() {
+  return await request('POST', '/api/groups/rebuild/', {});
+}
+
+async function getGroupRebuildProgress() {
+  return await request('GET', '/api/groups/rebuild/progress/');
+}
+
 async function curatePhoto(filePath, action, rating) {
   return await request('POST', '/api/photos/curate/', { filePath, action, rating });
 }
@@ -246,6 +254,8 @@ export default {
   getThumbnailRebuildProgress,
   rebuildBurstData,
   getBurstRebuildProgress,
+  rebuildGroups,
+  getGroupRebuildProgress,
   curatePhoto,
   getAlbums,
   getAlbum,

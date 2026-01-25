@@ -31,6 +31,7 @@ function App() {
             <Route path="/settings" component={SettingsPage} />
             <Route path="/settings/import" component={SettingsPage} />
             <Route path="/settings/library" component={SettingsPage} />
+            <Route path="/settings/grouping" component={SettingsPage} />
             <Route path="/settings/burst" component={SettingsPage} />
             <Route path="/settings/export" component={SettingsPage} />
           </Router>

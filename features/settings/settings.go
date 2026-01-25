@@ -87,6 +87,30 @@ func GetBurstDhashThreshold() (int, error) {
 	return threshold, nil
 }
 
+func GetGroupTimeGap() (int, error) {
+	value, err := GetSetting("group_time_gap")
+	if err != nil {
+		return 120, err
+	}
+	timeGap, err := strconv.Atoi(value)
+	if err != nil {
+		return 120, fmt.Errorf("invalid group_time_gap value: %w", err)
+	}
+	return timeGap, nil
+}
+
+func GetGroupDistance() (float64, error) {
+	value, err := GetSetting("group_distance")
+	if err != nil {
+		return 1.0, err
+	}
+	distance, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 1.0, fmt.Errorf("invalid group_distance value: %w", err)
+	}
+	return distance, nil
+}
+
 func HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := GetAllSettings()
 	if err != nil {
@@ -166,6 +190,22 @@ func validate(key, value string) error {
 		}
 		if threshold < 0 || threshold > 64 {
 			return fmt.Errorf("burst_dhash_threshold must be between 0 and 64")
+		}
+	case "group_time_gap":
+		timeGap, err := strconv.Atoi(value)
+		if err != nil {
+			return fmt.Errorf("group_time_gap must be a number")
+		}
+		if timeGap < 15 || timeGap > 480 {
+			return fmt.Errorf("group_time_gap must be between 15 and 480")
+		}
+	case "group_distance":
+		distance, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return fmt.Errorf("group_distance must be a number")
+		}
+		if distance < 0.5 || distance > 10 {
+			return fmt.Errorf("group_distance must be between 0.5 and 10")
 		}
 	}
 	return nil
