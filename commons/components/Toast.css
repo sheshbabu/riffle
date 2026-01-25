@@ -3,7 +3,7 @@
     bottom: var(--spacing-6);
     left: 50%;
     transform: translateX(-50%);
-    z-index: var(--z-popover);
+    z-index: var(--z-overlay);
     pointer-events: none;
 
     .toast-container {

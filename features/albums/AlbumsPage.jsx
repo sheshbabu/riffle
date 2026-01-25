@@ -88,7 +88,7 @@ export default function AlbumsPage() {
 
   return (
     <div className="page-container albums-page">
-      <div className="page-header">
+      <div className="page-toolbar">
         {headerButton}
       </div>
       {content}

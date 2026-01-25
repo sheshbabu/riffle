@@ -116,19 +116,25 @@ export default function AlbumDetailPage({ albumId }) {
     selectionCountElement = <SelectionCount count={selectedIndices.size} />;
   }
 
+  let albumHeader = null;
+  if (!isLoading) {
+    albumHeader = (
+      <div>
+        <h3>{albumTitle}</h3>
+        <div className="album-detail-page-count">
+          {photoCount} {pluralize(photoCount, 'photo')}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h3>{albumTitle}</h3>
-          <div className="album-detail-page-count">
-            {photoCount} {pluralize(photoCount, 'photo')}
-          </div>
-        </div>
+      <div className="page-toolbar">
+        {albumHeader}
         {selectionCountElement}
         {removeButton}
       </div>
-
       {content}
     </div>
   );

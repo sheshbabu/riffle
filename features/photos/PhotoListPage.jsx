@@ -629,6 +629,16 @@ export default function PhotoListPage({ mode = 'library' }) {
     });
 
 
+    let addToAlbumButton = null;
+    if (!isCurateMode) {
+      addToAlbumButton = (
+        <IconButton onClick={() => setIsAlbumModalOpen(true)} title="Add to Album">
+          <FolderIcon />
+          <span>Add to Album</span>
+        </IconButton>
+      );
+    }
+
     actionButtons = (
       <div className="library-actions">
         <IconButton variant="pick" active={isPicked && currentRating === 0} onClick={handlePickClick} title="Pick (P)" disabled={isCurating}>
@@ -646,10 +656,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         <div className="rating-buttons">
           {starElements}
         </div>
-        <IconButton onClick={() => setIsAlbumModalOpen(true)} title="Add to Album">
-          <FolderIcon />
-          <span>Add to Album</span>
-        </IconButton>
+        {addToAlbumButton}
       </div>
     );
   }
@@ -667,7 +674,7 @@ export default function PhotoListPage({ mode = 'library' }) {
 
   return (
     <div className="page-container">
-      <div className="page-header">
+      <div className="page-toolbar">
         {selectionCountElement}
         {actionButtons}
         <div className="right-actions">
