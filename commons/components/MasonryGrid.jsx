@@ -35,7 +35,7 @@ export default function MasonryGrid({ children, className = '' }) {
         itemSelector: '.masonry-item',
         columnWidth: columnWidth,
         gutter: 0,
-        transitionDuration: 0,
+        transitionDuration: 5,
       });
 
       childCountRef.current = currentChildCount;
