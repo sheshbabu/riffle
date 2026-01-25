@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"riffle/commons/exif"
-	"strconv"
+	"riffle/commons/normalization"
 	"strings"
 
 	"github.com/h2non/bimg"
@@ -12,12 +12,15 @@ import (
 
 func ResizeImage(imageData []byte, filePath string, maxWidth, maxHeight int) ([]byte, string, error) {
 	ext := strings.ToLower(filepath.Ext(filePath))
+	isHEIC := ext == ".heic" || ext == ".heif"
 
 	img := bimg.NewImage(imageData)
+	orientation := getOrientation(filePath)
 
-	// Get EXIF orientation and apply rotation for HEIC (bimg AutoRotate doesn't work for HEIC)
-	if ext == ".heic" || ext == ".heif" {
-		orientation := getOrientation(filePath)
+	var width, height int
+
+	if isHEIC {
+		// Manually apply rotation as bimg AutoRotate doesn't work for HEIC
 		if orientation > 1 {
 			rotated, err := img.Process(bimg.Options{
 				Rotate: OrientationToAngle(orientation),
@@ -27,18 +30,35 @@ func ResizeImage(imageData []byte, filePath string, maxWidth, maxHeight int) ([]
 				img = bimg.NewImage(rotated)
 			}
 		}
+
+		size, err := img.Size()
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to get image size: %w", err)
+		}
+
+		width = size.Width
+		height = size.Height
+	} else {
+		// bimg will auto-rotate during resize
+		size, err := img.Size()
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to get image size: %w", err)
+		}
+
+		width = size.Width
+		height = size.Height
+
+		// Swap dimensions if orientation requires 90° or 270° rotation
+		if orientation == 5 || orientation == 6 || orientation == 7 || orientation == 8 {
+			width, height = height, width
+		}
 	}
 
-	size, err := img.Size()
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to get image size: %w", err)
-	}
-
-	if size.Width <= maxWidth && size.Height <= maxHeight {
+	if width <= maxWidth && height <= maxHeight {
 		return imageData, GetContentType(ext), nil
 	}
 
-	newWidth, newHeight := calculateDimensions(size.Width, size.Height, maxWidth, maxHeight)
+	newWidth, newHeight := calculateDimensions(width, height, maxWidth, maxHeight)
 
 	resized, err := img.Process(bimg.Options{
 		Width:         newWidth,
@@ -54,7 +74,6 @@ func ResizeImage(imageData []byte, filePath string, maxWidth, maxHeight int) ([]
 	return resized, "image/jpeg", nil
 }
 
-
 func getOrientation(filePath string) int {
 	data, err := exif.ExtractExif(filePath)
 	if err != nil {
@@ -64,11 +83,11 @@ func getOrientation(filePath string) int {
 	if !ok {
 		return 1
 	}
-	orientation, err := strconv.Atoi(orientationStr)
-	if err != nil || orientation < 1 || orientation > 8 {
+	orientationPtr := normalization.NormalizeOrientation(orientationStr)
+	if orientationPtr == nil {
 		return 1
 	}
-	return orientation
+	return *orientationPtr
 }
 
 func calculateDimensions(width, height, maxWidth, maxHeight int) (int, int) {
