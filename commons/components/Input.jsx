@@ -35,17 +35,17 @@ export default function Input({ id, label, type = "text", placeholder, value, hi
   }
 
   return (
-    <div className="input-container form-field-container">
+    <div className="input-container">
       {label && (
         <>
           <label htmlFor={id}>{label}</label>
           <br />
         </>
       )}
-      {hint && <div className="hint">{hint}</div>}
+      {hint && <div className="input-hint">{hint}</div>}
       {inputElement}
       <br />
-      {error && <div className="error">{error}</div>}
+      {error && <div className="input-error">{error}</div>}
     </div>
   );
 }

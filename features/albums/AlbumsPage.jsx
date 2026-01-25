@@ -5,7 +5,7 @@ import EmptyState from '../../commons/components/EmptyState.jsx';
 import LoadingContainer from '../../commons/components/LoadingContainer.jsx';
 import MessageBox from '../../commons/components/MessageBox.jsx';
 import { FolderIcon } from '../../commons/components/Icon.jsx';
-import AddToAlbumModal from './AddToAlbumModal.jsx';
+import CreateAlbumModal from './CreateAlbumModal.jsx';
 import getThumbnailUrl from '../../commons/utils/getThumbnailUrl.js';
 import pluralize from '../../commons/utils/pluralize.js';
 import './AlbumsPage.css';
@@ -39,7 +39,7 @@ export default function AlbumsPage() {
     setIsCreatingNew(true);
   }
 
-  function handleModalClose() {
+  function handleAlbumCreated() {
     setIsCreatingNew(false);
     loadAlbums();
   }
@@ -73,7 +73,12 @@ export default function AlbumsPage() {
 
   let modalContent = null;
   if (isCreatingNew) {
-    modalContent = <AddToAlbumModal selectedPhotos={[]} onClose={handleModalClose} />;
+    modalContent = (
+      <CreateAlbumModal
+        onClose={() => setIsCreatingNew(false)}
+        onAlbumCreated={handleAlbumCreated}
+      />
+    );
   }
 
   let headerButton = null;

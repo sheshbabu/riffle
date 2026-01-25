@@ -1,7 +1,7 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import { ModalBackdrop, ModalContainer, ModalHeader, ModalContent, ModalFooter } from '../../commons/components/Modal.jsx';
 import Button from '../../commons/components/Button.jsx';
-import Input from '../../commons/components/Input.jsx';
+import CreateAlbumModal from './CreateAlbumModal.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import pluralize from '../../commons/utils/pluralize.js';
 import './AddToAlbumModal.css';
@@ -12,8 +12,6 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
   const [albums, setAlbums] = useState([]);
   const [selectedAlbumIds, setSelectedAlbumIds] = useState([]);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
-  const [newAlbumName, setNewAlbumName] = useState('');
-  const [newAlbumDescription, setNewAlbumDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -37,26 +35,9 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
     }
   }
 
-  async function handleCreateNewAlbum() {
-    if (!newAlbumName.trim()) {
-      showToast('Album name is required');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const newAlbum = await ApiClient.createAlbum(newAlbumName.trim(), newAlbumDescription.trim());
-      setAlbums([...albums, newAlbum]);
-      setSelectedAlbumIds([...selectedAlbumIds, newAlbum.albumId]);
-      setNewAlbumName('');
-      setNewAlbumDescription('');
-      setIsCreatingNew(false);
-      showToast('Album created!');
-    } catch (error) {
-      showToast('Failed to create album');
-    } finally {
-      setIsLoading(false);
-    }
+  function handleAlbumCreated(newAlbum) {
+    setAlbums([...albums, newAlbum]);
+    setSelectedAlbumIds([...selectedAlbumIds, newAlbum.albumId]);
   }
 
   async function handleAddToAlbums() {
@@ -79,35 +60,13 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
     }
   }
 
-  let newAlbumSection = null;
+  let createAlbumModal = null;
   if (isCreatingNew) {
-    newAlbumSection = (
-      <div className="add-to-album-modal-new-album">
-        <Input
-          id="album-name"
-          type="text"
-          placeholder="Name"
-          value={newAlbumName}
-          onChange={(e) => setNewAlbumName(e.target.value)}
-          autoFocus
-        />
-        <Input
-          id="album-description"
-          type="textarea"
-          placeholder="Description"
-          value={newAlbumDescription}
-          onChange={(e) => setNewAlbumDescription(e.target.value)}
-          rows={2}
-        />
-        <div className="add-to-album-modal-new-album-buttons">
-          <Button onClick={handleCreateNewAlbum} disabled={isLoading} variant="primary">
-            Create Album
-          </Button>
-          <Button onClick={() => setIsCreatingNew(false)} variant="secondary">
-            Cancel
-          </Button>
-        </div>
-      </div>
+    createAlbumModal = (
+      <CreateAlbumModal
+        onClose={() => setIsCreatingNew(false)}
+        onAlbumCreated={handleAlbumCreated}
+      />
     );
   }
 
@@ -136,30 +95,32 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
   }
 
   return (
-    <ModalBackdrop onClose={onClose}>
-      <ModalContainer className="add-to-album-modal">
-        <ModalHeader title="Add to Album" onClose={onClose} />
-        <ModalContent>
-          <div className="add-to-album-modal-header-actions">
-            <Button onClick={() => setIsCreatingNew(!isCreatingNew)} variant="secondary" size="small" >
-              New Album
+    <>
+      <ModalBackdrop onClose={onClose}>
+        <ModalContainer className="add-to-album-modal">
+          <ModalHeader title="Add to Album" onClose={onClose} />
+          <ModalContent>
+            <div className="add-to-album-modal-header-actions">
+              <Button onClick={() => setIsCreatingNew(true)} variant="secondary" size="small" >
+                New Album
+              </Button>
+            </div>
+            <div className="add-to-album-modal-album-list">
+              {albumListItems}
+            </div>
+          </ModalContent>
+          <ModalFooter isRightAligned>
+            <Button onClick={onClose} variant="secondary">
+              Cancel
             </Button>
-          </div>
-          {newAlbumSection}
-          <div className="add-to-album-modal-album-list">
-            {albumListItems}
-          </div>
-        </ModalContent>
-        <ModalFooter isRightAligned>
-          <Button onClick={onClose} variant="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleAddToAlbums} disabled={isLoading || selectedAlbumIds.length === 0} variant="primary">
-            Add to {pluralize(selectedAlbumIds.length, 'album')}
-          </Button>
-        </ModalFooter>
-      </ModalContainer>
-    </ModalBackdrop>
+            <Button onClick={handleAddToAlbums} disabled={isLoading || selectedAlbumIds.length === 0} variant="primary">
+              Add to {pluralize(selectedAlbumIds.length, 'album')}
+            </Button>
+          </ModalFooter>
+        </ModalContainer>
+      </ModalBackdrop>
+      {createAlbumModal}
+    </>
   );
 }
 
