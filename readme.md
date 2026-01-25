@@ -17,9 +17,9 @@ Import → Curate → Library → Export
 * Supports HEIC, HEIF, MOV, MP4, and common image formats
 
 **Library**
-* Browse organized photos in chronological grid
-* Automatic photo grouping by time/location
-* Burst detection for rapid-fire sequences
+* Browse organized photos in masonry grid layout
+* Automatic photo grouping by time/location (configurable)
+* Burst detection for rapid-fire sequences (configurable)
 * Photo metadata display (camera, settings, GPS)
 * Image lightbox with full-screen view
 * Video playback support
@@ -43,9 +43,18 @@ Import → Curate → Library → Export
 * Organize photos into custom collections
 * Add/remove photos from multiple albums
 
+**Settings**
+* Import configuration (folder path, move/copy mode, history)
+* Library management (folder paths, storage stats, rebuild thumbnails)
+* Grouping configuration (time gap, max duration, location distance, rebuild)
+* Burst detection (enable/disable, time window, similarity threshold, rebuild)
+* Export configuration (folder path, organization, deduplication, cleanup)
+
 **Export**
 * Filter photos by minimum rating (0-5) and curation status
-* Export to configured local folder
+* Configurable folder organization (maintain structure or flatten)
+* Duplicate handling options (skip or include)
+* Optional cleanup (delete from library after export)
 * Session tracking with per-photo export status logging
 * Preserves original file timestamps
 
