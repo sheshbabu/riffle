@@ -586,7 +586,8 @@ func copyFile(src, dst string) error {
 	}
 	defer dstFile.Close()
 
-	_, err = io.Copy(dstFile, srcFile)
+	buf := make([]byte, 1024*1024)
+	_, err = io.CopyBuffer(dstFile, srcFile, buf)
 	if err != nil {
 		return err
 	}

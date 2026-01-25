@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS photo_groups (
     group_id       INTEGER PRIMARY KEY AUTOINCREMENT,
     start_time     TIMESTAMP NOT NULL,
     end_time       TIMESTAMP NOT NULL,
+    max_date_time  TIMESTAMP,
     photo_count    INTEGER DEFAULT 0,
     total_size     INTEGER DEFAULT 0,
     latitude       REAL,
@@ -181,6 +182,7 @@ CREATE INDEX IF NOT EXISTS idx_photos_is_video ON photos(is_video);
 CREATE INDEX IF NOT EXISTS idx_photos_camera ON photos(camera_make, camera_model);
 CREATE INDEX IF NOT EXISTS idx_photos_group_id ON photos(group_id);
 CREATE INDEX IF NOT EXISTS idx_photo_groups_start_time ON photo_groups(start_time);
+CREATE INDEX IF NOT EXISTS idx_photo_groups_max_date_time ON photo_groups(max_date_time DESC);
 CREATE INDEX IF NOT EXISTS idx_photos_trashed_date ON photos(is_trashed, date_time DESC);
 CREATE INDEX IF NOT EXISTS idx_photos_curated_trashed_group_date ON photos(is_curated, is_trashed, group_id, date_time DESC);
 CREATE INDEX IF NOT EXISTS idx_import_sessions_started_at ON import_sessions(started_at);

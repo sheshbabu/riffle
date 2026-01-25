@@ -112,10 +112,11 @@ func UpdateGroupMetadata(groupID int64) error {
 		    total_size = (SELECT COALESCE(SUM(file_size), 0) FROM photos WHERE group_id = ?),
 		    start_time = (SELECT MIN(date_time) FROM photos WHERE group_id = ?),
 		    end_time = (SELECT MAX(date_time) FROM photos WHERE group_id = ?),
+		    max_date_time = (SELECT MAX(date_time) FROM photos WHERE group_id = ?),
 		    updated_at = CURRENT_TIMESTAMP
 		WHERE group_id = ?
 	`
-	_, err := sqlite.DB.Exec(query, groupID, groupID, groupID, groupID, groupID)
+	_, err := sqlite.DB.Exec(query, groupID, groupID, groupID, groupID, groupID, groupID)
 	if err != nil {
 		err = fmt.Errorf("error updating group metadata: %w", err)
 		slog.Error(err.Error())

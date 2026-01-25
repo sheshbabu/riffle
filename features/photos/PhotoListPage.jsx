@@ -164,7 +164,6 @@ export default function PhotoListPage({ mode = 'library' }) {
   const [totalRecords, setTotalRecords] = useState(0);
   const [limit, setLimit] = useState(100);
   const [nextOffset, setNextOffset] = useState(null);
-  const [offsetHistory, setOffsetHistory] = useState([]);
   const initialSelection = config.initialSelectedIndex !== null ? new Set([config.initialSelectedIndex]) : new Set();
   const [selectedIndices, setSelectedIndices] = useState(initialSelection);
   const [fadingPhotos, setFadingPhotos] = useState(new Set());
@@ -215,16 +214,12 @@ export default function PhotoListPage({ mode = 'library' }) {
   }, [offset, filtersKey]);
 
   useEffect(() => {
-    setOffsetHistory([]);
-  }, [filtersKey]);
-
-  useEffect(() => {
     function handleKeyDown(e) {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         return;
       }
 
-      const hasPrev = offsetHistory.length > 0;
+      const hasPrev = offset > 0;
       const hasNext = nextOffset !== null && nextOffset < totalRecords;
 
       if (e.key === 'j' || e.key === 'J') {
@@ -242,7 +237,7 @@ export default function PhotoListPage({ mode = 'library' }) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [offsetHistory, nextOffset, totalRecords]);
+  }, [offset, nextOffset, totalRecords, limit]);
 
   useEffect(() => {
     function handleCurateKeyDown(e) {
@@ -489,16 +484,12 @@ export default function PhotoListPage({ mode = 'library' }) {
   }
 
   function handlePrevPage() {
-    if (offsetHistory.length > 0) {
-      const prevOffset = offsetHistory[offsetHistory.length - 1];
-      setOffsetHistory(prev => prev.slice(0, -1));
-      updateSearchParams({ offset: prevOffset });
-    }
+    const prevOffset = Math.max(0, offset - limit);
+    updateSearchParams({ offset: prevOffset });
   }
 
   function handleNextPage() {
     if (nextOffset !== null && nextOffset < totalRecords) {
-      setOffsetHistory(prev => [...prev, offset]);
       updateSearchParams({ offset: nextOffset });
     }
   }
@@ -572,7 +563,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     );
   }
 
-  const hasPrev = offsetHistory.length > 0;
+  const hasPrev = offset > 0;
   const hasNext = nextOffset !== null && nextOffset < totalRecords;
 
   let paginationElement = null;

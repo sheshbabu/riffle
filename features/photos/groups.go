@@ -147,11 +147,16 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 
 func getGroupIDsForPage(limit, offset int, whereClause string, filterArgs []any) ([]int64, error) {
 	query := fmt.Sprintf(`
-		SELECT group_id, COUNT(*) as photo_count
-		FROM photos
-		%s AND group_id IS NOT NULL
-		GROUP BY group_id
-		ORDER BY MAX(date_time) DESC, MAX(created_at) DESC
+		WITH filtered_groups AS (
+			SELECT group_id, COUNT(*) as photo_count
+			FROM photos
+			%s AND group_id IS NOT NULL
+			GROUP BY group_id
+		)
+		SELECT fg.group_id, fg.photo_count
+		FROM filtered_groups fg
+		JOIN photo_groups pg ON fg.group_id = pg.group_id
+		ORDER BY pg.max_date_time DESC
 	`, whereClause)
 
 	rows, err := sqlite.DB.Query(query, filterArgs...)
