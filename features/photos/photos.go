@@ -65,12 +65,11 @@ type PhotosResponse struct {
 	Photos          []Photo `json:"photos"`
 	Groups          []Group `json:"groups,omitempty"`
 	Bursts          []Burst `json:"bursts,omitempty"`
+	TotalRecords    int     `json:"totalRecords"`
 	PageStartRecord int     `json:"pageStartRecord"`
 	PageEndRecord   int     `json:"pageEndRecord"`
-	TotalRecords    int     `json:"totalRecords"`
-	CurrentOffset   int     `json:"currentOffset"`
-	NextOffset      int     `json:"nextOffset"`
-	Limit           int     `json:"limit"`
+	NextCursor      *int64  `json:"nextCursor"`
+	PrevCursor      *int64  `json:"prevCursor"`
 }
 
 func parseFiltersFromQuery(r *http.Request) *PhotoFilters {
@@ -145,18 +144,23 @@ func parseFiltersFromQuery(r *http.Request) *PhotoFilters {
 }
 
 func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
-	offsetStr := r.URL.Query().Get("offset")
-	offset := 0
-	if offsetStr != "" {
-		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
-			offset = o
-		}
-	}
-
+	query := r.URL.Query()
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	photos, groups, err := GetPhotosWithGroups(limit, offset, true, false, filters)
+	var afterGroup, beforeGroup *int64
+	if ag := query.Get("afterGroup"); ag != "" {
+		if v, err := strconv.ParseInt(ag, 10, 64); err == nil {
+			afterGroup = &v
+		}
+	}
+	if bg := query.Get("beforeGroup"); bg != "" {
+		if v, err := strconv.ParseInt(bg, 10, 64); err == nil {
+			beforeGroup = &v
+		}
+	}
+
+	photos, groups, nextCursor, prevCursor, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithGroupCursor(limit, afterGroup, beforeGroup, true, false, filters)
 	if err != nil {
 		slog.Error("failed to get photos with groups", "error", err)
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
@@ -166,18 +170,14 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 	bursts := DetectBursts(photos)
 
 	response := PhotosResponse{
-		Photos:        photos,
-		Groups:        groups,
-		Bursts:        bursts,
-		CurrentOffset: offset,
-		Limit:         limit,
-	}
-
-	if len(photos) > 0 {
-		response.TotalRecords = photos[0].TotalRecords
-		response.PageStartRecord = offset + 1
-		response.PageEndRecord = offset + len(photos)
-		response.NextOffset = offset + len(photos)
+		Photos:          photos,
+		Groups:          groups,
+		Bursts:          bursts,
+		TotalRecords:    totalRecords,
+		PageStartRecord: pageStartRecord,
+		PageEndRecord:   pageEndRecord,
+		NextCursor:      nextCursor,
+		PrevCursor:      prevCursor,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -186,18 +186,23 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
-	offsetStr := r.URL.Query().Get("offset")
-	offset := 0
-	if offsetStr != "" {
-		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
-			offset = o
-		}
-	}
-
+	query := r.URL.Query()
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	photos, groups, err := GetPhotosWithGroups(limit, offset, false, false, filters)
+	var afterGroup, beforeGroup *int64
+	if ag := query.Get("afterGroup"); ag != "" {
+		if v, err := strconv.ParseInt(ag, 10, 64); err == nil {
+			afterGroup = &v
+		}
+	}
+	if bg := query.Get("beforeGroup"); bg != "" {
+		if v, err := strconv.ParseInt(bg, 10, 64); err == nil {
+			beforeGroup = &v
+		}
+	}
+
+	photos, groups, nextCursor, prevCursor, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithGroupCursor(limit, afterGroup, beforeGroup, false, false, filters)
 	if err != nil {
 		slog.Error("failed to get uncurated photos with groups", "error", err)
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
@@ -207,18 +212,14 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 	bursts := DetectBursts(photos)
 
 	response := PhotosResponse{
-		Photos:        photos,
-		Groups:        groups,
-		Bursts:        bursts,
-		CurrentOffset: offset,
-		Limit:         limit,
-	}
-
-	if len(photos) > 0 {
-		response.TotalRecords = photos[0].TotalRecords
-		response.PageStartRecord = offset + 1
-		response.PageEndRecord = offset + len(photos)
-		response.NextOffset = offset + len(photos)
+		Photos:          photos,
+		Groups:          groups,
+		Bursts:          bursts,
+		TotalRecords:    totalRecords,
+		PageStartRecord: pageStartRecord,
+		PageEndRecord:   pageEndRecord,
+		NextCursor:      nextCursor,
+		PrevCursor:      prevCursor,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -227,18 +228,23 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
-	offsetStr := r.URL.Query().Get("offset")
-	offset := 0
-	if offsetStr != "" {
-		if o, err := strconv.Atoi(offsetStr); err == nil && o >= 0 {
-			offset = o
-		}
-	}
-
+	query := r.URL.Query()
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	photos, groups, err := GetPhotosWithGroups(limit, offset, false, true, filters)
+	var afterGroup, beforeGroup *int64
+	if ag := query.Get("afterGroup"); ag != "" {
+		if v, err := strconv.ParseInt(ag, 10, 64); err == nil {
+			afterGroup = &v
+		}
+	}
+	if bg := query.Get("beforeGroup"); bg != "" {
+		if v, err := strconv.ParseInt(bg, 10, 64); err == nil {
+			beforeGroup = &v
+		}
+	}
+
+	photos, groups, nextCursor, prevCursor, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithGroupCursor(limit, afterGroup, beforeGroup, false, true, filters)
 	if err != nil {
 		slog.Error("failed to get trashed photos with groups", "error", err)
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
@@ -248,18 +254,14 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 	bursts := DetectBursts(photos)
 
 	response := PhotosResponse{
-		Photos:        photos,
-		Groups:        groups,
-		Bursts:        bursts,
-		CurrentOffset: offset,
-		Limit:         limit,
-	}
-
-	if len(photos) > 0 {
-		response.TotalRecords = photos[0].TotalRecords
-		response.PageStartRecord = offset + 1
-		response.PageEndRecord = offset + len(photos)
-		response.NextOffset = offset + len(photos)
+		Photos:          photos,
+		Groups:          groups,
+		Bursts:          bursts,
+		TotalRecords:    totalRecords,
+		PageStartRecord: pageStartRecord,
+		PageEndRecord:   pageEndRecord,
+		NextCursor:      nextCursor,
+		PrevCursor:   prevCursor,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

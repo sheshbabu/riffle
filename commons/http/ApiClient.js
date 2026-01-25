@@ -105,19 +105,34 @@ function buildFilterParams(filters) {
   return params.length > 0 ? '&' + params.join('&') : '';
 }
 
-async function getPhotos(offset, filters) {
+function buildPhotoUrl(basePath, afterGroup, beforeGroup, filters) {
+  const params = [];
+  if (afterGroup !== null) {
+    params.push(`afterGroup=${afterGroup}`);
+  } else if (beforeGroup !== null) {
+    params.push(`beforeGroup=${beforeGroup}`);
+  }
   const filterParams = buildFilterParams(filters);
-  return await request('GET', `/api/photos/?offset=${offset}${filterParams}`);
+  if (filterParams) {
+    params.push(filterParams.replace(/^&/, ''));
+  }
+  const queryString = params.filter(Boolean).join('&');
+  return queryString ? `${basePath}?${queryString}` : basePath;
 }
 
-async function getUncuratedPhotos(offset, filters) {
-  const filterParams = buildFilterParams(filters);
-  return await request('GET', `/api/photos/uncurated/?offset=${offset}${filterParams}`);
+async function getPhotos(afterGroup, beforeGroup, filters) {
+  const url = buildPhotoUrl('/api/photos/', afterGroup, beforeGroup, filters);
+  return await request('GET', url);
 }
 
-async function getTrashedPhotos(offset, filters) {
-  const filterParams = buildFilterParams(filters);
-  return await request('GET', `/api/photos/trashed/?offset=${offset}${filterParams}`);
+async function getUncuratedPhotos(afterGroup, beforeGroup, filters) {
+  const url = buildPhotoUrl('/api/photos/uncurated/', afterGroup, beforeGroup, filters);
+  return await request('GET', url);
+}
+
+async function getTrashedPhotos(afterGroup, beforeGroup, filters) {
+  const url = buildPhotoUrl('/api/photos/trashed/', afterGroup, beforeGroup, filters);
+  return await request('GET', url);
 }
 
 async function getFilterOptions() {

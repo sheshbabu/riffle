@@ -28,7 +28,7 @@ const (
 	MaxGroupDurationHours   = 12
 )
 
-func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bool, filters *PhotoFilters) ([]Photo, []Group, error) {
+func GetPhotosWithGroupCursor(limit int, afterGroup, beforeGroup *int64, filterCurated bool, filterTrashed bool, filters *PhotoFilters) ([]Photo, []Group, *int64, *int64, int, int, int, error) {
 	var whereClause string
 	if filterCurated && !filterTrashed {
 		whereClause = "WHERE is_curated = 1 AND is_trashed = 0"
@@ -43,13 +43,13 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 
 	totalCount := getCount(whereClause, filterArgs...)
 
-	groupIDs, err := getGroupIDsForPage(limit, offset, whereClause, filterArgs)
+	groupIDs, hasMoreNext, hasMorePrev, err := getGroupIDsWithCursor(limit, afterGroup, beforeGroup, whereClause, filterArgs)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, nil, 0, 0, 0, err
 	}
 
 	if len(groupIDs) == 0 {
-		return []Photo{}, []Group{}, nil
+		return []Photo{}, []Group{}, nil, nil, totalCount, 0, 0, nil
 	}
 
 	groupPlaceholders := ""
@@ -85,7 +85,7 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 	if err != nil {
 		err = fmt.Errorf("error querying photos with groups: %w", err)
 		slog.Error(err.Error())
-		return nil, nil, err
+		return nil, nil, nil, nil, 0, 0, 0, err
 	}
 	defer rows.Close()
 
@@ -111,7 +111,6 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 			slog.Error(err.Error())
 			continue
 		}
-		p.TotalRecords = totalCount
 		photos = append(photos, p)
 
 		if p.GroupID != nil {
@@ -142,10 +141,49 @@ func GetPhotosWithGroups(limit, offset int, filterCurated bool, filterTrashed bo
 		}
 	}
 
-	return photos, groups, nil
+	var nextCursor, prevCursor *int64
+	if len(groupIDs) > 0 {
+		if hasMoreNext {
+			lastGroupID := groupIDs[len(groupIDs)-1]
+			nextCursor = &lastGroupID
+		}
+		if hasMorePrev {
+			firstGroupID := groupIDs[0]
+			prevCursor = &firstGroupID
+		}
+	}
+
+	pageStartRecord := 0
+	if len(groupIDs) > 0 {
+		pageStartRecord = getPhotosBeforeGroup(groupIDs[0], whereClause, filterArgs) + 1
+	}
+	pageEndRecord := pageStartRecord + len(photos) - 1
+	if len(photos) == 0 {
+		pageEndRecord = 0
+	}
+
+	return photos, groups, nextCursor, prevCursor, totalCount, pageStartRecord, pageEndRecord, nil
 }
 
-func getGroupIDsForPage(limit, offset int, whereClause string, filterArgs []any) ([]int64, error) {
+func getGroupIDsWithCursor(limit int, afterGroup, beforeGroup *int64, whereClause string, filterArgs []any) ([]int64, bool, bool, error) {
+	var cursorCondition string
+	var cursorArgs []any
+	reverseOrder := false
+
+	if afterGroup != nil {
+		cursorCondition = " AND pg.max_date_time < (SELECT max_date_time FROM photo_groups WHERE group_id = ?) OR (pg.max_date_time = (SELECT max_date_time FROM photo_groups WHERE group_id = ?) AND pg.group_id < ?)"
+		cursorArgs = []any{*afterGroup, *afterGroup, *afterGroup}
+	} else if beforeGroup != nil {
+		cursorCondition = " AND pg.max_date_time > (SELECT max_date_time FROM photo_groups WHERE group_id = ?) OR (pg.max_date_time = (SELECT max_date_time FROM photo_groups WHERE group_id = ?) AND pg.group_id > ?)"
+		cursorArgs = []any{*beforeGroup, *beforeGroup, *beforeGroup}
+		reverseOrder = true
+	}
+
+	orderDirection := "DESC"
+	if reverseOrder {
+		orderDirection = "ASC"
+	}
+
 	query := fmt.Sprintf(`
 		WITH filtered_groups AS (
 			SELECT group_id, COUNT(*) as photo_count
@@ -156,14 +194,16 @@ func getGroupIDsForPage(limit, offset int, whereClause string, filterArgs []any)
 		SELECT fg.group_id, fg.photo_count
 		FROM filtered_groups fg
 		JOIN photo_groups pg ON fg.group_id = pg.group_id
-		ORDER BY pg.max_date_time DESC
-	`, whereClause)
+		WHERE 1=1 %s
+		ORDER BY pg.max_date_time %s, pg.group_id %s
+	`, whereClause, cursorCondition, orderDirection, orderDirection)
 
-	rows, err := sqlite.DB.Query(query, filterArgs...)
+	allArgs := append(filterArgs, cursorArgs...)
+	rows, err := sqlite.DB.Query(query, allArgs...)
 	if err != nil {
 		err = fmt.Errorf("error querying group counts: %w", err)
 		slog.Error(err.Error())
-		return nil, err
+		return nil, false, false, err
 	}
 	defer rows.Close()
 
@@ -184,18 +224,8 @@ func getGroupIDsForPage(limit, offset int, whereClause string, filterArgs []any)
 
 	var groupIDs []int64
 	currentPhotoCount := 0
-	skippedPhotos := 0
-	startedCollecting := false
 
 	for _, gc := range allGroups {
-		if !startedCollecting {
-			if skippedPhotos+gc.count <= offset {
-				skippedPhotos += gc.count
-				continue
-			}
-			startedCollecting = true
-		}
-
 		if currentPhotoCount == 0 {
 			groupIDs = append(groupIDs, gc.groupID)
 			currentPhotoCount += gc.count
@@ -213,7 +243,77 @@ func getGroupIDsForPage(limit, offset int, whereClause string, filterArgs []any)
 		}
 	}
 
-	return groupIDs, nil
+	if reverseOrder {
+		for i, j := 0, len(groupIDs)-1; i < j; i, j = i+1, j-1 {
+			groupIDs[i], groupIDs[j] = groupIDs[j], groupIDs[i]
+		}
+	}
+
+	hasMoreNext := len(allGroups) > len(groupIDs)
+	hasMorePrev := afterGroup != nil || beforeGroup != nil
+
+	if afterGroup == nil && beforeGroup == nil {
+		hasMorePrev = false
+	} else if beforeGroup != nil {
+		hasMoreNext = checkHasMoreAfter(groupIDs, whereClause, filterArgs)
+		hasMorePrev = len(allGroups) > len(groupIDs)
+	}
+
+	return groupIDs, hasMoreNext, hasMorePrev, nil
+}
+
+func checkHasMoreAfter(groupIDs []int64, whereClause string, filterArgs []any) bool {
+	if len(groupIDs) == 0 {
+		return false
+	}
+	lastGroupID := groupIDs[len(groupIDs)-1]
+
+	query := fmt.Sprintf(`
+		WITH filtered_groups AS (
+			SELECT group_id
+			FROM photos
+			%s AND group_id IS NOT NULL
+			GROUP BY group_id
+		)
+		SELECT COUNT(*)
+		FROM filtered_groups fg
+		JOIN photo_groups pg ON fg.group_id = pg.group_id
+		WHERE pg.max_date_time < (SELECT max_date_time FROM photo_groups WHERE group_id = ?)
+		   OR (pg.max_date_time = (SELECT max_date_time FROM photo_groups WHERE group_id = ?) AND pg.group_id < ?)
+	`, whereClause)
+
+	allArgs := append(filterArgs, lastGroupID, lastGroupID, lastGroupID)
+	var count int
+	err := sqlite.DB.QueryRow(query, allArgs...).Scan(&count)
+	if err != nil {
+		slog.Error("error checking has more after", "error", err)
+		return false
+	}
+	return count > 0
+}
+
+func getPhotosBeforeGroup(groupID int64, whereClause string, filterArgs []any) int {
+	query := fmt.Sprintf(`
+		SELECT COALESCE(SUM(photo_count), 0)
+		FROM (
+			SELECT COUNT(*) as photo_count
+			FROM photos p
+			JOIN photo_groups pg ON p.group_id = pg.group_id
+			%s AND p.group_id IS NOT NULL
+			  AND (pg.max_date_time > (SELECT max_date_time FROM photo_groups WHERE group_id = ?)
+			       OR (pg.max_date_time = (SELECT max_date_time FROM photo_groups WHERE group_id = ?) AND pg.group_id > ?))
+			GROUP BY p.group_id
+		)
+	`, whereClause)
+
+	allArgs := append(filterArgs, groupID, groupID, groupID)
+	var count int
+	err := sqlite.DB.QueryRow(query, allArgs...).Scan(&count)
+	if err != nil {
+		slog.Error("error getting photos before group", "error", err)
+		return 0
+	}
+	return count
 }
 
 func AssignGroupsToUngroupedPhotos() error {

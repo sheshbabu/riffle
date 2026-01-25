@@ -19,7 +19,7 @@ const { useState, useEffect } = React;
 
 const PAGE_CONFIG = {
   library: {
-    fetchPhotos: (offset, filters) => ApiClient.getPhotos(offset, filters),
+    fetchPhotos: (afterGroup, beforeGroup, filters) => ApiClient.getPhotos(afterGroup, beforeGroup, filters),
     emptyState: {
       icon: ImageIcon,
       title: 'No photos yet',
@@ -29,7 +29,7 @@ const PAGE_CONFIG = {
     fadeOnlyOnTrash: true,
   },
   curate: {
-    fetchPhotos: (offset, filters) => ApiClient.getUncuratedPhotos(offset, filters),
+    fetchPhotos: (afterGroup, beforeGroup, filters) => ApiClient.getUncuratedPhotos(afterGroup, beforeGroup, filters),
     emptyState: {
       icon: SparklesIcon,
       title: 'Nothing to review',
@@ -39,7 +39,7 @@ const PAGE_CONFIG = {
     fadeOnlyOnTrash: false,
   },
   trash: {
-    fetchPhotos: (offset, filters) => ApiClient.getTrashedPhotos(offset, filters),
+    fetchPhotos: (afterGroup, beforeGroup, filters) => ApiClient.getTrashedPhotos(afterGroup, beforeGroup, filters),
     emptyState: {
       icon: TrashEmptyIcon,
       title: 'Nothing here',
@@ -148,8 +148,10 @@ export default function PhotoListPage({ mode = 'library' }) {
   const isCurateMode = mode === 'curate';
   const searchParams = useSearchParams();
 
-  const offsetParam = searchParams.get('offset');
-  const offset = offsetParam ? Math.max(0, parseInt(offsetParam, 10) || 0) : 0;
+  const afterGroupParam = searchParams.get('afterGroup');
+  const beforeGroupParam = searchParams.get('beforeGroup');
+  const afterGroup = afterGroupParam ? parseInt(afterGroupParam, 10) : null;
+  const beforeGroup = beforeGroupParam ? parseInt(beforeGroupParam, 10) : null;
 
   const filters = parseFiltersFromUrl(searchParams);
 
@@ -159,11 +161,11 @@ export default function PhotoListPage({ mode = 'library' }) {
   const [expandedBursts, setExpandedBursts] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [pageStartRecord, setPageStartRecord] = useState(0);
   const [pageEndRecord, setPageEndRecord] = useState(0);
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [limit, setLimit] = useState(100);
-  const [nextOffset, setNextOffset] = useState(null);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [prevCursor, setPrevCursor] = useState(null);
   const initialSelection = config.initialSelectedIndex !== null ? new Set([config.initialSelectedIndex]) : new Set();
   const [selectedIndices, setSelectedIndices] = useState(initialSelection);
   const [fadingPhotos, setFadingPhotos] = useState(new Set());
@@ -180,17 +182,17 @@ export default function PhotoListPage({ mode = 'library' }) {
       setError(null);
 
       try {
-        const data = await config.fetchPhotos(offset, filters);
+        const data = await config.fetchPhotos(afterGroup, beforeGroup, filters);
         const newPhotos = data.photos || [];
         setPhotos(newPhotos);
         setGroups(data.groups || []);
         setBursts(data.bursts || []);
         setExpandedBursts(new Set());
+        setTotalRecords(data.totalRecords || 0);
         setPageStartRecord(data.pageStartRecord || 0);
         setPageEndRecord(data.pageEndRecord || 0);
-        setTotalRecords(data.totalRecords || 0);
-        setLimit(data.limit || 100);
-        setNextOffset(data.nextOffset !== undefined ? data.nextOffset : null);
+        setNextCursor(data.nextCursor !== undefined ? data.nextCursor : null);
+        setPrevCursor(data.prevCursor !== undefined ? data.prevCursor : null);
 
         if (newPhotos.length === 0) {
           setSelectedIndices(new Set());
@@ -211,7 +213,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     }
 
     fetchPhotos();
-  }, [offset, filtersKey]);
+  }, [afterGroup, beforeGroup, filtersKey]);
 
   useEffect(() => {
     function handleKeyDown(e) {
@@ -219,8 +221,8 @@ export default function PhotoListPage({ mode = 'library' }) {
         return;
       }
 
-      const hasPrev = offset > 0;
-      const hasNext = nextOffset !== null && nextOffset < totalRecords;
+      const hasPrev = prevCursor !== null;
+      const hasNext = nextCursor !== null;
 
       if (e.key === 'j' || e.key === 'J') {
         if (hasNext) {
@@ -237,7 +239,7 @@ export default function PhotoListPage({ mode = 'library' }) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [offset, nextOffset, totalRecords, limit]);
+  }, [nextCursor, prevCursor]);
 
   useEffect(() => {
     function handleCurateKeyDown(e) {
@@ -307,7 +309,8 @@ export default function PhotoListPage({ mode = 'library' }) {
       states: null,
       cities: null,
       fileFormats: null,
-      offset: null,
+      afterGroup: null,
+      beforeGroup: null,
     };
     updateSearchParams({ ...clearParams, ...filterParams });
   }
@@ -484,13 +487,14 @@ export default function PhotoListPage({ mode = 'library' }) {
   }
 
   function handlePrevPage() {
-    const prevOffset = Math.max(0, offset - limit);
-    updateSearchParams({ offset: prevOffset });
+    if (prevCursor !== null) {
+      updateSearchParams({ beforeGroup: prevCursor, afterGroup: null });
+    }
   }
 
   function handleNextPage() {
-    if (nextOffset !== null && nextOffset < totalRecords) {
-      updateSearchParams({ offset: nextOffset });
+    if (nextCursor !== null) {
+      updateSearchParams({ afterGroup: nextCursor, beforeGroup: null });
     }
   }
 
@@ -563,11 +567,11 @@ export default function PhotoListPage({ mode = 'library' }) {
     );
   }
 
-  const hasPrev = offset > 0;
-  const hasNext = nextOffset !== null && nextOffset < totalRecords;
+  const hasPrev = prevCursor !== null;
+  const hasNext = nextCursor !== null;
 
   let paginationElement = null;
-  if (!error && totalRecords > limit) {
+  if (!error && (hasPrev || hasNext)) {
     paginationElement = (
       <Pagination
         pageStartRecord={pageStartRecord}
