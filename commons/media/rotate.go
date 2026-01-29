@@ -2,14 +2,44 @@ package media
 
 import "github.com/h2non/bimg"
 
-// 1=normal, 2=flip-h, 3=180°, 4=flip-v, 5=transpose, 6=90°CW, 7=transverse, 8=90°CCW
+/*
+| Value | Practical Meaning            | Transformation Needed     |
+| ----- | ---------------------------- | ------------------------- |
+|   1   | Normal (Portrait)            | None                      |
+|   2   | Mirrored Horizontal          | Flip Horizontal           |
+|   3   | Upside Down                  | Rotate 180°               |
+|   4   | Mirrored Vertical            | Flip Vertical             |
+|   5   | Transpose (Mirrored + Side)  | Mirror H + Rotate 270° CW |
+|   6   | Landscape (Clockwise)        | Rotate 90° CW             |
+|   7   | Transverse (Mirrored + Side) | Mirror H + Rotate 90° CW  |
+|   8   | Landscape (CCW)              | Rotate 270° CW            |
+
+Note:
+ - Depends on the camera sensor
+ - Some are naturally vertical (phones) or horizontal (DSLRs)
+*/
+
+const (
+	// Common
+	OrientationPortrait       = 1
+	OrientationUpsideDown     = 3
+	OrientationLandscapeLeft  = 6 // Top of phone is on left
+	OrientationLandscapeRight = 8 // Top of phone is on right
+
+	// Flipped
+	OrientationPortraitMirroredHorizontal       = 2
+	OrientationPortraitMirroredVertical         = 4
+	OrientationLandscapeRightMirroredHorizontal = 5
+	OrientationLandscapeLeftMirroredHorizontal  = 7
+)
+
 func OrientationToAngle(orientation int) bimg.Angle {
 	switch orientation {
-	case 3, 4:
+	case OrientationUpsideDown:
 		return bimg.D180
-	case 5, 6:
+	case OrientationLandscapeLeft:
 		return bimg.D90
-	case 7, 8:
+	case OrientationLandscapeRight:
 		return bimg.D270
 	default:
 		return bimg.D0
@@ -17,5 +47,8 @@ func OrientationToAngle(orientation int) bimg.Angle {
 }
 
 func OrientationNeedsFlip(orientation int) bool {
-	return orientation == 2 || orientation == 4 || orientation == 5 || orientation == 7
+	return orientation == OrientationPortraitMirroredHorizontal ||
+		orientation == OrientationPortraitMirroredVertical ||
+		orientation == OrientationLandscapeRightMirroredHorizontal ||
+		orientation == OrientationLandscapeLeftMirroredHorizontal
 }

@@ -2,70 +2,29 @@ package media
 
 import (
 	"fmt"
-	"path/filepath"
-	"strings"
 
 	"github.com/h2non/bimg"
 )
 
 func ResizeImage(imageData []byte, filePath string, maxWidth, maxHeight int, orientation int) ([]byte, string, error) {
-	ext := strings.ToLower(filepath.Ext(filePath))
-	isHEIC := ext == ".heic" || ext == ".heif"
-
 	img := bimg.NewImage(imageData)
 
-	var width, height int
-
-	if isHEIC {
-		// Manually apply rotation as bimg AutoRotate doesn't work for HEIC
-		if orientation > 1 {
-			rotated, err := img.Process(bimg.Options{
-				Rotate: OrientationToAngle(orientation),
-				Flip:   OrientationNeedsFlip(orientation),
-			})
-			if err == nil {
-				img = bimg.NewImage(rotated)
-			}
-		}
-
-		size, err := img.Size()
-		if err != nil {
-			return nil, "", fmt.Errorf("failed to get image size: %w", err)
-		}
-
-		width = size.Width
-		height = size.Height
-	} else {
-		// bimg will auto-rotate during resize
-		size, err := img.Size()
-		if err != nil {
-			return nil, "", fmt.Errorf("failed to get image size: %w", err)
-		}
-
-		width = size.Width
-		height = size.Height
-
-		// Swap dimensions if orientation requires 90° or 270° rotation
-		if orientation == 5 || orientation == 6 || orientation == 7 || orientation == 8 {
-			width, height = height, width
-		}
+	size, err := img.Size()
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get image size: %w", err)
 	}
 
-	if width <= maxWidth && height <= maxHeight {
-		return imageData, GetContentType(ext), nil
-	}
-
-	newWidth, newHeight := calculateDimensions(width, height, maxWidth, maxHeight)
+	newWidth, newHeight := calculateDimensions(size.Width, size.Height, maxWidth, maxHeight)
 
 	resized, err := img.Process(bimg.Options{
-		Width:         newWidth,
-		Height:        newHeight,
-		Type:          bimg.JPEG,
-		Quality:       85,
-		StripMetadata: true,
+		Width:   newWidth,
+		Height:  newHeight,
+		Type:    bimg.JPEG,
+		Quality: 85,
 	})
+
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to resize image: %w", err)
+		return nil, "", fmt.Errorf("failed to process image: %w", err)
 	}
 
 	return resized, "image/jpeg", nil
