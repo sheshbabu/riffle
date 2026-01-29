@@ -2,19 +2,31 @@ package media
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/h2non/bimg"
 )
 
 func ResizeImage(imageData []byte, filePath string, maxWidth, maxHeight int, orientation int) ([]byte, string, error) {
+	ext := strings.ToLower(filepath.Ext(filePath))
+	isHEIC := ext == ".heic" || ext == ".heif"
+
 	img := bimg.NewImage(imageData)
+	isLandscape := orientation == OrientationLandscapeLeft || orientation == OrientationLandscapeRight
 
 	size, err := img.Size()
+	width, height := size.Width, size.Height
+
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to get image size: %w", err)
 	}
 
-	newWidth, newHeight := calculateDimensions(size.Width, size.Height, maxWidth, maxHeight)
+	if isLandscape && !isHEIC {
+		width, height = height, width
+	}
+
+	newWidth, newHeight := calculateDimensions(width, height, maxWidth, maxHeight)
 
 	resized, err := img.Process(bimg.Options{
 		Width:   newWidth,
