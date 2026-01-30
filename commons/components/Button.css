@@ -5,7 +5,7 @@
     justify-content: space-between;
     padding: 0 8px;
     border-radius: 6px;
-    border: 1px solid var(--neutral-100);
+    border: 1px solid var(--neutral-200);
     overflow: hidden;
     font: var(--sm);
     font-weight: 600;

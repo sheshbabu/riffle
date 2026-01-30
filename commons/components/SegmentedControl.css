@@ -38,6 +38,7 @@
 .segment.selected {
   background-color: var(--bg-primary);
   box-shadow: var(--shadow-1);
+  border: 1px solid var(--neutral-200);
 }
 
 .segment.selected:hover {
