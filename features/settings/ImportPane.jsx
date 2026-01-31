@@ -1,5 +1,6 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
+import FormSection from '../../commons/components/FormSection.jsx';
 
 const { useState, useEffect } = React;
 
@@ -67,15 +68,16 @@ export default function ImportPane() {
   let duplicateSection = null;
   if (importMode === 'move') {
     duplicateSection = (
-      <div className="settings-section">
-        <h4>Duplicate Handling</h4>
-        <p>When exact duplicates are found, choose what happens to non-selected copies.<br />Keep duplicates in the import folder for manual review, or automatically delete them after importing the best candidate.</p>
+      <FormSection
+        title="Duplicate Handling"
+        description="When exact duplicates are found, choose what happens to non-selected copies. Keep duplicates in the import folder for manual review, or automatically delete them after importing the best candidate."
+      >
         <SegmentedControl
           options={duplicateOptions}
           value={duplicateHandling}
           onChange={handleDuplicateHandlingChange}
         />
-      </div>
+      </FormSection>
     );
   }
 
@@ -84,15 +86,16 @@ export default function ImportPane() {
       <h3>Import Behavior</h3>
       <p>Control how files are transferred and managed during the import process.</p>
 
-      <div className="settings-section">
-        <h4>File Transfer</h4>
-        <p>Choose how files are transferred from the import folder to your library.<br />Move transfers files and removes them from the import folder. Copy leaves originals in place.</p>
+      <FormSection
+        title="File Transfer"
+        description="Choose how files are transferred from the import folder to your library. Move transfers files and removes them from the import folder. Copy leaves originals in place."
+      >
         <SegmentedControl
           options={transferOptions}
           value={importMode}
           onChange={handleImportModeChange}
         />
-      </div>
+      </FormSection>
       {duplicateSection}
     </div>
   );

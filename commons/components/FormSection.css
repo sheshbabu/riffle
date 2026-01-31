@@ -1,0 +1,18 @@
+.form-section {
+  margin-top: 32px;
+}
+
+.form-section-title {
+  margin: 0 0 var(--spacing-1) 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.form-section-description {
+  margin: 0 0 var(--spacing-3) 0;
+  color: var(--text-secondary);
+}
+
+.form-section-content {
+  /* Content wrapper for potential future styling */
+}

@@ -1,6 +1,7 @@
 import Button from '../../commons/components/Button.jsx';
 import ApiClient from '../../commons/http/ApiClient.js';
 import formatCount from '../../commons/utils/formatCount.js';
+import FormSection from '../../commons/components/FormSection.jsx';
 
 const { useState, useEffect, useRef } = React;
 
@@ -98,13 +99,14 @@ export default function ThumbnailRebuildSection() {
   }
 
   return (
-    <div className="settings-section">
-      <h4>Thumbnail Cache</h4>
-      <p>Rebuild all 300×300 preview thumbnails. Useful after updating images or if thumbnails appear corrupted.</p>
+    <FormSection
+      title="Thumbnail Cache"
+      description="Rebuild all 300×300 preview thumbnails. Useful after updating images or if thumbnails appear corrupted."
+    >
       <Button onClick={handleRebuildClick} isLoading={isProcessing}>
         {buttonText}
       </Button>
       {progressElement}
-    </div>
+    </FormSection>
   );
 }

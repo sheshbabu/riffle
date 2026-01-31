@@ -2,6 +2,7 @@ import ApiClient from '../../commons/http/ApiClient.js';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
 import Button from '../../commons/components/Button.jsx';
 import SettingsInput from '../../commons/components/SettingsInput.jsx';
+import FormSection from '../../commons/components/FormSection.jsx';
 
 const { useState, useEffect } = React;
 
@@ -140,10 +141,10 @@ export default function BurstPane() {
   let configSection = null;
   if (burstDetectionEnabled === 'true') {
     configSection = (
-      <div className="settings-section">
-        <h4>Burst Detection Configuration</h4>
-        <p>Configure how bursts are detected during import. Photos taken within the time threshold and with similar visual content (based on dHash distance) are grouped as bursts.</p>
-
+      <FormSection
+        title="Burst Detection Configuration"
+        description="Configure how bursts are detected during import. Photos taken within the time threshold and with similar visual content (based on dHash distance) are grouped as bursts."
+      >
         <SettingsInput
           id="burst-time-threshold"
           label="Time Threshold (seconds)"
@@ -165,7 +166,7 @@ export default function BurstPane() {
           onChange={handleBurstDhashThresholdChange}
           description="Maximum perceptual hash difference between photos. Lower values mean photos must be more visually similar. Range: 0-64, recommended: 4."
         />
-      </div>
+      </FormSection>
     );
   }
 
@@ -203,15 +204,16 @@ export default function BurstPane() {
     }
 
     rebuildSection = (
-      <div className="settings-section">
-        <h4>Rebuild Burst Data</h4>
-        <p>For burst detection to work on existing photos, you need to compute perceptual hashes for all images in your library. This is a one-time operation that will process all image files.</p>
+      <FormSection
+        title="Rebuild Burst Data"
+        description="For burst detection to work on existing photos, you need to compute perceptual hashes for all images in your library. This is a one-time operation that will process all image files."
+      >
         <Button onClick={handleRebuildBurstData} disabled={isProcessing}>
           {isProcessing ? 'Rebuilding...' : 'Rebuild Burst Data'}
         </Button>
         {progressContent}
         {messageContent}
-      </div>
+      </FormSection>
     );
   }
 
@@ -220,15 +222,16 @@ export default function BurstPane() {
       <h3>Burst Detection</h3>
       <p>Control how burst photos are detected and grouped during import.</p>
 
-      <div className="settings-section">
-        <h4>Enable Burst Detection</h4>
-        <p>When enabled, photos taken in rapid succession with similar content are automatically grouped as bursts. This requires computing perceptual hashes (dHash) during import, which adds processing time.</p>
+      <FormSection
+        title="Enable Burst Detection"
+        description="When enabled, photos taken in rapid succession with similar content are automatically grouped as bursts. This requires computing perceptual hashes (dHash) during import, which adds processing time."
+      >
         <SegmentedControl
           options={enabledOptions}
           value={burstDetectionEnabled}
           onChange={handleBurstDetectionEnabledChange}
         />
-      </div>
+      </FormSection>
       {configSection}
       {rebuildSection}
     </div>

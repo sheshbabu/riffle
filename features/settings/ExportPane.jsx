@@ -1,6 +1,7 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
+import FormSection from '../../commons/components/FormSection.jsx';
 import './ExportPane.css';
 
 const { useState, useEffect } = React;
@@ -139,55 +140,57 @@ export default function ExportPane() {
       <h3>Export Settings</h3>
       <p className="settings-tab-description">Configure default export criteria for photos.</p>
 
-      <div className="settings-section">
-        <h4>Minimum Rating</h4>
-        <p>Export photos with at least this rating.</p>
+      <FormSection title="Minimum Rating" description="Export photos with at least this rating.">
         <SegmentedControl
           options={ratingOptions}
           value={minRating}
           onChange={handleMinRatingChange}
         />
-      </div>
+      </FormSection>
 
-      <div className="settings-section">
-        <h4>Curation Status</h4>
-        <p>Choose whether to export all photos or only picked photos. Picked photos are those you've curated and not rejected.</p>
+      <FormSection
+        title="Curation Status"
+        description="Choose whether to export all photos or only picked photos. Picked photos are those you've curated and not rejected."
+      >
         <SegmentedControl
           options={curationOptions}
           value={curationStatus}
           onChange={handleCurationStatusChange}
         />
-      </div>
+      </FormSection>
 
-      <div className="settings-section">
-        <h4>Organization</h4>
-        <p>Choose folder structure for exported photos. Organized mode mirrors library structure with Year/Month folders.</p>
+      <FormSection
+        title="Organization"
+        description="Choose folder structure for exported photos. Organized mode mirrors library structure with Year/Month folders."
+      >
         <SegmentedControl
           options={organizationOptions}
           value={organizationMode}
           onChange={handleOrganizationModeChange}
         />
-      </div>
+      </FormSection>
 
-      <div className="settings-section">
-        <h4>Previously Exported Photos</h4>
-        <p>Choose whether to skip photos that have already been exported in previous sessions.</p>
+      <FormSection
+        title="Previously Exported Photos"
+        description="Choose whether to skip photos that have already been exported in previous sessions."
+      >
         <SegmentedControl
           options={deduplicationOptions}
           value={deduplicationEnabled}
           onChange={handleDeduplicationEnabledChange}
         />
-      </div>
+      </FormSection>
 
-      <div className="settings-section">
-        <h4>Export Folder Cleanup</h4>
-        <p>Choose whether to clear export folder before each export. Clear requires confirmation before starting export.</p>
+      <FormSection
+        title="Export Folder Cleanup"
+        description="Choose whether to clear export folder before each export. Clear requires confirmation before starting export."
+      >
         <SegmentedControl
           options={cleanupOptions}
           value={cleanupEnabled}
           onChange={handleCleanupEnabledChange}
         />
-      </div>
+      </FormSection>
     </div>
   );
 }
