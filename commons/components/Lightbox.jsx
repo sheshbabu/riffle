@@ -11,7 +11,7 @@ import './Lightbox.css';
 
 const { useState, useEffect } = React;
 
-export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isCurateMode = false }) {
+export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
   const [currentIndex, setCurrentIndex] = useState(selectedIndex);
   const [isZoomed, setIsZoomed] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
@@ -44,7 +44,7 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
           break;
       }
 
-      if (isCurateMode && onCurate && currentPhoto) {
+      if (onCurate && currentPhoto) {
         switch (e.key) {
           case 'p':
           case 'P':
@@ -73,7 +73,7 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, photos.length, onClose, showMetadata, isCurateMode, onCurate, currentPhoto]);
+  }, [currentIndex, photos.length, onClose, showMetadata, onCurate, currentPhoto]);
 
   function advanceToNext() {
     if (currentIndex < photos.length - 1) {
@@ -197,7 +197,7 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
   }
 
   let curateButtons = null;
-  if (isCurateMode && onCurate && !isZoomed) {
+  if (onCurate && !isZoomed) {
     curateButtons = (
       <>
         <div className="lightbox-button" onClick={() => { onCurate(currentPhoto.filePath, true, false, 0); advanceToNext(); }} title="Pick (P)">

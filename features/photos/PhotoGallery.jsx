@@ -389,8 +389,7 @@ export default function PhotoGallery({
         photos={photos}
         selectedIndex={lightboxIndex}
         onClose={handleCloseLightbox}
-        onCurate={isCurateMode ? onCurate : undefined}
-        isCurateMode={isCurateMode}
+        onCurate={onCurate}
       />
     );
   }
