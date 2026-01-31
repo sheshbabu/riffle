@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS photos (
     file_path        TEXT PRIMARY KEY,
     original_filepath TEXT,
-    sha256_hash      TEXT NOT NULL,
+    sha256_hash      TEXT NOT NULL UNIQUE,
     dhash            TEXT,
     file_size        INTEGER NOT NULL,
     file_format      TEXT,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS photos (
     country_name     TEXT,
     is_curated       BOOLEAN DEFAULT 0,
     is_trashed       BOOLEAN DEFAULT 0,
-    rating           INTEGER DEFAULT 0,
+    rating           INTEGER DEFAULT 0 CHECK(rating BETWEEN 0 AND 5),
     notes            TEXT,
     file_created_at  TIMESTAMP,
     file_modified_at TIMESTAMP,
@@ -46,8 +46,8 @@ CREATE TABLE IF NOT EXISTS photo_tags (
     tag_id      INTEGER NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (file_path, tag_id),
-    FOREIGN KEY (file_path) REFERENCES photos (file_path),
-    FOREIGN KEY (tag_id) REFERENCES tags (tag_id)
+    FOREIGN KEY (file_path) REFERENCES photos (file_path) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tags (tag_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS albums (
@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS album_photos (
     file_path   TEXT NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (album_id, file_path),
-    FOREIGN KEY (album_id) REFERENCES albums (album_id),
-    FOREIGN KEY (file_path) REFERENCES photos (file_path)
+    FOREIGN KEY (album_id) REFERENCES albums (album_id) ON DELETE CASCADE,
+    FOREIGN KEY (file_path) REFERENCES photos (file_path) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS import_sessions (
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS imported_photos (
     error_message  TEXT,
     imported_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (import_id, file_path),
-    FOREIGN KEY (import_id) REFERENCES import_sessions (import_id)
+    FOREIGN KEY (import_id) REFERENCES import_sessions (import_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS export_sessions (
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS exported_photos (
     error_message  TEXT,
     exported_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (export_id, file_path),
-    FOREIGN KEY (export_id) REFERENCES export_sessions (export_id)
+    FOREIGN KEY (export_id) REFERENCES export_sessions (export_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS cities (
@@ -158,7 +158,6 @@ INSERT OR IGNORE INTO settings (key, value) VALUES ('burst_detection_enabled', '
 INSERT OR IGNORE INTO settings (key, value) VALUES ('burst_time_threshold', '3'); -- seconds
 INSERT OR IGNORE INTO settings (key, value) VALUES ('burst_dhash_threshold', '4'); -- hamming distance
 
-CREATE INDEX IF NOT EXISTS idx_photos_sha256_hash ON photos(sha256_hash);
 CREATE INDEX IF NOT EXISTS idx_photos_date_time ON photos(date_time);
 CREATE INDEX IF NOT EXISTS idx_photos_rating ON photos(rating);
 CREATE INDEX IF NOT EXISTS idx_photos_is_video ON photos(is_video);
