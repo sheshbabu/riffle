@@ -1,6 +1,7 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import Button from '../../commons/components/Button.jsx';
 import Checkbox from '../../commons/components/Checkbox.jsx';
+import CheckboxGroup from '../../commons/components/CheckboxGroup.jsx';
 import { Accordion, AccordionItem } from '../../commons/components/Accordion.jsx';
 import { CloseIcon, LoadingSpinner } from '../../commons/components/Icon.jsx';
 import './FilterPanel.css';
@@ -56,17 +57,6 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
       ...filters,
       [key]: value,
     });
-  }
-
-  function handleMultiSelectToggle(key, value) {
-    const currentValues = filters[key] || [];
-    let newValues;
-    if (currentValues.includes(value)) {
-      newValues = currentValues.filter(v => v !== value);
-    } else {
-      newValues = [...currentValues, value];
-    }
-    handleFilterChange(key, newValues);
   }
 
   function handleClearAll() {
@@ -159,19 +149,12 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
   }
 
   function renderRatingOptions() {
-    const selectedRatings = filters.ratings || [];
     return (
-      <div className="filter-options">
-        {RATINGS.map(rating => (
-          <Checkbox
-            key={rating.value}
-            checked={selectedRatings.includes(rating.value)}
-            onChange={() => handleMultiSelectToggle('ratings', rating.value)}
-          >
-            {rating.label}
-          </Checkbox>
-        ))}
-      </div>
+      <CheckboxGroup
+        options={RATINGS}
+        selected={filters.ratings || []}
+        onChange={(values) => handleFilterChange('ratings', values)}
+      />
     );
   }
 
@@ -210,42 +193,26 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
   }
 
   function renderYearOptions() {
-    const selectedYears = filters.years || [];
     return (
-      <div className="filter-options">
-        {filterOptions.years.map(year => (
-          <Checkbox
-            key={year}
-            checked={selectedYears.includes(year)}
-            onChange={() => handleMultiSelectToggle('years', year)}
-          >
-            {year}
-          </Checkbox>
-        ))}
-      </div>
+      <CheckboxGroup
+        options={filterOptions.years}
+        selected={filters.years || []}
+        onChange={(values) => handleFilterChange('years', values)}
+      />
     );
   }
 
   function renderCameraOptions() {
-    const selectedMakes = filters.cameraMakes || [];
-    const selectedModels = filters.cameraModels || [];
-
     let makeOptions = null;
     if (filterOptions.cameraMakes.length > 0) {
       makeOptions = (
         <div className="filter-subsection">
           <div className="filter-subsection-label">Make</div>
-          <div className="filter-options">
-            {filterOptions.cameraMakes.map(make => (
-              <Checkbox
-                key={make}
-                checked={selectedMakes.includes(make)}
-                onChange={() => handleMultiSelectToggle('cameraMakes', make)}
-              >
-                {make}
-              </Checkbox>
-            ))}
-          </div>
+          <CheckboxGroup
+            options={filterOptions.cameraMakes}
+            selected={filters.cameraMakes || []}
+            onChange={(values) => handleFilterChange('cameraMakes', values)}
+          />
         </div>
       );
     }
@@ -255,17 +222,11 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
       modelOptions = (
         <div className="filter-subsection">
           <div className="filter-subsection-label">Model</div>
-          <div className="filter-options">
-            {filterOptions.cameraModels.map(model => (
-              <Checkbox
-                key={model}
-                checked={selectedModels.includes(model)}
-                onChange={() => handleMultiSelectToggle('cameraModels', model)}
-              >
-                {model}
-              </Checkbox>
-            ))}
-          </div>
+          <CheckboxGroup
+            options={filterOptions.cameraModels}
+            selected={filters.cameraModels || []}
+            onChange={(values) => handleFilterChange('cameraModels', values)}
+          />
         </div>
       );
     }
@@ -279,26 +240,16 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
   }
 
   function renderLocationOptions() {
-    const selectedCountries = filters.countries || [];
-    const selectedStates = filters.states || [];
-    const selectedCities = filters.cities || [];
-
     let countryOptions = null;
     if (filterOptions.countries.length > 0) {
       countryOptions = (
         <div className="filter-subsection">
           <div className="filter-subsection-label">Country</div>
-          <div className="filter-options">
-            {filterOptions.countries.map(country => (
-              <Checkbox
-                key={country}
-                checked={selectedCountries.includes(country)}
-                onChange={() => handleMultiSelectToggle('countries', country)}
-              >
-                {country}
-              </Checkbox>
-            ))}
-          </div>
+          <CheckboxGroup
+            options={filterOptions.countries}
+            selected={filters.countries || []}
+            onChange={(values) => handleFilterChange('countries', values)}
+          />
         </div>
       );
     }
@@ -308,17 +259,11 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
       stateOptions = (
         <div className="filter-subsection">
           <div className="filter-subsection-label">State</div>
-          <div className="filter-options">
-            {filterOptions.states.map(state => (
-              <Checkbox
-                key={state}
-                checked={selectedStates.includes(state)}
-                onChange={() => handleMultiSelectToggle('states', state)}
-              >
-                {state}
-              </Checkbox>
-            ))}
-          </div>
+          <CheckboxGroup
+            options={filterOptions.states}
+            selected={filters.states || []}
+            onChange={(values) => handleFilterChange('states', values)}
+          />
         </div>
       );
     }
@@ -328,17 +273,12 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
       cityOptions = (
         <div className="filter-subsection">
           <div className="filter-subsection-label">City</div>
-          <div className="filter-options filter-options-scrollable">
-            {filterOptions.cities.map(city => (
-              <Checkbox
-                key={city}
-                checked={selectedCities.includes(city)}
-                onChange={() => handleMultiSelectToggle('cities', city)}
-              >
-                {city}
-              </Checkbox>
-            ))}
-          </div>
+          <CheckboxGroup
+            options={filterOptions.cities}
+            selected={filters.cities || []}
+            onChange={(values) => handleFilterChange('cities', values)}
+            className="filter-options-scrollable"
+          />
         </div>
       );
     }
@@ -353,19 +293,16 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
   }
 
   function renderFormatOptions() {
-    const selectedFormats = filters.fileFormats || [];
+    const formatOptions = filterOptions.fileFormats.map(format => ({
+      value: format,
+      label: format.toUpperCase()
+    }));
     return (
-      <div className="filter-options">
-        {filterOptions.fileFormats.map(format => (
-          <Checkbox
-            key={format}
-            checked={selectedFormats.includes(format)}
-            onChange={() => handleMultiSelectToggle('fileFormats', format)}
-          >
-            {format.toUpperCase()}
-          </Checkbox>
-        ))}
-      </div>
+      <CheckboxGroup
+        options={formatOptions}
+        selected={filters.fileFormats || []}
+        onChange={(values) => handleFilterChange('fileFormats', values)}
+      />
     );
   }
 
