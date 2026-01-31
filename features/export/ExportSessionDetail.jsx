@@ -1,6 +1,7 @@
 import { LoadingSpinner } from '../../commons/components/Icon.jsx';
 import { ModalBackdrop, ModalContainer, ModalContent } from '../../commons/components/Modal.jsx';
-import Badge from '../../commons/components/Badge.jsx';
+import StatusBadge from '../../commons/components/StatusBadge.jsx';
+import Alert from '../../commons/components/Alert.jsx';
 import { DescriptionList, DescriptionItem } from '../../commons/components/DescriptionList.jsx';
 import formatDateTime from '../../commons/utils/formatDateTime.js';
 
@@ -9,17 +10,9 @@ export default function ExportSessionDetail({ session, hasCompleted = true, onCl
 
   if (!hasCompleted) {
     if (session.status === 'export_complete') {
-      modalBody = (
-        <div className="export-message export-message-success">
-          {session.message}
-        </div>
-      );
+      modalBody = <Alert variant="success">{session.message}</Alert>;
     } else if (session.status === 'export_error') {
-      modalBody = (
-        <div className="export-message export-message-error">
-          Export failed: {session.message}
-        </div>
-      );
+      modalBody = <Alert variant="error">Export failed: {session.message}</Alert>;
     } else {
       let statusText = session.message || 'Processing...';
 
@@ -46,15 +39,6 @@ export default function ExportSessionDetail({ session, hasCompleted = true, onCl
     }
   } else if (session) {
     const formattedDateTime = formatDateTime(session.started_at);
-
-    let statusBadge = null;
-    if (session.status === 'completed') {
-      statusBadge = <Badge variant="success">Completed</Badge>;
-    } else if (session.status === 'error') {
-      statusBadge = <Badge variant="error">Error</Badge>;
-    } else {
-      statusBadge = <Badge variant="warning">Running</Badge>;
-    }
 
     let durationText = '';
     if (session.duration_seconds) {
@@ -97,7 +81,9 @@ export default function ExportSessionDetail({ session, hasCompleted = true, onCl
         <DescriptionItem label="Destination Folder" value={session.export_path} />
         <DescriptionItem label="Criteria" value={criteriaText} />
         {durationEl}
-        <DescriptionItem label="Status">{statusBadge}</DescriptionItem>
+        <DescriptionItem label="Status">
+          <StatusBadge status={session.status} />
+        </DescriptionItem>
         <DescriptionItem label="Exported Photos" value={`${session.exported_photos}/${session.total_photos}`} />
         {errorsEl}
         {errorMessageEl}

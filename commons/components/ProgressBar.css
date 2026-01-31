@@ -1,0 +1,37 @@
+.progress-bar {
+  background-color: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: 8px;
+  padding: var(--spacing-3);
+}
+
+.progress-bar-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.progress-bar-text {
+  flex: 1;
+  font-size: 14px;
+}
+
+.progress-bar-count {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.progress-bar-track {
+  margin-top: var(--spacing-2);
+  height: 6px;
+  background-color: var(--neutral-200);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--blue-500);
+  transition: width 200ms ease-in-out;
+}

@@ -81,17 +81,3 @@
     background-color: var(--blue-500);
     transition: width 200ms ease-in-out;
 }
-
-.export-message {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 8px;
-}
-
-.export-message-success {
-    color: var(--green-600);
-}
-
-.export-message-error {
-    color: var(--red-600);
-}

@@ -1,6 +1,6 @@
 import { TaskDoneIcon, TaskInProgressIcon, TaskNotStartedIcon } from '../../commons/components/Icon.jsx';
 import { ModalBackdrop, ModalContainer, ModalContent } from '../../commons/components/Modal.jsx';
-import Badge from '../../commons/components/Badge.jsx';
+import StatusBadge from '../../commons/components/StatusBadge.jsx';
 import { DescriptionList, DescriptionItem } from '../../commons/components/DescriptionList.jsx';
 import formatDateTime from '../../commons/utils/formatDateTime.js';
 import formatCount from '../../commons/utils/formatCount.js';
@@ -25,15 +25,6 @@ export default function ImportSessionDetail({ session, hasCompleted = true, impo
     );
   } else if (session) {
     const formattedDateTime = formatDateTime(session.started_at);
-
-    let statusBadge = null;
-    if (session.status === 'completed') {
-      statusBadge = <Badge variant="success">Completed</Badge>;
-    } else if (session.status === 'error') {
-      statusBadge = <Badge variant="error">Error</Badge>;
-    } else {
-      statusBadge = <Badge variant="warning">Running</Badge>;
-    }
 
     let durationText = '';
     if (session.duration_seconds) {
@@ -93,7 +84,9 @@ export default function ImportSessionDetail({ session, hasCompleted = true, impo
         <DescriptionItem label="Source Folder" value={session.import_path} />
         <DescriptionItem label="Import Mode" value={modeText} />
         {durationEl}
-        <DescriptionItem label="Status">{statusBadge}</DescriptionItem>
+        <DescriptionItem label="Status">
+          <StatusBadge status={session.status} />
+        </DescriptionItem>
         <DescriptionItem label="Total Scanned" value={session.total_scanned} />
         {uniqueFilesEl}
         {duplicatesRemovedEl}

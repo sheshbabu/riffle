@@ -1,7 +1,7 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import Button from '../../commons/components/Button.jsx';
-import Checkbox from '../../commons/components/Checkbox.jsx';
 import CheckboxGroup from '../../commons/components/CheckboxGroup.jsx';
+import RadioGroup from '../../commons/components/RadioGroup.jsx';
 import { Accordion, AccordionItem } from '../../commons/components/Accordion.jsx';
 import { CloseIcon, LoadingSpinner } from '../../commons/components/Icon.jsx';
 import './FilterPanel.css';
@@ -159,36 +159,22 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
   }
 
   function renderMediaTypeOptions() {
-    const selectedType = filters.mediaType || 'all';
     return (
-      <div className="filter-options">
-        {MEDIA_TYPES.map(type => (
-          <Checkbox
-            key={type.value}
-            checked={selectedType === type.value}
-            onChange={() => handleFilterChange('mediaType', type.value)}
-          >
-            {type.label}
-          </Checkbox>
-        ))}
-      </div>
+      <RadioGroup
+        options={MEDIA_TYPES}
+        selected={filters.mediaType || 'all'}
+        onChange={(value) => handleFilterChange('mediaType', value)}
+      />
     );
   }
 
   function renderOrientationOptions() {
-    const selectedOrientation = filters.orientation || 'all';
     return (
-      <div className="filter-options">
-        {ORIENTATIONS.map(orientation => (
-          <Checkbox
-            key={orientation.value}
-            checked={selectedOrientation === orientation.value}
-            onChange={() => handleFilterChange('orientation', orientation.value)}
-          >
-            {orientation.label}
-          </Checkbox>
-        ))}
-      </div>
+      <RadioGroup
+        options={ORIENTATIONS}
+        selected={filters.orientation || 'all'}
+        onChange={(value) => handleFilterChange('orientation', value)}
+      />
     );
   }
 

@@ -1,0 +1,37 @@
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+  user-select: none;
+}
+
+.radio-option:hover {
+  background-color: var(--neutral-100);
+}
+
+.radio-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.radio-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--neutral-500);
+  flex-shrink: 0;
+}
+
+.radio-input:checked+.radio-icon {
+  color: var(--blue-500);
+}
+
+.radio-label {
+  font-size: 13px;
+  color: var(--neutral-900);
+}

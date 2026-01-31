@@ -1,0 +1,30 @@
+.alert {
+  padding: var(--spacing-3);
+  border-radius: 8px;
+  font-size: 14px;
+  margin-top: var(--spacing-4);
+}
+
+.alert-success {
+  background-color: var(--green-50);
+  border: 1px solid var(--green-200);
+  color: var(--green-800);
+}
+
+.alert-error {
+  background-color: var(--red-50);
+  border: 1px solid var(--red-200);
+  color: var(--red-800);
+}
+
+.alert-warning {
+  background-color: var(--yellow-50);
+  border: 1px solid var(--yellow-200);
+  color: var(--yellow-800);
+}
+
+.alert-info {
+  background-color: var(--blue-50);
+  border: 1px solid var(--blue-200);
+  color: var(--blue-800);
+}

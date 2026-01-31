@@ -1,4 +1,5 @@
 import Badge from '../../commons/components/Badge.jsx';
+import StatusBadge from '../../commons/components/StatusBadge.jsx';
 import { Table, TableHeader, TableHeaderCell, TableBody, TableRow, TableCell } from '../../commons/components/Table.jsx';
 import formatDateTime from '../../commons/utils/formatDateTime.js';
 import formatDuration from '../../commons/utils/formatDuration.js';
@@ -39,15 +40,6 @@ function ImportTableRow({ session, onClick }) {
   const formattedDateTime = formatDateTime(session.started_at);
   const durationText = formatDuration(session.duration_seconds);
 
-  let statusBadge = null;
-  if (session.status === 'completed') {
-    statusBadge = <Badge variant="success">Completed</Badge>;
-  } else if (session.status === 'error') {
-    statusBadge = <Badge variant="error">Error</Badge>;
-  } else {
-    statusBadge = <Badge variant="warning">Running</Badge>;
-  }
-
   const alreadyImportedCount = session.already_imported > 0 ? session.already_imported : '—';
   const duplicateGroupsCount = session.duplicate_groups > 0 ? session.duplicate_groups : '—';
   const errorCount = session.error_count > 0 ? session.error_count : '—';
@@ -69,7 +61,9 @@ function ImportTableRow({ session, onClick }) {
       <TableCell>{duplicateGroupsCount}</TableCell>
       <TableCell className={errorClass}>{errorCount}</TableCell>
       <TableCell>{duration}</TableCell>
-      <TableCell>{statusBadge}</TableCell>
+      <TableCell>
+        <StatusBadge status={session.status} />
+      </TableCell>
     </TableRow>
   );
 }

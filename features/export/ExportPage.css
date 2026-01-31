@@ -37,22 +37,6 @@
   color: var(--text-secondary);
 }
 
-.export-message {
-  padding: var(--spacing-3);
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-.export-message-success {
-  background-color: var(--neutral-100);
-  color: var(--green-600);
-}
-
-.export-message-error {
-  background-color: var(--neutral-100);
-  color: var(--red-600);
-}
-
 .export-sessions {
   display: flex;
   flex-direction: column;

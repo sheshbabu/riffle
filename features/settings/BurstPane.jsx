@@ -3,6 +3,8 @@ import SegmentedControl from '../../commons/components/SegmentedControl.jsx';
 import Button from '../../commons/components/Button.jsx';
 import SettingsInput from '../../commons/components/SettingsInput.jsx';
 import FormSection from '../../commons/components/FormSection.jsx';
+import ProgressBar from '../../commons/components/ProgressBar.jsx';
+import Alert from '../../commons/components/Alert.jsx';
 
 const { useState, useEffect } = React;
 
@@ -178,28 +180,22 @@ export default function BurstPane() {
     let progressContent = null;
     if (isProcessing) {
       progressContent = (
-        <div className="export-progress-section">
-          <div className="export-progress-content">
-            <div className="export-progress-text">
-              <div>Rebuilding burst data for existing photos...</div>
-              <div className="export-progress-count">
-                {rebuildProgress.completed} of {rebuildProgress.total} photos processed
-              </div>
-            </div>
-          </div>
-          <div className="export-progress-bar">
-            <div className="export-progress-fill" style={{ width: `${rebuildProgress.percent}%` }}></div>
-          </div>
-        </div>
+        <ProgressBar
+          label="Rebuilding burst data for existing photos..."
+          current={rebuildProgress.completed}
+          total={rebuildProgress.total}
+          percent={rebuildProgress.percent}
+          showCount={true}
+        />
       );
     }
 
     let messageContent = null;
     if (isComplete) {
       messageContent = (
-        <div className="export-message export-message-success">
+        <Alert variant="success">
           Burst data rebuild complete! Processed {rebuildProgress.total} photos. Burst detection is now active for all photos.
-        </div>
+        </Alert>
       );
     }
 

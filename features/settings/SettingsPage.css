@@ -146,25 +146,6 @@
                         }
                     }
                 }
-
-                .export-message {
-                    padding: var(--spacing-3);
-                    border-radius: 8px;
-                    font-size: 14px;
-                    margin-top: 24px;
-
-                    &.export-message-success {
-                        background-color: var(--green-50);
-                        border: 1px solid var(--green-200);
-                        color: var(--green-800);
-                    }
-
-                    &.export-message-error {
-                        background-color: var(--red-50);
-                        border: 1px solid var(--red-200);
-                        color: var(--red-800);
-                    }
-                }
             }
         }
     }
