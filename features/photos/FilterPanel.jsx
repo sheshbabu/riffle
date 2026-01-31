@@ -1,5 +1,6 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import Button from '../../commons/components/Button.jsx';
+import Checkbox from '../../commons/components/Checkbox.jsx';
 import { CloseIcon, ChevronDownIcon, ChevronUpIcon, LoadingSpinner } from '../../commons/components/Icon.jsx';
 import './FilterPanel.css';
 
@@ -150,14 +151,13 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
     return (
       <div className="filter-options">
         {RATINGS.map(rating => (
-          <label key={rating.value} className="filter-option">
-            <input
-              type="checkbox"
-              checked={selectedRatings.includes(rating.value)}
-              onChange={() => handleMultiSelectToggle('ratings', rating.value)}
-            />
-            <span>{rating.label}</span>
-          </label>
+          <Checkbox
+            key={rating.value}
+            checked={selectedRatings.includes(rating.value)}
+            onChange={() => handleMultiSelectToggle('ratings', rating.value)}
+          >
+            {rating.label}
+          </Checkbox>
         ))}
       </div>
     );
@@ -168,15 +168,13 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
     return (
       <div className="filter-options">
         {MEDIA_TYPES.map(type => (
-          <label key={type.value} className="filter-option">
-            <input
-              type="radio"
-              name="mediaType"
-              checked={selectedType === type.value}
-              onChange={() => handleFilterChange('mediaType', type.value)}
-            />
-            <span>{type.label}</span>
-          </label>
+          <Checkbox
+            key={type.value}
+            checked={selectedType === type.value}
+            onChange={() => handleFilterChange('mediaType', type.value)}
+          >
+            {type.label}
+          </Checkbox>
         ))}
       </div>
     );
@@ -187,15 +185,13 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
     return (
       <div className="filter-options">
         {ORIENTATIONS.map(orientation => (
-          <label key={orientation.value} className="filter-option">
-            <input
-              type="radio"
-              name="orientation"
-              checked={selectedOrientation === orientation.value}
-              onChange={() => handleFilterChange('orientation', orientation.value)}
-            />
-            <span>{orientation.label}</span>
-          </label>
+          <Checkbox
+            key={orientation.value}
+            checked={selectedOrientation === orientation.value}
+            onChange={() => handleFilterChange('orientation', orientation.value)}
+          >
+            {orientation.label}
+          </Checkbox>
         ))}
       </div>
     );
@@ -206,14 +202,13 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
     return (
       <div className="filter-options">
         {filterOptions.years.map(year => (
-          <label key={year} className="filter-option">
-            <input
-              type="checkbox"
-              checked={selectedYears.includes(year)}
-              onChange={() => handleMultiSelectToggle('years', year)}
-            />
-            <span>{year}</span>
-          </label>
+          <Checkbox
+            key={year}
+            checked={selectedYears.includes(year)}
+            onChange={() => handleMultiSelectToggle('years', year)}
+          >
+            {year}
+          </Checkbox>
         ))}
       </div>
     );
@@ -230,14 +225,13 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
           <div className="filter-subsection-label">Make</div>
           <div className="filter-options">
             {filterOptions.cameraMakes.map(make => (
-              <label key={make} className="filter-option">
-                <input
-                  type="checkbox"
-                  checked={selectedMakes.includes(make)}
-                  onChange={() => handleMultiSelectToggle('cameraMakes', make)}
-                />
-                <span>{make}</span>
-              </label>
+              <Checkbox
+                key={make}
+                checked={selectedMakes.includes(make)}
+                onChange={() => handleMultiSelectToggle('cameraMakes', make)}
+              >
+                {make}
+              </Checkbox>
             ))}
           </div>
         </div>
@@ -251,14 +245,13 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
           <div className="filter-subsection-label">Model</div>
           <div className="filter-options">
             {filterOptions.cameraModels.map(model => (
-              <label key={model} className="filter-option">
-                <input
-                  type="checkbox"
-                  checked={selectedModels.includes(model)}
-                  onChange={() => handleMultiSelectToggle('cameraModels', model)}
-                />
-                <span>{model}</span>
-              </label>
+              <Checkbox
+                key={model}
+                checked={selectedModels.includes(model)}
+                onChange={() => handleMultiSelectToggle('cameraModels', model)}
+              >
+                {model}
+              </Checkbox>
             ))}
           </div>
         </div>
@@ -285,14 +278,13 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
           <div className="filter-subsection-label">Country</div>
           <div className="filter-options">
             {filterOptions.countries.map(country => (
-              <label key={country} className="filter-option">
-                <input
-                  type="checkbox"
-                  checked={selectedCountries.includes(country)}
-                  onChange={() => handleMultiSelectToggle('countries', country)}
-                />
-                <span>{country}</span>
-              </label>
+              <Checkbox
+                key={country}
+                checked={selectedCountries.includes(country)}
+                onChange={() => handleMultiSelectToggle('countries', country)}
+              >
+                {country}
+              </Checkbox>
             ))}
           </div>
         </div>
@@ -306,14 +298,13 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
           <div className="filter-subsection-label">State</div>
           <div className="filter-options">
             {filterOptions.states.map(state => (
-              <label key={state} className="filter-option">
-                <input
-                  type="checkbox"
-                  checked={selectedStates.includes(state)}
-                  onChange={() => handleMultiSelectToggle('states', state)}
-                />
-                <span>{state}</span>
-              </label>
+              <Checkbox
+                key={state}
+                checked={selectedStates.includes(state)}
+                onChange={() => handleMultiSelectToggle('states', state)}
+              >
+                {state}
+              </Checkbox>
             ))}
           </div>
         </div>
@@ -327,14 +318,13 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
           <div className="filter-subsection-label">City</div>
           <div className="filter-options filter-options-scrollable">
             {filterOptions.cities.map(city => (
-              <label key={city} className="filter-option">
-                <input
-                  type="checkbox"
-                  checked={selectedCities.includes(city)}
-                  onChange={() => handleMultiSelectToggle('cities', city)}
-                />
-                <span>{city}</span>
-              </label>
+              <Checkbox
+                key={city}
+                checked={selectedCities.includes(city)}
+                onChange={() => handleMultiSelectToggle('cities', city)}
+              >
+                {city}
+              </Checkbox>
             ))}
           </div>
         </div>
@@ -355,14 +345,13 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
     return (
       <div className="filter-options">
         {filterOptions.fileFormats.map(format => (
-          <label key={format} className="filter-option">
-            <input
-              type="checkbox"
-              checked={selectedFormats.includes(format)}
-              onChange={() => handleMultiSelectToggle('fileFormats', format)}
-            />
-            <span>{format.toUpperCase()}</span>
-          </label>
+          <Checkbox
+            key={format}
+            checked={selectedFormats.includes(format)}
+            onChange={() => handleMultiSelectToggle('fileFormats', format)}
+          >
+            {format.toUpperCase()}
+          </Checkbox>
         ))}
       </div>
     );

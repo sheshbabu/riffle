@@ -1,0 +1,94 @@
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover .checkbox-icon svg {
+
+    rect,
+    path {
+      stroke: var(--text-primary);
+    }
+  }
+
+  &:hover .checkbox-input:checked+.checkbox-icon svg {
+
+    rect,
+    path {
+      stroke: var(--text-primary);
+    }
+  }
+
+  &.checkbox--disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+
+    .checkbox-icon svg {
+
+      rect,
+      path {
+        stroke: var(--text-secondary);
+      }
+    }
+
+    &:hover .checkbox-icon svg {
+
+      rect,
+      path {
+        stroke: var(--text-secondary);
+      }
+    }
+  }
+}
+
+.checkbox-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+
+  &:checked+.checkbox-icon svg {
+
+    rect,
+    path {
+      stroke: var(--text-primary);
+    }
+  }
+
+  &:focus-visible+.checkbox-icon {
+    outline: 2px solid var(--neutral-100);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.checkbox-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+
+  svg {
+    width: 24px;
+    height: 24px;
+
+    rect,
+    path {
+      stroke: var(--text-secondary);
+      transition: stroke var(--transition-fast) ease-out;
+    }
+  }
+}
+
+.checkbox-label {
+  font-size: 14px;
+}

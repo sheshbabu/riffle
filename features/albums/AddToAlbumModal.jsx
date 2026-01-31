@@ -1,6 +1,7 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import { ModalBackdrop, ModalContainer, ModalHeader, ModalContent, ModalFooter } from '../../commons/components/Modal.jsx';
 import Button from '../../commons/components/Button.jsx';
+import Checkbox from '../../commons/components/Checkbox.jsx';
 import CreateAlbumModal from './CreateAlbumModal.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import pluralize from '../../commons/utils/pluralize.js';
@@ -84,7 +85,7 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
 
       return (
         <div key={album.albumId} className={itemClass} onClick={() => handleAlbumToggle(album.albumId)}>
-          <input type="checkbox" checked={isSelected} onChange={() => { }} className="add-to-album-modal-checkbox" />
+          <Checkbox checked={isSelected} onChange={() => handleAlbumToggle(album.albumId)} />
           <div className="add-to-album-modal-album-info">
             <div className="add-to-album-modal-album-name">{album.name}</div>
             <AlbumCount album={album} />
