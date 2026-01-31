@@ -1,6 +1,7 @@
 import { LoadingSpinner } from '../../commons/components/Icon.jsx';
 import { ModalBackdrop, ModalContainer, ModalContent } from '../../commons/components/Modal.jsx';
 import Badge from '../../commons/components/Badge.jsx';
+import { DescriptionList, DescriptionItem } from '../../commons/components/DescriptionList.jsx';
 import formatDateTime from '../../commons/utils/formatDateTime.js';
 
 export default function ExportSessionDetail({ session, hasCompleted = true, onClose }) {
@@ -69,66 +70,38 @@ export default function ExportSessionDetail({ session, hasCompleted = true, onCl
 
     let durationEl = null;
     if (durationText) {
-      durationEl = (
-        <div className="session-detail-section">
-          <div className="session-detail-label">Duration</div>
-          <div className="session-detail-value">{durationText}</div>
-        </div>
-      );
+      durationEl = <DescriptionItem label="Duration" value={durationText} />;
     }
 
     let errorsEl = null;
     if (session.error_count > 0) {
       errorsEl = (
-        <div className="session-detail-section">
-          <div className="session-detail-label">Errors</div>
-          <div className="session-detail-value session-detail-error">{session.error_count}</div>
-        </div>
+        <DescriptionItem label="Errors">
+          <span className="session-detail-error">{session.error_count}</span>
+        </DescriptionItem>
       );
     }
 
     let errorMessageEl = null;
     if (session.error_message) {
       errorMessageEl = (
-        <div className="session-detail-section">
-          <div className="session-detail-label">Error</div>
-          <div className="session-detail-value session-detail-error">{session.error_message}</div>
-        </div>
+        <DescriptionItem label="Error">
+          <span className="session-detail-error">{session.error_message}</span>
+        </DescriptionItem>
       );
     }
 
     modalBody = (
-      <div className="session-detail-container">
-        <div className="session-detail-section">
-          <div className="session-detail-label">Date</div>
-          <div className="session-detail-value">{formattedDateTime}</div>
-        </div>
-
-        <div className="session-detail-section">
-          <div className="session-detail-label">Destination Folder</div>
-          <div className="session-detail-value">{session.export_path}</div>
-        </div>
-
-        <div className="session-detail-section">
-          <div className="session-detail-label">Criteria</div>
-          <div className="session-detail-value">{criteriaText}</div>
-        </div>
-
+      <DescriptionList className="session-detail-container">
+        <DescriptionItem label="Date" value={formattedDateTime} />
+        <DescriptionItem label="Destination Folder" value={session.export_path} />
+        <DescriptionItem label="Criteria" value={criteriaText} />
         {durationEl}
-
-        <div className="session-detail-section">
-          <div className="session-detail-label">Status</div>
-          <div>{statusBadge}</div>
-        </div>
-
-        <div className="session-detail-section">
-          <div className="session-detail-label">Exported Photos</div>
-          <div className="session-detail-value">{session.exported_photos}/{session.total_photos}</div>
-        </div>
-
+        <DescriptionItem label="Status">{statusBadge}</DescriptionItem>
+        <DescriptionItem label="Exported Photos" value={`${session.exported_photos}/${session.total_photos}`} />
         {errorsEl}
         {errorMessageEl}
-      </div>
+      </DescriptionList>
     );
   }
 

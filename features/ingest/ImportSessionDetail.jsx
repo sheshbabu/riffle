@@ -1,6 +1,7 @@
 import { TaskDoneIcon, TaskInProgressIcon, TaskNotStartedIcon } from '../../commons/components/Icon.jsx';
 import { ModalBackdrop, ModalContainer, ModalContent } from '../../commons/components/Modal.jsx';
 import Badge from '../../commons/components/Badge.jsx';
+import { DescriptionList, DescriptionItem } from '../../commons/components/DescriptionList.jsx';
 import formatDateTime from '../../commons/utils/formatDateTime.js';
 import formatCount from '../../commons/utils/formatCount.js';
 
@@ -45,116 +46,63 @@ export default function ImportSessionDetail({ session, hasCompleted = true, impo
 
     let uniqueFilesEl = null;
     if (session.unique_files > 0) {
-      uniqueFilesEl = (
-        <div className="session-detail-section">
-          <div className="session-detail-label">Unique Files</div>
-          <div className="session-detail-value">{session.unique_files}</div>
-        </div>
-      );
+      uniqueFilesEl = <DescriptionItem label="Unique Files" value={session.unique_files} />;
     }
 
     let duplicatesRemovedEl = null;
     if (session.duplicates_removed > 0) {
-      duplicatesRemovedEl = (
-        <div className="session-detail-section">
-          <div className="session-detail-label">Duplicates Removed</div>
-          <div className="session-detail-value">{session.duplicates_removed}</div>
-        </div>
-      );
+      duplicatesRemovedEl = <DescriptionItem label="Duplicates Removed" value={session.duplicates_removed} />;
     }
 
     let duplicateGroupsEl = null;
     if (session.duplicate_groups > 0) {
-      duplicateGroupsEl = (
-        <div className="session-detail-section">
-          <div className="session-detail-label">Duplicate Groups</div>
-          <div className="session-detail-value">{session.duplicate_groups}</div>
-        </div>
-      );
+      duplicateGroupsEl = <DescriptionItem label="Duplicate Groups" value={session.duplicate_groups} />;
     }
 
     let alreadyImportedEl = null;
     if (session.already_imported > 0) {
-      alreadyImportedEl = (
-        <div className="session-detail-section">
-          <div className="session-detail-label">Already Imported</div>
-          <div className="session-detail-value">{session.already_imported}</div>
-        </div>
-      );
+      alreadyImportedEl = <DescriptionItem label="Already Imported" value={session.already_imported} />;
     }
 
     let errorsEl = null;
     if (session.error_count > 0) {
       errorsEl = (
-        <div className="session-detail-section">
-          <div className="session-detail-label">Errors</div>
-          <div className="session-detail-value session-detail-error">{session.error_count}</div>
-        </div>
+        <DescriptionItem label="Errors">
+          <span className="session-detail-error">{session.error_count}</span>
+        </DescriptionItem>
       );
     }
 
     let durationEl = null;
     if (durationText) {
-      durationEl = (
-        <div className="session-detail-section">
-          <div className="session-detail-label">Duration</div>
-          <div className="session-detail-value">{durationText}</div>
-        </div>
-      );
+      durationEl = <DescriptionItem label="Duration" value={durationText} />;
     }
 
     let errorMessageEl = null;
     if (session.error_message) {
       errorMessageEl = (
-        <div className="session-detail-section">
-          <div className="session-detail-label">Error</div>
-          <div className="session-detail-value session-detail-error">{session.error_message}</div>
-        </div>
+        <DescriptionItem label="Error">
+          <span className="session-detail-error">{session.error_message}</span>
+        </DescriptionItem>
       );
     }
 
     modalBody = (
-      <div className="session-detail-container">
-        <div className="session-detail-section">
-          <div className="session-detail-label">Date</div>
-          <div className="session-detail-value">{formattedDateTime}</div>
-        </div>
-
-        <div className="session-detail-section">
-          <div className="session-detail-label">Source Folder</div>
-          <div className="session-detail-value">{session.import_path}</div>
-        </div>
-
-        <div className="session-detail-section">
-          <div className="session-detail-label">Import Mode</div>
-          <div className="session-detail-value">{modeText}</div>
-        </div>
-
+      <DescriptionList className="session-detail-container">
+        <DescriptionItem label="Date" value={formattedDateTime} />
+        <DescriptionItem label="Source Folder" value={session.import_path} />
+        <DescriptionItem label="Import Mode" value={modeText} />
         {durationEl}
-
-        <div className="session-detail-section">
-          <div className="session-detail-label">Status</div>
-          <div>{statusBadge}</div>
-        </div>
-
-        <div className="session-detail-section">
-          <div className="session-detail-label">Total Scanned</div>
-          <div className="session-detail-value">{session.total_scanned}</div>
-        </div>
-
+        <DescriptionItem label="Status">{statusBadge}</DescriptionItem>
+        <DescriptionItem label="Total Scanned" value={session.total_scanned} />
         {uniqueFilesEl}
         {duplicatesRemovedEl}
         {duplicateGroupsEl}
         {alreadyImportedEl}
-
-        <div className="session-detail-section">
-          <div className="session-detail-label">Moved to Library</div>
-          <div className="session-detail-value">{session.moved_to_library}</div>
-        </div>
-
+        <DescriptionItem label="Moved to Library" value={session.moved_to_library} />
         {errorsEl}
         {errorMessageEl}
-      </div>
+      </DescriptionList>
     );
   }
 
