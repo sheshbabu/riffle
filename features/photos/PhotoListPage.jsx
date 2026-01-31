@@ -366,7 +366,11 @@ export default function PhotoListPage({ mode = 'library' }) {
     if (filePaths.length === 0) {
       return;
     }
-    filePaths.forEach(filePath => handleCurate(filePath, true, false, 0));
+    filePaths.forEach(filePath => {
+      const photo = photos.find(p => p.filePath === filePath);
+      const currentRating = photo ? (photo.rating || 0) : 0;
+      handleCurate(filePath, true, false, currentRating);
+    });
   }
 
   function handleRejectClick() {
