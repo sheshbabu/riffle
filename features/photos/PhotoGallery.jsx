@@ -351,7 +351,7 @@ export default function PhotoGallery({
       }
 
       return (
-        <div key={`${group.date}-${groupStartIndex}`} className="group-container">
+        <div key={`${group.date}-${photos[groupStartIndex]?.sha256Hash || groupStartIndex}`} className="group-container">
           <div className="group-header">
             <div className="group-header-info">
               <span className="group-date">{dateStr}</span>
