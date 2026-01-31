@@ -219,11 +219,11 @@ export default function PhotoGallery({
     let undoButton = null;
     if (isFading && onUndo) {
       undoButton = (
-        <div className="undo-overlay" onClick={(e) => {
-          e.stopPropagation();
-          onUndo(photo.filePath);
-        }}>
-          <Button variant="primary">Undo</Button>
+        <div className="undo-overlay">
+          <Button variant="primary" onClick={(e) => {
+            e.stopPropagation();
+            onUndo(photo.filePath);
+          }}>Undo</Button>
         </div>
       );
     }
