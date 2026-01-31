@@ -109,8 +109,6 @@ func newRouter() *http.ServeMux {
 	mux.HandleFunc("GET /api/thumbnails/", photos.HandleServeThumbnail)
 	mux.HandleFunc("POST /api/burst/rebuild/", photos.HandleRebuildBurstData)
 	mux.HandleFunc("GET /api/burst/rebuild/progress/", photos.HandleGetBurstRebuildProgress)
-	mux.HandleFunc("POST /api/groups/rebuild/", photos.HandleRebuildGroups)
-	mux.HandleFunc("GET /api/groups/rebuild/progress/", photos.HandleGetGroupRebuildProgress)
 	mux.HandleFunc("GET /api/calendar/months/", calendar.HandleGetCalendarMonths)
 	mux.HandleFunc("GET /api/settings/", settings.HandleGetSettings)
 	mux.HandleFunc("POST /api/settings/", settings.HandleUpdateSetting)

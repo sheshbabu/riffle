@@ -18,7 +18,7 @@ const { useState, useEffect } = React;
 
 const PAGE_CONFIG = {
   library: {
-    fetchPhotos: (afterGroup, beforeGroup, filters) => ApiClient.getPhotos(afterGroup, beforeGroup, filters),
+    fetchPhotos: (offset, filters) => ApiClient.getPhotos(offset, filters),
     emptyState: {
       icon: ImageIcon,
       title: 'No photos yet',
@@ -27,7 +27,7 @@ const PAGE_CONFIG = {
     initialSelectedIndex: null,
   },
   curate: {
-    fetchPhotos: (afterGroup, beforeGroup, filters) => ApiClient.getUncuratedPhotos(afterGroup, beforeGroup, filters),
+    fetchPhotos: (offset, filters) => ApiClient.getUncuratedPhotos(offset, filters),
     emptyState: {
       icon: SparklesIcon,
       title: 'Nothing to review',
@@ -36,7 +36,7 @@ const PAGE_CONFIG = {
     initialSelectedIndex: 0,
   },
   trash: {
-    fetchPhotos: (afterGroup, beforeGroup, filters) => ApiClient.getTrashedPhotos(afterGroup, beforeGroup, filters),
+    fetchPhotos: (offset, filters) => ApiClient.getTrashedPhotos(offset, filters),
     emptyState: {
       icon: TrashEmptyIcon,
       title: 'Nothing here',
@@ -144,10 +144,8 @@ export default function PhotoListPage({ mode = 'library' }) {
   const isCurateMode = mode === 'curate';
   const searchParams = useSearchParams();
 
-  const afterGroupParam = searchParams.get('afterGroup');
-  const beforeGroupParam = searchParams.get('beforeGroup');
-  const afterGroup = afterGroupParam ? parseInt(afterGroupParam, 10) : null;
-  const beforeGroup = beforeGroupParam ? parseInt(beforeGroupParam, 10) : null;
+  const offsetParam = searchParams.get('offset');
+  const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
 
   const filters = parseFiltersFromUrl(searchParams);
 
@@ -160,8 +158,6 @@ export default function PhotoListPage({ mode = 'library' }) {
   const [totalRecords, setTotalRecords] = useState(0);
   const [pageStartRecord, setPageStartRecord] = useState(0);
   const [pageEndRecord, setPageEndRecord] = useState(0);
-  const [nextCursor, setNextCursor] = useState(null);
-  const [prevCursor, setPrevCursor] = useState(null);
   const initialSelection = config.initialSelectedIndex !== null ? new Set([config.initialSelectedIndex]) : new Set();
   const [selectedIndices, setSelectedIndices] = useState(initialSelection);
   const [fadingPhotos, setFadingPhotos] = useState(new Set());
@@ -177,7 +173,7 @@ export default function PhotoListPage({ mode = 'library' }) {
       setError(null);
 
       try {
-        const data = await config.fetchPhotos(afterGroup, beforeGroup, filters);
+        const data = await config.fetchPhotos(offset, filters);
         const newPhotos = data.photos || [];
         setPhotos(newPhotos);
         setGroups(data.groups || []);
@@ -186,8 +182,6 @@ export default function PhotoListPage({ mode = 'library' }) {
         setTotalRecords(data.totalRecords || 0);
         setPageStartRecord(data.pageStartRecord || 0);
         setPageEndRecord(data.pageEndRecord || 0);
-        setNextCursor(data.nextCursor !== undefined ? data.nextCursor : null);
-        setPrevCursor(data.prevCursor !== undefined ? data.prevCursor : null);
 
         if (newPhotos.length === 0) {
           setSelectedIndices(new Set());
@@ -208,16 +202,16 @@ export default function PhotoListPage({ mode = 'library' }) {
     }
 
     fetchPhotos();
-  }, [afterGroup, beforeGroup, filtersKey]);
+  }, [offset, filtersKey]);
+
+  const hasPrev = offset > 0;
+  const hasNext = pageEndRecord < totalRecords;
 
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         return;
       }
-
-      const hasPrev = prevCursor !== null;
-      const hasNext = nextCursor !== null;
 
       if (e.key === 'j' || e.key === 'J') {
         if (hasNext) {
@@ -234,7 +228,7 @@ export default function PhotoListPage({ mode = 'library' }) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [nextCursor, prevCursor]);
+  }, [hasNext, hasPrev]);
 
   useEffect(() => {
     function handleCurateKeyDown(e) {
@@ -304,8 +298,7 @@ export default function PhotoListPage({ mode = 'library' }) {
       states: null,
       cities: null,
       fileFormats: null,
-      afterGroup: null,
-      beforeGroup: null,
+      offset: null,
     };
     updateSearchParams({ ...clearParams, ...filterParams });
   }
@@ -401,14 +394,15 @@ export default function PhotoListPage({ mode = 'library' }) {
   }
 
   function handlePrevPage() {
-    if (prevCursor !== null) {
-      updateSearchParams({ beforeGroup: prevCursor, afterGroup: null });
+    if (hasPrev) {
+      const newOffset = Math.max(0, offset - 100);
+      updateSearchParams({ offset: newOffset });
     }
   }
 
   function handleNextPage() {
-    if (nextCursor !== null) {
-      updateSearchParams({ afterGroup: nextCursor, beforeGroup: null });
+    if (hasNext) {
+      updateSearchParams({ offset: offset + 100 });
     }
   }
 
@@ -480,9 +474,6 @@ export default function PhotoListPage({ mode = 'library' }) {
       />
     );
   }
-
-  const hasPrev = prevCursor !== null;
-  const hasNext = nextCursor !== null;
 
   let paginationElement = null;
   if (!error && (hasPrev || hasNext)) {

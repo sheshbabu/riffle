@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"math"
 	"riffle/commons/hash"
+	"riffle/commons/utils"
 	"riffle/features/settings"
+	"time"
 )
 
 type Burst struct {
@@ -88,4 +90,14 @@ func DetectBursts(photos []Photo) []Burst {
 	}
 
 	return bursts
+}
+
+func parsePhotoDateTime(photo Photo) *time.Time {
+	if photo.DateTime != nil {
+		return utils.ParseDateTime(*photo.DateTime)
+	}
+	if photo.FileModifiedAt != nil {
+		return utils.ParseDateTime(*photo.FileModifiedAt)
+	}
+	return utils.ParseDateTime(photo.CreatedAt)
 }

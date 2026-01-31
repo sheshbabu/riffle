@@ -105,12 +105,10 @@ function buildFilterParams(filters) {
   return params.length > 0 ? '&' + params.join('&') : '';
 }
 
-function buildPhotoUrl(basePath, afterGroup, beforeGroup, filters) {
+function buildPhotoUrl(basePath, offset, filters) {
   const params = [];
-  if (afterGroup !== null) {
-    params.push(`afterGroup=${afterGroup}`);
-  } else if (beforeGroup !== null) {
-    params.push(`beforeGroup=${beforeGroup}`);
+  if (offset > 0) {
+    params.push(`offset=${offset}`);
   }
   const filterParams = buildFilterParams(filters);
   if (filterParams) {
@@ -120,18 +118,18 @@ function buildPhotoUrl(basePath, afterGroup, beforeGroup, filters) {
   return queryString ? `${basePath}?${queryString}` : basePath;
 }
 
-async function getPhotos(afterGroup, beforeGroup, filters) {
-  const url = buildPhotoUrl('/api/photos/', afterGroup, beforeGroup, filters);
+async function getPhotos(offset, filters) {
+  const url = buildPhotoUrl('/api/photos/', offset, filters);
   return await request('GET', url);
 }
 
-async function getUncuratedPhotos(afterGroup, beforeGroup, filters) {
-  const url = buildPhotoUrl('/api/photos/uncurated/', afterGroup, beforeGroup, filters);
+async function getUncuratedPhotos(offset, filters) {
+  const url = buildPhotoUrl('/api/photos/uncurated/', offset, filters);
   return await request('GET', url);
 }
 
-async function getTrashedPhotos(afterGroup, beforeGroup, filters) {
-  const url = buildPhotoUrl('/api/photos/trashed/', afterGroup, beforeGroup, filters);
+async function getTrashedPhotos(offset, filters) {
+  const url = buildPhotoUrl('/api/photos/trashed/', offset, filters);
   return await request('GET', url);
 }
 
@@ -165,14 +163,6 @@ async function rebuildBurstData() {
 
 async function getBurstRebuildProgress() {
   return await request('GET', '/api/burst/rebuild/progress/');
-}
-
-async function rebuildGroups() {
-  return await request('POST', '/api/groups/rebuild/', {});
-}
-
-async function getGroupRebuildProgress() {
-  return await request('GET', '/api/groups/rebuild/progress/');
 }
 
 async function curatePhoto(filePath, isCurated, isTrashed, rating) {
@@ -269,8 +259,6 @@ export default {
   getThumbnailRebuildProgress,
   rebuildBurstData,
   getBurstRebuildProgress,
-  rebuildGroups,
-  getGroupRebuildProgress,
   curatePhoto,
   getAlbums,
   getAlbum,

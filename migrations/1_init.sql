@@ -1,19 +1,3 @@
-CREATE TABLE IF NOT EXISTS photo_groups (
-    group_id       INTEGER PRIMARY KEY AUTOINCREMENT,
-    start_time     TIMESTAMP NOT NULL,
-    end_time       TIMESTAMP NOT NULL,
-    max_date_time  TIMESTAMP,
-    photo_count    INTEGER DEFAULT 0,
-    total_size     INTEGER DEFAULT 0,
-    latitude       REAL,
-    longitude      REAL,
-    city           TEXT,
-    state          TEXT,
-    country_name   TEXT,
-    created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS photos (
     file_path        TEXT PRIMARY KEY,
     original_filepath TEXT,
@@ -48,8 +32,7 @@ CREATE TABLE IF NOT EXISTS photos (
     created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     imported_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    thumbnail_path   TEXT,
-    group_id         INTEGER REFERENCES photo_groups(group_id)
+    thumbnail_path   TEXT
 );
 
 CREATE TABLE IF NOT EXISTS tags (
@@ -180,10 +163,7 @@ CREATE INDEX IF NOT EXISTS idx_photos_date_time ON photos(date_time);
 CREATE INDEX IF NOT EXISTS idx_photos_rating ON photos(rating);
 CREATE INDEX IF NOT EXISTS idx_photos_is_video ON photos(is_video);
 CREATE INDEX IF NOT EXISTS idx_photos_camera ON photos(camera_make, camera_model);
-CREATE INDEX IF NOT EXISTS idx_photos_group_id ON photos(group_id);
-CREATE INDEX IF NOT EXISTS idx_photo_groups_start_time ON photo_groups(start_time);
-CREATE INDEX IF NOT EXISTS idx_photo_groups_max_date_time ON photo_groups(max_date_time DESC);
 CREATE INDEX IF NOT EXISTS idx_photos_trashed_date ON photos(is_trashed, date_time DESC);
-CREATE INDEX IF NOT EXISTS idx_photos_curated_trashed_group_date ON photos(is_curated, is_trashed, group_id, date_time DESC);
+CREATE INDEX IF NOT EXISTS idx_photos_curated_trashed_date ON photos(is_curated, is_trashed, date_time DESC, created_at DESC); 
 CREATE INDEX IF NOT EXISTS idx_import_sessions_started_at ON import_sessions(started_at);
 CREATE INDEX IF NOT EXISTS idx_export_sessions_started_at ON export_sessions(started_at);

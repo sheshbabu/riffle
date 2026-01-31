@@ -5,7 +5,7 @@ import MasonryGrid from '../../commons/components/MasonryGrid.jsx';
 import { StackIcon } from '../../commons/components/Icon.jsx';
 import getThumbnailUrl from '../../commons/utils/getThumbnailUrl.js';
 import isVideoFile from '../../commons/utils/isVideoFile.js';
-import formatSessionDate from '../../commons/utils/formatSessionDate.js';
+import formatGroupDate from '../../commons/utils/formatGroupDate.js';
 import formatDuration from '../../commons/utils/formatDuration.js';
 import formatFileSize from '../../commons/utils/formatFileSize.js';
 import pluralize from '../../commons/utils/pluralize.js';
@@ -77,21 +77,11 @@ export default function PhotoGallery({
           break;
         case 'ArrowDown':
           e.preventDefault();
-          if (isGroupView) {
-            const newIndex = getNextRowIndex(selectedIndex, cols, groups, photos.length);
-            onSelectionChange(new Set([newIndex]));
-          } else {
-            onSelectionChange(new Set([Math.min(lastIndex, selectedIndex + cols)]));
-          }
+          onSelectionChange(new Set([Math.min(lastIndex, selectedIndex + cols)]));
           break;
         case 'ArrowUp':
           e.preventDefault();
-          if (isGroupView) {
-            const newIndex = getPrevRowIndex(selectedIndex, cols, groups);
-            onSelectionChange(new Set([newIndex]));
-          } else {
-            onSelectionChange(new Set([Math.max(0, selectedIndex - cols)]));
-          }
+          onSelectionChange(new Set([Math.max(0, selectedIndex - cols)]));
           break;
         case 'Enter':
         case ' ':
@@ -329,15 +319,7 @@ export default function PhotoGallery({
 
       const photoElements = renderPhotosWithBursts(groupStartIndex, groupEndIndex);
 
-      let locationElement = null;
-      if (group.location) {
-        locationElement = <span className="group-location">{group.location}</span>;
-      }
-
-      let sizeElement = null;
-      if (group.totalSize) {
-        sizeElement = <span className="group-size">{formatFileSize(group.totalSize)}</span>;
-      }
+      const dateStr = formatGroupDate(group.date);
 
       let selectAllButton = null;
       if (onSelectionChange) {
@@ -369,13 +351,12 @@ export default function PhotoGallery({
       }
 
       return (
-        <div key={group.groupId} className="group-container">
+        <div key={`${group.date}-${groupStartIndex}`} className="group-container">
           <div className="group-header">
             <div className="group-header-info">
-              <span className="group-date">{formatSessionDate(group.startTime, group.endTime)}</span>
-              {locationElement}
+              <span className="group-date">{dateStr}</span>
               <span className="group-count">{group.photoCount} {pluralize(group.photoCount, 'photo')}</span>
-              {sizeElement}
+              <span className="group-size">{formatFileSize(group.totalSize)}</span>
             </div>
             {selectAllButton}
           </div>
@@ -432,82 +413,3 @@ function createRangeSet(start, end) {
   return set;
 }
 
-function getGroupInfo(index, groups) {
-  let photoOffset = 0;
-  for (let i = 0; i < groups.length; i++) {
-    const group = groups[i];
-    const groupStart = photoOffset;
-    const groupEnd = photoOffset + group.photoCount;
-    if (index >= groupStart && index < groupEnd) {
-      return {
-        groupIndex: i,
-        groupStart,
-        groupEnd,
-        indexInGroup: index - groupStart,
-        photoCount: group.photoCount,
-      };
-    }
-    photoOffset = groupEnd;
-  }
-  return null;
-}
-
-function getNextRowIndex(currentIndex, cols, groups, totalPhotos) {
-  const info = getGroupInfo(currentIndex, groups);
-  if (!info) {
-    return Math.min(totalPhotos - 1, currentIndex + cols);
-  }
-
-  const currentRow = Math.floor(info.indexInGroup / cols);
-  const currentCol = info.indexInGroup % cols;
-  const totalRowsInGroup = Math.ceil(info.photoCount / cols);
-  const nextRow = currentRow + 1;
-
-  if (nextRow < totalRowsInGroup) {
-    const nextIndexInGroup = nextRow * cols + currentCol;
-    if (nextIndexInGroup < info.photoCount) {
-      return info.groupStart + nextIndexInGroup;
-    }
-    return info.groupEnd - 1;
-  }
-
-  if (info.groupIndex + 1 < groups.length) {
-    let nextGroupStart = info.groupEnd;
-    const nextGroup = groups[info.groupIndex + 1];
-    const targetIndexInNextGroup = Math.min(currentCol, nextGroup.photoCount - 1);
-    return nextGroupStart + targetIndexInNextGroup;
-  }
-
-  return currentIndex;
-}
-
-function getPrevRowIndex(currentIndex, cols, groups) {
-  const info = getGroupInfo(currentIndex, groups);
-  if (!info) {
-    return Math.max(0, currentIndex - cols);
-  }
-
-  const currentRow = Math.floor(info.indexInGroup / cols);
-  const currentCol = info.indexInGroup % cols;
-  const prevRow = currentRow - 1;
-
-  if (prevRow >= 0) {
-    const prevIndexInGroup = prevRow * cols + currentCol;
-    return info.groupStart + prevIndexInGroup;
-  }
-
-  if (info.groupIndex > 0) {
-    let prevGroupStart = 0;
-    for (let i = 0; i < info.groupIndex - 1; i++) {
-      prevGroupStart += groups[i].photoCount;
-    }
-    const prevGroup = groups[info.groupIndex - 1];
-    const totalRowsInPrevGroup = Math.ceil(prevGroup.photoCount / cols);
-    const lastRowStart = (totalRowsInPrevGroup - 1) * cols;
-    const targetCol = Math.min(currentCol, prevGroup.photoCount - 1 - lastRowStart);
-    const targetIndexInPrevGroup = lastRowStart + targetCol;
-    return prevGroupStart + Math.min(targetIndexInPrevGroup, prevGroup.photoCount - 1);
-  }
-
-  return currentIndex;
-}

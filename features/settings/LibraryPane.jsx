@@ -1,5 +1,4 @@
 import ThumbnailRebuildSection from './ThumbnailRebuildSection.jsx';
-import GroupingRebuildSection from './GroupingRebuildSection.jsx';
 
 export default function LibraryPane() {
   return (
@@ -8,7 +7,6 @@ export default function LibraryPane() {
       <p>Rebuild and optimize your photo library's index and cached assets.</p>
 
       <ThumbnailRebuildSection />
-      <GroupingRebuildSection />
     </div>
   );
 }

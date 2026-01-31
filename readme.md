@@ -18,7 +18,6 @@ Import → Curate → Library → Export
 
 **Library**
 * Browse organized photos in masonry grid layout
-* Automatic photo grouping by time/location (configurable)
 * Burst detection for rapid-fire sequences (configurable)
 * Photo metadata display (camera, settings, GPS)
 * Image lightbox with full-screen view
@@ -46,7 +45,6 @@ Import → Curate → Library → Export
 **Settings**
 * Import configuration (folder path, move/copy mode, history)
 * Library management (folder paths, storage stats, rebuild thumbnails)
-* Grouping configuration (time gap, max duration, location distance, rebuild)
 * Burst detection (enable/disable, time window, similarity threshold, rebuild)
 * Export configuration (folder path, organization, deduplication, cleanup)
 

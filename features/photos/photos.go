@@ -63,13 +63,11 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 
 type PhotosResponse struct {
 	Photos          []Photo `json:"photos"`
-	Groups          []Group `json:"groups,omitempty"`
+	Groups          []Group `json:"groups"`
 	Bursts          []Burst `json:"bursts,omitempty"`
 	TotalRecords    int     `json:"totalRecords"`
 	PageStartRecord int     `json:"pageStartRecord"`
 	PageEndRecord   int     `json:"pageEndRecord"`
-	NextCursor      *int64  `json:"nextCursor"`
-	PrevCursor      *int64  `json:"prevCursor"`
 }
 
 func parseFiltersFromQuery(r *http.Request) *PhotoFilters {
@@ -148,19 +146,14 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	var afterGroup, beforeGroup *int64
-	if ag := query.Get("afterGroup"); ag != "" {
-		if v, err := strconv.ParseInt(ag, 10, 64); err == nil {
-			afterGroup = &v
-		}
-	}
-	if bg := query.Get("beforeGroup"); bg != "" {
-		if v, err := strconv.ParseInt(bg, 10, 64); err == nil {
-			beforeGroup = &v
+	offset := 0
+	if o := query.Get("offset"); o != "" {
+		if v, err := strconv.Atoi(o); err == nil && v >= 0 {
+			offset = v
 		}
 	}
 
-	photos, groups, nextCursor, prevCursor, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithGroupCursor(limit, afterGroup, beforeGroup, true, false, filters)
+	photos, groups, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithDayGroups(limit, offset, true, false, filters)
 	if err != nil {
 		slog.Error("failed to get photos with groups", "error", err)
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
@@ -176,8 +169,6 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 		TotalRecords:    totalRecords,
 		PageStartRecord: pageStartRecord,
 		PageEndRecord:   pageEndRecord,
-		NextCursor:      nextCursor,
-		PrevCursor:      prevCursor,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -190,19 +181,14 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	var afterGroup, beforeGroup *int64
-	if ag := query.Get("afterGroup"); ag != "" {
-		if v, err := strconv.ParseInt(ag, 10, 64); err == nil {
-			afterGroup = &v
-		}
-	}
-	if bg := query.Get("beforeGroup"); bg != "" {
-		if v, err := strconv.ParseInt(bg, 10, 64); err == nil {
-			beforeGroup = &v
+	offset := 0
+	if o := query.Get("offset"); o != "" {
+		if v, err := strconv.Atoi(o); err == nil && v >= 0 {
+			offset = v
 		}
 	}
 
-	photos, groups, nextCursor, prevCursor, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithGroupCursor(limit, afterGroup, beforeGroup, false, false, filters)
+	photos, groups, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithDayGroups(limit, offset, false, false, filters)
 	if err != nil {
 		slog.Error("failed to get uncurated photos with groups", "error", err)
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
@@ -218,8 +204,6 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 		TotalRecords:    totalRecords,
 		PageStartRecord: pageStartRecord,
 		PageEndRecord:   pageEndRecord,
-		NextCursor:      nextCursor,
-		PrevCursor:      prevCursor,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -232,19 +216,14 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 	filters := parseFiltersFromQuery(r)
 	limit := 100
 
-	var afterGroup, beforeGroup *int64
-	if ag := query.Get("afterGroup"); ag != "" {
-		if v, err := strconv.ParseInt(ag, 10, 64); err == nil {
-			afterGroup = &v
-		}
-	}
-	if bg := query.Get("beforeGroup"); bg != "" {
-		if v, err := strconv.ParseInt(bg, 10, 64); err == nil {
-			beforeGroup = &v
+	offset := 0
+	if o := query.Get("offset"); o != "" {
+		if v, err := strconv.Atoi(o); err == nil && v >= 0 {
+			offset = v
 		}
 	}
 
-	photos, groups, nextCursor, prevCursor, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithGroupCursor(limit, afterGroup, beforeGroup, false, true, filters)
+	photos, groups, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithDayGroups(limit, offset, false, true, filters)
 	if err != nil {
 		slog.Error("failed to get trashed photos with groups", "error", err)
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
@@ -260,8 +239,6 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 		TotalRecords:    totalRecords,
 		PageStartRecord: pageStartRecord,
 		PageEndRecord:   pageEndRecord,
-		NextCursor:      nextCursor,
-		PrevCursor:   prevCursor,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -287,10 +264,10 @@ func HandleGetFilterOptions(w http.ResponseWriter, r *http.Request) {
 }
 
 type CurateRequest struct {
-	FilePath   string `json:"filePath"`
-	IsCurated  bool   `json:"isCurated"`
-	IsTrashed  bool   `json:"isTrashed"`
-	Rating     int    `json:"rating"`
+	FilePath  string `json:"filePath"`
+	IsCurated bool   `json:"isCurated"`
+	IsTrashed bool   `json:"isTrashed"`
+	Rating    int    `json:"rating"`
 }
 
 func HandleCuratePhoto(w http.ResponseWriter, r *http.Request) {

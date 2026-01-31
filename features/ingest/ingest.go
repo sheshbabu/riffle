@@ -11,7 +11,6 @@ import (
 	"riffle/commons/exif"
 	"riffle/commons/hash"
 	"riffle/commons/media"
-	"riffle/features/photos"
 	"riffle/features/settings"
 	"runtime"
 	"strings"
@@ -447,10 +446,6 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, impo
 	}
 
 	stats.MovedToLibrary = movedToLibrary
-
-	if err := photos.AssignGroupsToUngroupedPhotos(); err != nil {
-		slog.Error("failed to assign groups to photos", "error", err)
-	}
 
 	UpdateProgress(StatusImportingComplete, movedToLibrary, total)
 	cache.InvalidateOnImport()

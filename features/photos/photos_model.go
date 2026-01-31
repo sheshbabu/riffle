@@ -40,7 +40,6 @@ type Photo struct {
 	CreatedAt        string   `json:"createdAt"`
 	UpdatedAt        string   `json:"updatedAt"`
 	ThumbnailPath    *string  `json:"thumbnailPath,omitempty"`
-	GroupID          *int64   `json:"groupId,omitempty"`
 	TotalRecords     int      `json:"totalRecords,omitempty"`
 }
 

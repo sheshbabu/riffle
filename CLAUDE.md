@@ -31,7 +31,6 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - Move unique files and best candidates to Library folder
 - Organize into `Year/Month` structure with renamed files
 - Generate 300x300 thumbnails in `THUMBNAILS_PATH` (mirrors library structure)
-- Assign photos to groups based on time/location clustering
 - Store metadata in SQLite database
 
 ### 2. Curate (The Culling)
@@ -46,9 +45,8 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 ### 3. Library (Organized Archive)
 - Shows only curated, non-trashed photos (`is_curated=true AND is_trashed=false`)
 - Masonry grid layout with responsive column sizing
-- Group headers showing date range, location, photo count, and total size
+- Group headers showing date, photo count, and total size
 - Filters by date range, rating, camera, and location
-- Optimized pagination with efficient thumbnail loading
 
 ### 4. Trash (Safety Net)
 - Virtual trash (files remain in library folder)
@@ -63,7 +61,6 @@ Month-by-month grid showing curated/uncurated counts and cover photos. Click to 
 Tabbed interface with multiple configuration panes:
 - **Import**: Configure import folder, mode (move/copy), and view import history
 - **Library**: Configure library and thumbnails folders, view storage statistics, rebuild thumbnails
-- **Grouping**: Configure time gap (minutes), max duration (hours), and location distance (km) thresholds; rebuild groups
 - **Burst**: Enable/disable burst detection, configure time window (seconds) and similarity threshold (dHash distance)
 - **Export**: Configure export folder, organization options (maintain/flatten structure), duplicate handling (skip/include), and post-export cleanup (delete after export)
 
@@ -74,16 +71,6 @@ Filter and export photos to local folder based on rating and curation status. Ex
 - Duplicate handling: skip or include duplicate files based on SHA256 hash
 - Cleanup option: delete original files from library after successful export
 - Files are copied to the configured export folder with original timestamps preserved
-
-### Photo Groups
-Photos are automatically grouped during import using time-gap clustering and location-based analysis. Groups persisted in `photo_groups` table. Grouping parameters are configurable in Settings → Grouping.
-
-**A new group starts when ANY of these conditions are met:**
-- **Time gap** exceeds configured threshold (default: 120 minutes) between consecutive photos
-- **Total group duration** exceeds configured maximum (default: 12 hours) to prevent multi-day groups
-- **Distance** exceeds configured threshold (default: 1km) from the group's starting location (using Haversine distance)
-
-Groups can be rebuilt from Settings → Grouping with custom parameters.
 
 ### Burst Detection
 Photos taken within a configurable time window (default: 3 seconds) with dHash distance below a configurable similarity threshold (default: 4) are grouped as bursts. Display as collapsed stack with count badge; click to expand. Burst detection can be disabled or reconfigured in Settings → Burst, and existing bursts can be rebuilt with new parameters.
@@ -138,11 +125,9 @@ Files renamed as `YYYY-MM-DD-HHMMSS-<hash>.<ext>` (hash = first 16 chars of SHA2
 
 Photos stored in `riffle.db` (SQLite) with EXIF metadata.
 
-**Main tables:** `photos`, `photo_groups`, `tags`, `photo_tags`, `albums`, `album_photos`, `import_sessions`, `imported_photos`, `export_sessions`, `exported_photos`
+**Main tables:** `photos`, `tags`, `photo_tags`, `albums`, `album_photos`, `import_sessions`, `imported_photos`, `export_sessions`, `exported_photos`
 
-**Key photo fields:** `is_curated`, `is_trashed`, `rating` (0-5), `sha256_hash`, `dhash`, `thumbnail_path`, `group_id`, `notes`
-
-**Key group fields:** `group_id`, `start_time`, `end_time`, `photo_count`, `total_size`, GPS coordinates, reverse geocoded location
+**Key photo fields:** `is_curated`, `is_trashed`, `rating` (0-5), `sha256_hash`, `dhash`, `thumbnail_path`, `notes`
 
 
 ## Architecture Overview
