@@ -24,7 +24,7 @@ async function request(method, url, payload) {
     return isJsonResponse ? await response.json() : null;
   } catch (error) {
     if (!navigator.onLine) {
-      showToast("No internet connection");
+      showToast("No connection");
       console.error("Network error:", error);
       throw error;
     }
@@ -34,7 +34,7 @@ async function request(method, url, payload) {
       error.message.includes('Load failed') ||
       error.message.includes('NetworkError')
     )) {
-      showToast("Connection failed");
+      showToast("Unable to connect");
       console.error("Fetch error:", error);
       throw error;
     }

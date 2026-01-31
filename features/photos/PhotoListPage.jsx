@@ -325,7 +325,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         return p;
       }));
     } catch (err) {
-      showToast('Failed to update photo', 3000);
+      showToast('Unable to update photo');
     } finally {
       setIsCurating(false);
     }
@@ -353,7 +353,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         return next;
       });
     } catch (err) {
-      showToast('Failed to undo', 3000);
+      showToast('Unable to undo');
     }
   }
 

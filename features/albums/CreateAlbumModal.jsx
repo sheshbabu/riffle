@@ -14,20 +14,20 @@ export default function CreateAlbumModal({ onClose, onAlbumCreated }) {
 
   async function handleCreateAlbum() {
     if (!albumName.trim()) {
-      showToast('Album name is required');
+      showToast('Enter an album name');
       return;
     }
 
     setIsLoading(true);
     try {
       const newAlbum = await ApiClient.createAlbum(albumName.trim(), albumDescription.trim());
-      showToast('Album created!');
+      showToast('Album created');
       if (onAlbumCreated) {
         onAlbumCreated(newAlbum);
       }
       onClose();
     } catch (error) {
-      showToast('Failed to create album');
+      showToast('Unable to create album');
     } finally {
       setIsLoading(false);
     }

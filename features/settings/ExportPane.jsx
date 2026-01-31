@@ -38,11 +38,11 @@ export default function ExportPane() {
     setMinRating(newValue);
     try {
       await ApiClient.updateSetting('export_min_rating', newValue);
-      showToast('Minimum rating updated');
+      showToast('Setting updated');
     } catch (error) {
       console.error('Failed to save setting:', error);
       setMinRating(previousValue);
-      showToast('Failed to update setting');
+      showToast('Unable to update setting');
     }
   }
 
@@ -51,11 +51,11 @@ export default function ExportPane() {
     setCurationStatus(newValue);
     try {
       await ApiClient.updateSetting('export_curation_status', newValue);
-      showToast('Curation status updated');
+      showToast('Setting updated');
     } catch (error) {
       console.error('Failed to save setting:', error);
       setCurationStatus(previousValue);
-      showToast('Failed to update setting');
+      showToast('Unable to update setting');
     }
   }
 
@@ -64,11 +64,11 @@ export default function ExportPane() {
     setOrganizationMode(newValue);
     try {
       await ApiClient.updateSetting('export_organization_mode', newValue);
-      showToast('Organization mode updated');
+      showToast('Setting updated');
     } catch (error) {
       console.error('Failed to save setting:', error);
       setOrganizationMode(previousValue);
-      showToast('Failed to update setting');
+      showToast('Unable to update setting');
     }
   }
 
@@ -77,11 +77,11 @@ export default function ExportPane() {
     setDeduplicationEnabled(newValue);
     try {
       await ApiClient.updateSetting('export_deduplication_enabled', newValue);
-      showToast('Deduplication setting updated');
+      showToast('Setting updated');
     } catch (error) {
       console.error('Failed to save setting:', error);
       setDeduplicationEnabled(previousValue);
-      showToast('Failed to update setting');
+      showToast('Unable to update setting');
     }
   }
 
@@ -90,11 +90,11 @@ export default function ExportPane() {
     setCleanupEnabled(newValue);
     try {
       await ApiClient.updateSetting('export_cleanup_enabled', newValue);
-      showToast('Cleanup setting updated');
+      showToast('Setting updated');
     } catch (error) {
       console.error('Failed to save setting:', error);
       setCleanupEnabled(previousValue);
-      showToast('Failed to update setting');
+      showToast('Unable to update setting');
     }
   }
 

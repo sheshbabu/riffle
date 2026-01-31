@@ -32,10 +32,12 @@ export default function ExportPage() {
         setProgress(data);
         if (data.status === 'export_complete') {
           loadExportSessions();
-          showToast(`Export completed: ${data.current} photos exported`, 4000);
+          const count = data.current;
+          showToast(`Exported ${count} ${pluralize(count, 'photo')}`);
         } else if (data.status === 'export_error') {
           loadExportSessions();
-          showToast('Export failed: ' + (data.message || 'Unknown error'), 4000);
+          const errorMsg = data.message || 'Unknown error';
+          showToast(`Export failed: ${errorMsg}`);
         }
       } catch (error) {
         // Continue

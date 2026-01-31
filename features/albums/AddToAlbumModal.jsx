@@ -24,7 +24,7 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
       const data = await ApiClient.getAlbums();
       setAlbums(data);
     } catch (error) {
-      showToast('Failed to load albums');
+      showToast('Unable to load albums');
     }
   }
 
@@ -43,7 +43,7 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
 
   async function handleAddToAlbums() {
     if (selectedAlbumIds.length === 0) {
-      showToast('Please select at least one album');
+      showToast('Select at least one album');
       return;
     }
 
@@ -55,7 +55,7 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
       showToast(`Added ${photoCount} ${pluralize(photoCount, 'photo')} to ${albumCount} ${pluralize(albumCount, 'album')}`);
       onClose();
     } catch (error) {
-      showToast('Failed to add photos to albums');
+      showToast('Unable to add photos');
     } finally {
       setIsLoading(false);
     }

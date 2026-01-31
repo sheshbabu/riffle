@@ -95,10 +95,10 @@ function truncatePath(fullPath, importPath) {
   }
 
   // Ensure ingest path ends with a slash for proper prefix matching
-  const normalizedimportPath = importPath.endsWith('/') ? importPath : importPath + '/';
+  const normalizedImportPath = importPath.endsWith('/') ? importPath : importPath + '/';
 
-  if (fullPath.startsWith(normalizedimportPath)) {
-    const relativePath = fullPath.substring(normalizedimportPath.length);
+  if (fullPath.startsWith(normalizedImportPath)) {
+    const relativePath = fullPath.substring(normalizedImportPath.length);
     return '.../' + relativePath;
   }
 

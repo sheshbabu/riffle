@@ -22,7 +22,7 @@ export default function CalendarPage() {
       setMonths(response.months || []);
     } catch (error) {
       console.error('Failed to load calendar months:', error);
-      showToast('Failed to load calendar');
+      showToast('Unable to load calendar');
     } finally {
       setIsLoading(false);
     }

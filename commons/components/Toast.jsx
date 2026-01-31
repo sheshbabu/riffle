@@ -9,7 +9,7 @@ export function ToastProvider({ children }) {
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    showToastFn = (message, duration = 3000) => {
+    showToastFn = (message, duration = 4000) => {
       setToast({ message, duration });
     };
 
@@ -73,7 +73,7 @@ function Toast({ message, duration, onDismiss }) {
   );
 }
 
-export function showToast(message, duration = 3000) {
+export function showToast(message, duration = 4000) {
   if (showToastFn) {
     showToastFn(message, duration);
   }

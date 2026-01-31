@@ -45,7 +45,7 @@ export default function AlbumDetailPage({ albumId }) {
 
   async function handleRemoveFromAlbum() {
     if (selectedIndices.size === 0) {
-      showToast('Please select photos to remove');
+      showToast('Select photos to remove');
       return;
     }
 
@@ -53,7 +53,8 @@ export default function AlbumDetailPage({ albumId }) {
 
     try {
       await ApiClient.removePhotosFromAlbum(albumId, selectedPhotoPaths);
-      showToast(`Removed ${selectedPhotoPaths.length} photo${selectedPhotoPaths.length > 1 ? 's' : ''} from album`);
+      const count = selectedPhotoPaths.length;
+      showToast(`Removed ${count} ${pluralize(count, 'photo')}`);
       setSelectedIndices(new Set());
       loadAlbum();
     } catch (error) {
