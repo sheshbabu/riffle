@@ -1,7 +1,8 @@
 import ApiClient from '../../commons/http/ApiClient.js';
 import Button from '../../commons/components/Button.jsx';
 import Checkbox from '../../commons/components/Checkbox.jsx';
-import { CloseIcon, ChevronDownIcon, ChevronUpIcon, LoadingSpinner } from '../../commons/components/Icon.jsx';
+import { Accordion, AccordionItem } from '../../commons/components/Accordion.jsx';
+import { CloseIcon, LoadingSpinner } from '../../commons/components/Icon.jsx';
 import './FilterPanel.css';
 
 const { useState, useEffect } = React;
@@ -31,15 +32,6 @@ const ORIENTATIONS = [
 export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange }) {
   const [filterOptions, setFilterOptions] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [expandedSections, setExpandedSections] = useState({
-    rating: true,
-    mediaType: true,
-    orientation: false,
-    year: false,
-    camera: false,
-    location: false,
-    format: false,
-  });
 
   useEffect(() => {
     if (isOpen && !filterOptions) {
@@ -57,13 +49,6 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
     } finally {
       setIsLoading(false);
     }
-  }
-
-  function toggleSection(section) {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
   }
 
   function handleFilterChange(key, value) {
@@ -118,31 +103,58 @@ export default function FilterPanel({ isOpen, onClose, filters, onFiltersChange 
       </div>
     );
   } else {
+    let yearSection = null;
+    if (filterOptions && filterOptions.years.length > 0) {
+      yearSection = (
+        <AccordionItem value="year" title="Year">
+          {renderYearOptions()}
+        </AccordionItem>
+      );
+    }
+
+    let cameraSection = null;
+    if (filterOptions && (filterOptions.cameraMakes.length > 0 || filterOptions.cameraModels.length > 0)) {
+      cameraSection = (
+        <AccordionItem value="camera" title="Camera">
+          {renderCameraOptions()}
+        </AccordionItem>
+      );
+    }
+
+    let locationSection = null;
+    if (filterOptions && (filterOptions.countries.length > 0 || filterOptions.states.length > 0 || filterOptions.cities.length > 0)) {
+      locationSection = (
+        <AccordionItem value="location" title="Location">
+          {renderLocationOptions()}
+        </AccordionItem>
+      );
+    }
+
+    let formatSection = null;
+    if (filterOptions && filterOptions.fileFormats.length > 0) {
+      formatSection = (
+        <AccordionItem value="format" title="File Format">
+          {renderFormatOptions()}
+        </AccordionItem>
+      );
+    }
+
     content = (
-      <div className="filter-sections">
-        {renderSection('rating', 'Rating', renderRatingOptions())}
-        {renderSection('mediaType', 'Media Type', renderMediaTypeOptions())}
-        {renderSection('orientation', 'Orientation', renderOrientationOptions())}
-        {filterOptions && filterOptions.years.length > 0 && renderSection('year', 'Year', renderYearOptions())}
-        {filterOptions && (filterOptions.cameraMakes.length > 0 || filterOptions.cameraModels.length > 0) && renderSection('camera', 'Camera', renderCameraOptions())}
-        {filterOptions && (filterOptions.countries.length > 0 || filterOptions.states.length > 0 || filterOptions.cities.length > 0) && renderSection('location', 'Location', renderLocationOptions())}
-        {filterOptions && filterOptions.fileFormats.length > 0 && renderSection('format', 'File Format', renderFormatOptions())}
-      </div>
-    );
-  }
-
-  function renderSection(key, label, children) {
-    const isExpanded = expandedSections[key];
-    const chevronIcon = isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />;
-
-    return (
-      <div key={key} className="filter-section">
-        <div className="filter-section-header" onClick={() => toggleSection(key)}>
-          <span className="filter-section-label">{label}</span>
-          {chevronIcon}
-        </div>
-        {isExpanded && <div className="filter-section-content">{children}</div>}
-      </div>
+      <Accordion defaultOpen={['rating', 'mediaType']}>
+        <AccordionItem value="rating" title="Rating">
+          {renderRatingOptions()}
+        </AccordionItem>
+        <AccordionItem value="mediaType" title="Media Type">
+          {renderMediaTypeOptions()}
+        </AccordionItem>
+        <AccordionItem value="orientation" title="Orientation">
+          {renderOrientationOptions()}
+        </AccordionItem>
+        {yearSection}
+        {cameraSection}
+        {locationSection}
+        {formatSection}
+      </Accordion>
     );
   }
 

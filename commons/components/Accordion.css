@@ -1,0 +1,40 @@
+.accordion {
+  display: flex;
+  flex-direction: column;
+}
+
+.accordion-item {
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  margin: 8px 0;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--transition-normal);
+  border-radius: 4px;
+}
+
+.accordion-header:hover {
+  background-color: var(--neutral-200);
+}
+
+.accordion-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--neutral-700);
+}
+
+.accordion-header svg {
+  width: 20px;
+  height: 20px;
+  color: var(--neutral-500);
+}
+
+.accordion-content {
+  padding: 0 var(--spacing-2) var(--spacing-3);
+}

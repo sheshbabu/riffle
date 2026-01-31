@@ -96,47 +96,6 @@
   color: var(--neutral-500);
 }
 
-.filter-sections {
-  display: flex;
-  flex-direction: column;
-}
-
-.filter-section {
-  border-bottom: 1px solid var(--neutral-200);
-}
-
-.filter-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px;
-  margin: 8px 0;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color var(--transition-normal);
-  border-radius: 4px;
-
-  &:hover {
-    background-color: var(--neutral-200);
-  }
-
-  .filter-section-label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--neutral-700);
-  }
-
-  svg {
-    width: 20px;
-    height: 20px;
-    color: var(--neutral-500);
-  }
-}
-
-.filter-section-content {
-  padding: 0 var(--spacing-2) var(--spacing-3);
-}
-
 .filter-subsection {
   margin-bottom: var(--spacing-3);
 
