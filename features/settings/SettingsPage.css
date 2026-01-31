@@ -69,55 +69,44 @@
                     }
                 }
 
-                .settings-section {
-                    margin-top: 32px;
+                .progress-text {
+                    margin-top: 8px;
+                    font-size: 14px;
+                    color: var(--text-secondary);
+                }
 
-                    h4 {
-                        margin-bottom: 4px;
-                        color: var(--text-primary);
+                .settings-field {
+                    margin-top: 16px;
+
+                    label {
+                        display: block;
+                        margin-bottom: 6px;
+                        font-size: 14px;
                         font-weight: 500;
+                        color: var(--text-primary);
                     }
 
-                    .progress-text {
-                        margin-top: 8px;
+                    .settings-input {
+                        width: 200px;
+                        padding: 8px 12px;
+                        border: 1px solid var(--neutral-300);
+                        border-radius: 4px;
                         font-size: 14px;
+                        color: var(--text-primary);
+                        background-color: var(--neutral-50);
+
+                        &:focus {
+                            outline: none;
+                            border-color: var(--blue-500);
+                            background-color: white;
+                        }
+                    }
+
+                    .settings-field-description {
+                        margin-top: 4px;
+                        font-size: 13px;
                         color: var(--text-secondary);
                     }
-
-                    .settings-field {
-                        margin-top: 16px;
-
-                        label {
-                            display: block;
-                            margin-bottom: 6px;
-                            font-size: 14px;
-                            font-weight: 500;
-                            color: var(--text-primary);
-                        }
-
-                        .settings-input {
-                            width: 200px;
-                            padding: 8px 12px;
-                            border: 1px solid var(--neutral-300);
-                            border-radius: 4px;
-                            font-size: 14px;
-                            color: var(--text-primary);
-                            background-color: var(--neutral-50);
-
-                            &:focus {
-                                outline: none;
-                                border-color: var(--blue-500);
-                                background-color: white;
-                            }
-                        }
-
-                        .settings-field-description {
-                            margin-top: 4px;
-                            font-size: 13px;
-                            color: var(--text-secondary);
-                        }
-                    }
-
                 }
 
                 .export-progress-section {
