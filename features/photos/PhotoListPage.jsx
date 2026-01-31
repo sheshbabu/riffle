@@ -588,8 +588,12 @@ export default function PhotoListPage({ mode = 'library' }) {
   return (
     <div className="page-container">
       <div className="page-toolbar">
-        {selectionCountElement}
-        {actionButtons}
+        <div className="left-actions">
+          {selectionCountElement}
+        </div>
+        <div className="middle-actions">
+          {actionButtons}
+        </div>
         <div className="right-actions">
           {filterButton}
           {paginationElement}

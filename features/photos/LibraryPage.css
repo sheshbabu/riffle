@@ -9,8 +9,21 @@
   gap: 2px;
 }
 
+.left-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.middle-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .right-actions {
   display: flex;
   align-items: center;
   gap: 16px;
+  justify-self: end;
 }
