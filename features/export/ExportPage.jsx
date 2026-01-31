@@ -159,7 +159,7 @@ export default function ExportPage() {
     mainContent = (
       <div className="export-sessions">
         <div className="export-empty-state">
-          <p>No exports yet. Click the Export button above to start your first export.</p>
+          <p>No exports yet. Click the Export button above to start your first export</p>
         </div>
       </div>
     );

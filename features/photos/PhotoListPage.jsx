@@ -21,8 +21,8 @@ const PAGE_CONFIG = {
     fetchPhotos: (offset, filters) => ApiClient.getPhotos(offset, filters),
     emptyState: {
       icon: ImageIcon,
-      title: 'No photos yet',
-      description: 'Picked photos will appear here.',
+      title: 'No photos',
+      description: 'Picked photos will appear here',
     },
     initialSelectedIndex: null,
   },
@@ -30,8 +30,8 @@ const PAGE_CONFIG = {
     fetchPhotos: (offset, filters) => ApiClient.getUncuratedPhotos(offset, filters),
     emptyState: {
       icon: SparklesIcon,
-      title: 'Nothing to review',
-      description: 'New imports will appear here for curation.',
+      title: 'No photos to review',
+      description: 'New imports will appear here for curation',
     },
     initialSelectedIndex: 0,
   },
@@ -39,8 +39,8 @@ const PAGE_CONFIG = {
     fetchPhotos: (offset, filters) => ApiClient.getTrashedPhotos(offset, filters),
     emptyState: {
       icon: TrashEmptyIcon,
-      title: 'Nothing here',
-      description: 'Rejected photos will appear here.',
+      title: 'No rejected photos',
+      description: 'Rejected photos will appear here',
     },
     initialSelectedIndex: null,
   },
@@ -441,8 +441,8 @@ export default function PhotoListPage({ mode = 'library' }) {
       content = (
         <EmptyState
           icon={<FilterIcon />}
-          title="No matches"
-          description="Try adjusting your filters."
+          title="No photos found"
+          description="Try adjusting your filters"
         />
       );
     } else {

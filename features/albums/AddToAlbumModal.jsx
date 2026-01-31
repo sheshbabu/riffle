@@ -75,7 +75,7 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
   if (albums.length === 0 && !isCreatingNew) {
     albumListItems = (
       <div className="add-to-album-modal-empty">
-        No albums yet. Create one to get started.
+        No albums. Create one to get started
       </div>
     );
   } else {

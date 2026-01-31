@@ -75,7 +75,7 @@ export default function ThumbnailRebuildSection() {
     }, 500);
   }
 
-  const buttonText = isProcessing ? 'Rebuilding' : 'Rebuild Thumbnails';
+  const buttonText = isProcessing ? 'Rebuilding...' : 'Rebuild Thumbnails';
 
   let progressText = null;
 

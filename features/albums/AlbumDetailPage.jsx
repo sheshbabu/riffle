@@ -76,8 +76,8 @@ export default function AlbumDetailPage({ albumId }) {
     content = (
       <EmptyState
         icon={<ImageIcon />}
-        title="No photos in this album"
-        description="Add photos to this album from the Library or Curate views."
+        title="No photos"
+        description="Add photos to this album from the Library or Curate views"
       />
     );
   } else {

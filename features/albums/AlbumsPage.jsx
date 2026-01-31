@@ -58,11 +58,11 @@ export default function AlbumsPage() {
     content = (
       <EmptyState
         icon={<FolderIcon />}
-        title="No albums yet"
-        description="Create an album to organize your photos."
+        title="No albums"
+        description="Create an album to organize your photos"
         actionButton={
           <IconButton onClick={handleCreateNewClick}>
-            + New Album
+            New Album
           </IconButton>
         }
       />

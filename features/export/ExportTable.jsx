@@ -43,7 +43,7 @@ function ExportTableRow({ session, onClick }) {
 
   let criteriaText = `Rating ≥ ${session.min_rating}`;
   if (session.curation_status) {
-    criteriaText += session.curation_status === 'pick' ? ', Picked' : ', All';
+    criteriaText += session.curation_status === 'pick' ? ', Picked only' : ', All photos';
   }
 
   let errorClass = '';

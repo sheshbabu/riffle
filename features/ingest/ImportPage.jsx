@@ -98,7 +98,7 @@ export default function ImportPage() {
     mainContent = (
       <div className="import-sessions">
         <div className="import-empty-state">
-          <p>No imports yet. Click the Import button above to start your first import.</p>
+          <p>No imports yet. Click the Import button above to start your first import</p>
         </div>
       </div>
     );
