@@ -1,5 +1,5 @@
 import { ModalBackdrop, ModalContainer } from './Modal.jsx';
-import { CloseIcon, InfoIcon } from './Icon.jsx';
+import { CloseIcon, InfoIcon, PickIcon, RejectIcon, UnflagIcon, StarIcon } from './Icon.jsx';
 import getPhotoUrl from '../utils/getPhotoUrl.js';
 import formatDateTime from '../utils/formatDateTime.js';
 import formatFileSize from '../utils/formatFileSize.js';
@@ -86,6 +86,9 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
 
   function handleImageClick() {
     setIsZoomed(!isZoomed);
+    if (!isZoomed) {
+      setShowMetadata(false);
+    }
   }
 
   function handleToggleMetadata() {
@@ -186,10 +189,6 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
 
     metadataPanel = (
       <div className="lightbox-metadata">
-        <div className="metadata-header">
-          <h3>Metadata</h3>
-          <div className="metadata-close" onClick={handleToggleMetadata}><CloseIcon /></div>
-        </div>
         <div className="metadata-content">
           {metadataElements}
         </div>
@@ -197,19 +196,55 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate, isC
     );
   }
 
+  let curateButtons = null;
+  if (isCurateMode && onCurate && !isZoomed) {
+    curateButtons = (
+      <>
+        <div className="lightbox-button" onClick={() => { onCurate(currentPhoto.filePath, true, false, 0); advanceToNext(); }} title="Pick (P)">
+          <PickIcon />
+          <span>Pick</span>
+        </div>
+        <div className="lightbox-button" onClick={() => { onCurate(currentPhoto.filePath, true, true, 0); advanceToNext(); }} title="Reject (X)">
+          <RejectIcon />
+          <span>Reject</span>
+        </div>
+        <div className="lightbox-button" onClick={() => { onCurate(currentPhoto.filePath, false, false, 0); advanceToNext(); }} title="Unflag (U)">
+          <UnflagIcon />
+          <span>Unflag</span>
+        </div>
+        <div className="lightbox-divider"></div>
+        {[1, 2, 3, 4, 5].map(rating => (
+          <div key={rating} className="lightbox-button" onClick={() => { onCurate(currentPhoto.filePath, true, false, rating); advanceToNext(); }} title={`Rate ${rating} (${rating})`}>
+            <StarIcon size={20} isFilled={currentPhoto.rating >= rating} />
+          </div>
+        ))}
+        <div className="lightbox-divider"></div>
+      </>
+    );
+  }
+
+  let infoButton = null;
+  if (!isZoomed) {
+    infoButton = (
+      <div className="lightbox-button" onClick={handleToggleMetadata} title="Toggle metadata (i)">
+        <InfoIcon />
+        <span>Info</span>
+      </div>
+    );
+  }
+
   return (
     <ModalBackdrop onClose={onClose} isCentered={true}>
+      <div className="lightbox-controls">
+        {curateButtons}
+        {infoButton}
+        <div className="lightbox-button" onClick={onClose}>
+          <CloseIcon />
+        </div>
+      </div>
       <ModalContainer className={isZoomed === true ? 'lightbox zoomed' : 'lightbox'}>
         <div className="lightbox-image-container">
           {mediaElement}
-          <div className="lightbox-controls">
-            <div className="lightbox-info-button" onClick={handleToggleMetadata} title="Toggle metadata (i)">
-              <InfoIcon />
-            </div>
-            <div className="lightbox-close-button" onClick={onClose}>
-              <CloseIcon />
-            </div>
-          </div>
         </div>
         {metadataPanel}
       </ModalContainer>

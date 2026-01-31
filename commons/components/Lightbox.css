@@ -1,3 +1,62 @@
+.lightbox-controls {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  z-index: var(--z-overlay);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--neutral-900) 60%, transparent), 60%, transparent);
+  padding: 12px;
+
+  .lightbox-divider {
+    width: 1px;
+    background-color: var(--neutral-600);
+    margin: 8px 16px;
+  }
+
+  .lightbox-button {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    background-color: transparent;
+    transition: background-color var(--transition-normal);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+
+      line,
+      circle,
+      rect,
+      path {
+        stroke: white;
+      }
+    }
+
+    span {
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+.modal-backdrop-container:hover .lightbox-controls {
+  opacity: 1;
+}
+
 .lightbox {
   max-width: 100vw;
   max-height: 100vh;
@@ -9,6 +68,7 @@
   flex-direction: row;
   overflow-y: auto;
   overflow-x: hidden;
+  position: relative;
 
   .lightbox-image-container {
     display: flex;
@@ -28,47 +88,6 @@
       &.zoomable {
         cursor: zoom-in;
       }
-    }
-
-    .lightbox-controls {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      display: flex;
-      gap: 8px;
-      opacity: 0;
-      transition: opacity var(--transition-normal);
-      z-index: var(--z-base);
-
-      .lightbox-info-button,
-      .lightbox-close-button {
-        padding: 8px;
-        cursor: pointer;
-        border-radius: 4px;
-        background-color: rgba(0, 0, 0, 0.5);
-        transition: background-color var(--transition-normal);
-        border: none;
-
-        svg {
-          width: 20px;
-          height: 20px;
-
-          line,
-          circle,
-          rect,
-          path {
-            stroke: white;
-          }
-        }
-
-        &:hover {
-          background-color: rgba(0, 0, 0, 0.7);
-        }
-      }
-    }
-
-    &:hover .lightbox-controls {
-      opacity: 1;
     }
   }
 
@@ -97,55 +116,11 @@
   .lightbox-metadata {
     background-color: var(--neutral-800);
     padding: var(--spacing-4);
+    padding-top: 60px;
     width: 360px;
     max-height: 100%;
     overflow-y: auto;
     flex-shrink: 0;
-
-    .metadata-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--spacing-4);
-      padding-bottom: var(--spacing-3);
-
-      h3 {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--neutral-100);
-      }
-
-      .metadata-close {
-        background: none;
-        border: none;
-        color: var(--neutral-300);
-        font-size: 24px;
-        padding: 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        transition: background-color var(--transition-normal);
-
-        svg {
-          width: 20px;
-          height: 20px;
-
-          line,
-          circle,
-          rect,
-          path {
-            stroke: white;
-          }
-        }
-
-        &:hover {
-          background-color: var(--neutral-700);
-        }
-      }
-    }
 
     .metadata-content {
       display: flex;
