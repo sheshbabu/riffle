@@ -12,6 +12,7 @@
   font: var(--sm);
   font-weight: 500;
   transition: background-color var(--transition-normal), border-color var(--transition-normal);
+  color: var(--neutral-900);
 
   &:hover {
     background-color: var(--neutral-100);
@@ -36,6 +37,7 @@
     color: var(--green-600);
 
     svg {
+
       line,
       circle,
       rect,
@@ -55,6 +57,7 @@
       color: white;
 
       svg {
+
         line,
         circle,
         rect,
@@ -69,6 +72,7 @@
     color: var(--red-600);
 
     svg {
+
       line,
       circle,
       rect,
@@ -88,6 +92,7 @@
       color: white;
 
       svg {
+
         line,
         circle,
         rect,

@@ -8,12 +8,12 @@
   opacity: 0;
   transition: opacity var(--transition-normal);
   z-index: var(--z-overlay);
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--neutral-900) 60%, transparent), 60%, transparent);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--neutral-100) 60%, transparent), 60%, transparent);
   padding: 12px;
 
   .lightbox-divider {
     width: 1px;
-    background-color: var(--neutral-600);
+    background-color: var(--neutral-300);
     margin: 8px 16px;
   }
 
@@ -114,7 +114,7 @@
   }
 
   .lightbox-metadata {
-    background-color: var(--neutral-800);
+    background-color: var(--neutral-100);
     padding: var(--spacing-4);
     padding-top: 60px;
     width: 360px;
@@ -140,7 +140,7 @@
 
         .metadata-value {
           font: var(--code);
-          color: var(--neutral-100);
+          color: var(--neutral-800);
           word-break: break-all;
         }
       }

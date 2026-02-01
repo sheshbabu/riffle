@@ -30,6 +30,17 @@
                 &.is-active {
                     background-color: var(--neutral-100);
                     color: var(--neutral-900);
+
+                    svg.lucide {
+                        stroke: var(--neutral-900);
+
+                        circle,
+                        rect,
+                        path,
+                        line {
+                            stroke: var(--neutral-900);
+                        }
+                    }
                 }
 
                 svg {

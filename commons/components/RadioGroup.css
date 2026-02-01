@@ -35,7 +35,7 @@
 }
 
 .radio-input:checked+.radio-icon {
-  color: var(--blue-500);
+  color: var(--neutral-900);
 }
 
 .radio-label {
