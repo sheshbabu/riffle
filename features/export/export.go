@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"riffle/commons/progress"
 	"riffle/commons/sqlite"
 	"riffle/features/settings"
 	"time"
@@ -25,6 +26,7 @@ type ExportResult struct {
 
 func StartExport(exportPath string, criteria ExportCriteria) {
 	go func() {
+		defer progress.CompleteOperation()
 		startedAt := time.Now()
 		exportID, err := CreateExportSession(exportPath, criteria)
 		if err != nil {
@@ -34,14 +36,14 @@ func StartExport(exportPath string, criteria ExportCriteria) {
 		result, err := ProcessExport(exportPath, criteria, exportID)
 		if err != nil {
 			slog.Error("export failed", "error", err)
-			UpdateProgress(StatusExportError, 0, 0, err.Error())
+			progress.Update(progress.StatusError, 0, 0, err.Error())
 			if exportID > 0 {
 				CompleteExportSession(exportID, startedAt, &ExportResult{}, err.Error())
 			}
 			return
 		}
 		message := fmt.Sprintf("Exported %d photos", result.ExportedPhotos)
-		UpdateProgress(StatusExportComplete, result.ExportedPhotos, result.TotalPhotos, message)
+		progress.Update(progress.StatusCompleted, result.ExportedPhotos, result.TotalPhotos, message)
 		if exportID > 0 {
 			CompleteExportSession(exportID, startedAt, result, "")
 		}
@@ -60,7 +62,7 @@ func ProcessExport(exportPath string, criteria ExportCriteria, exportID int64) (
 		slog.Info("cleaning export directory", "path", exportPath)
 		if err := cleanupExportDirectory(exportPath); err != nil {
 			errMsg := fmt.Sprintf("failed to cleanup export directory: %v", err)
-			UpdateProgress(StatusExportError, 0, 0, errMsg)
+			progress.Update(progress.StatusError, 0, 0, errMsg)
 			if exportID > 0 {
 				UpdateExportSessionStatus(exportID, "error")
 			}
@@ -68,7 +70,7 @@ func ProcessExport(exportPath string, criteria ExportCriteria, exportID int64) (
 		}
 	}
 
-	UpdateProgress(StatusCollecting, 0, 0, "Collecting photos to export")
+	progress.Update(progress.StatusProcessing, 0, 0, "Collecting photos to export")
 
 	photos, err := getPhotosForExport(criteria)
 	if err != nil {
@@ -117,7 +119,7 @@ func ProcessExport(exportPath string, criteria ExportCriteria, exportID int64) (
 	}
 
 	if len(photos) == 0 {
-		UpdateProgress(StatusExportComplete, 0, 0, "No photos match export criteria")
+		progress.Update(progress.StatusCompleted, 0, 0, "No photos match export criteria")
 		return result, nil
 	}
 
@@ -134,7 +136,7 @@ func ProcessExport(exportPath string, criteria ExportCriteria, exportID int64) (
 	}
 
 	for i, photo := range photos {
-		UpdateProgress(StatusExporting, i, len(photos), fmt.Sprintf("Exporting %d/%d", i+1, len(photos)))
+		progress.Update(progress.StatusExporting, i, len(photos), fmt.Sprintf("Exporting %d/%d", i+1, len(photos)))
 
 		if err := exportPhoto(photo, exportPath, organizationMode); err != nil {
 			slog.Error("error exporting photo", "error", err, "path", photo.FilePath)

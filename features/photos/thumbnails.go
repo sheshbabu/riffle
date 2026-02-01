@@ -3,10 +3,12 @@ package photos
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
+	"riffle/commons/progress"
 	"riffle/commons/utils"
 	"strings"
 )
@@ -69,13 +71,15 @@ func HandleRebuildThumbnails(w http.ResponseWriter, r *http.Request) {
 	libraryPath := os.Getenv("LIBRARY_PATH")
 	thumbnailsPath := os.Getenv("THUMBNAILS_PATH")
 
-	currentProgress := GetThumbnailProgress()
-	if currentProgress.Status == StatusThumbnailRebuildProcessing {
-		utils.SendErrorResponse(w, http.StatusConflict, "REBUILD_IN_PROGRESS", "Thumbnail rebuild already in progress")
+	if err := progress.StartOperation(progress.OperationThumbnailRebuild); err != nil {
+		currentOp := progress.Get()
+		slog.Warn("cannot start thumbnail rebuild, operation already in progress", "current_operation", currentOp.Operation)
+		utils.SendErrorResponse(w, http.StatusConflict, "OPERATION_IN_PROGRESS", fmt.Sprintf("Cannot start thumbnail rebuild: %s operation is already in progress", currentOp.Operation))
 		return
 	}
 
 	go func() {
+		defer progress.CompleteOperation()
 		if err := RebuildThumbnails(libraryPath, thumbnailsPath); err != nil {
 			slog.Error("failed to rebuild thumbnails", "error", err)
 			return
@@ -92,8 +96,6 @@ func HandleRebuildThumbnails(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetThumbnailProgress(w http.ResponseWriter, r *http.Request) {
-	progress := GetThumbnailProgress()
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(progress)
+	json.NewEncoder(w).Encode(progress.Get())
 }

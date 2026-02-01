@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"riffle/commons/hash"
+	"riffle/commons/progress"
 	"riffle/commons/sqlite"
 	"sync/atomic"
 )
@@ -11,25 +12,25 @@ import (
 func RebuildBurstData() error {
 	slog.Info("starting burst data rebuild")
 
-	UpdateBurstProgress(StatusBurstRebuildProcessing, 0, 0)
+	progress.Update(progress.StatusProcessing, 0, 0, "Starting burst data rebuild")
 
 	allPhotos, err := GetAllImagePhotos()
 	if err != nil {
 		err = fmt.Errorf("failed to get photos from database: %w", err)
 		slog.Error(err.Error())
-		UpdateBurstProgress(StatusBurstRebuildIdle, 0, 0)
+		progress.Update(progress.StatusError, 0, 0, err.Error())
 		return err
 	}
 
 	totalPhotos := len(allPhotos)
 	if totalPhotos == 0 {
 		slog.Info("no image photos found to rebuild burst data")
-		UpdateBurstProgress(StatusBurstRebuildComplete, 0, 0)
+		progress.Update(progress.StatusCompleted, 0, 0, "No photos to rebuild")
 		return nil
 	}
 
 	slog.Info("rebuilding burst data", "totalPhotos", totalPhotos)
-	UpdateBurstProgress(StatusBurstRebuildProcessing, 0, totalPhotos)
+	progress.Update(progress.StatusProcessing, 0, totalPhotos, "Rebuilding burst data")
 
 	var completed atomic.Int32
 	var failed atomic.Int32
@@ -53,11 +54,11 @@ func RebuildBurstData() error {
 
 		completed.Add(1)
 		if completed.Load()%100 == 0 {
-			UpdateBurstProgress(StatusBurstRebuildProcessing, int(completed.Load()), totalPhotos)
+			progress.Update(progress.StatusProcessing, int(completed.Load()), totalPhotos, "Rebuilding burst data")
 		}
 	}
 
-	UpdateBurstProgress(StatusBurstRebuildComplete, totalPhotos, totalPhotos)
+	progress.Update(progress.StatusCompleted, totalPhotos, totalPhotos, "Burst data rebuild completed")
 	slog.Info("burst data rebuild complete", "total", totalPhotos, "failed", failed.Load())
 
 	return nil

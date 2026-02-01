@@ -2,12 +2,14 @@ package main
 
 import (
 	"embed"
+	"encoding/json"
 	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"riffle/commons/exif"
+	"riffle/commons/progress"
 	"riffle/commons/sqlite"
 	"riffle/commons/utils"
 	"riffle/features/albums"
@@ -95,6 +97,7 @@ func loadEnv() {
 func newRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("GET /api/operations/progress/", HandleGetOperationProgress)
 	mux.HandleFunc("POST /api/import/sessions/", ingest.HandleCreateImportSession)
 	mux.HandleFunc("GET /api/import/sessions/", ingest.HandleGetImportSessions)
 	mux.HandleFunc("GET /api/import/sessions/progress/", ingest.HandleImportProgress)
@@ -167,4 +170,9 @@ func handleStaticAssets(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.StripPrefix("/assets/", http.FileServer(fsys)).ServeHTTP(w, r)
+}
+
+func HandleGetOperationProgress(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(progress.Get())
 }

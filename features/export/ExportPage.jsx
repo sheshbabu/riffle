@@ -11,6 +11,7 @@ const POLL_INTERVAL = 5 * 1000; // 5s
 
 export default function ExportPage() {
   const [progress, setProgress] = useState(null);
+  const [operationProgress, setOperationProgress] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const [shouldShowModal, setShouldShowModal] = useState(false);
@@ -28,16 +29,20 @@ export default function ExportPage() {
 
     const pollInterval = setInterval(async () => {
       try {
-        const data = await ApiClient.getExportProgress();
-        setProgress(data);
-        if (data.status === 'export_complete') {
-          loadExportSessions();
-          const count = data.current;
-          showToast(`Exported ${count} ${pluralize(count, 'photo')}`);
-        } else if (data.status === 'export_error') {
-          loadExportSessions();
-          const errorMsg = data.message || 'Unknown error';
-          showToast(`Export failed: ${errorMsg}`);
+        const data = await ApiClient.getOperationProgress();
+        setOperationProgress(data);
+
+        if (data.operation === 'export') {
+          setProgress(data);
+          if (data.status === 'completed') {
+            loadExportSessions();
+            const count = data.completed;
+            showToast(`Exported ${count} ${pluralize(count, 'photo')}`);
+          } else if (data.status === 'error') {
+            loadExportSessions();
+            const errorMsg = data.message || 'Unknown error';
+            showToast(`Export failed: ${errorMsg}`);
+          }
         }
       } catch (error) {
         // Continue
@@ -49,8 +54,10 @@ export default function ExportPage() {
 
   async function checkActiveExport() {
     try {
-      const data = await ApiClient.getExportProgress();
-      if (hasActiveExport(data)) {
+      const data = await ApiClient.getOperationProgress();
+      setOperationProgress(data);
+
+      if (data.operation === 'export' && hasActiveExport(data)) {
         setProgress(data);
         setShouldShowModal(true);
       }
@@ -165,11 +172,13 @@ export default function ExportPage() {
     );
   }
 
+  const isExportRunning = hasActiveExport(progress);
+
   return (
     <div className="page-container export-page">
       <div className="export-content">
         <div className="export-action">
-          <Button variant="primary" onClick={handleStartExport} isDisabled={hasActiveExport(progress)}>
+          <Button variant="primary" onClick={handleStartExport} isDisabled={isExportRunning}>
             Export
           </Button>
         </div>
@@ -182,5 +191,8 @@ export default function ExportPage() {
 }
 
 function hasActiveExport(progress) {
-  return progress && progress.status !== '' && progress.status !== 'export_complete' && progress.status !== 'export_error';
+  if (!progress || progress.operation !== 'export') {
+    return false;
+  }
+  return progress.status !== 'idle' && progress.status !== 'completed' && progress.status !== 'error' && progress.status !== 'cancelled';
 }

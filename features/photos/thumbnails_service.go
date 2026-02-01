@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"riffle/commons/media"
+	"riffle/commons/progress"
 	"riffle/commons/sqlite"
 )
 
@@ -22,19 +23,19 @@ func RebuildThumbnails(libraryPath, thumbnailsPath string) error {
 	if err != nil {
 		err = fmt.Errorf("failed to get photos from database: %w", err)
 		slog.Error(err.Error())
-		UpdateThumbnailProgress(StatusThumbnailRebuildIdle, 0, 0)
+		progress.Update(progress.StatusError, 0, 0, err.Error())
 		return err
 	}
 
 	totalPhotos := len(allPhotos)
 	if totalPhotos == 0 {
 		slog.Info("no photos found to rebuild thumbnails")
-		UpdateThumbnailProgress(StatusThumbnailRebuildComplete, 0, 0)
+		progress.Update(progress.StatusCompleted, 0, 0, "No photos to rebuild")
 		return nil
 	}
 
 	slog.Info("rebuilding thumbnails", "totalPhotos", totalPhotos)
-	UpdateThumbnailProgress(StatusThumbnailRebuildProcessing, 0, totalPhotos)
+	progress.Update(progress.StatusProcessing, 0, totalPhotos, "Rebuilding thumbnails")
 
 	completed := 0
 	failed := 0
@@ -63,11 +64,11 @@ func RebuildThumbnails(libraryPath, thumbnailsPath string) error {
 
 		completed++
 		if completed%100 == 0 || completed == totalPhotos {
-			UpdateThumbnailProgress(StatusThumbnailRebuildProcessing, completed, totalPhotos)
+			progress.Update(progress.StatusProcessing, completed, totalPhotos, "Rebuilding thumbnails")
 		}
 	}
 
-	UpdateThumbnailProgress(StatusThumbnailRebuildComplete, totalPhotos, totalPhotos)
+	progress.Update(progress.StatusCompleted, totalPhotos, totalPhotos, "Thumbnail rebuild completed")
 	slog.Info("thumbnail rebuild complete", "total", totalPhotos, "failed", failed)
 
 	return nil

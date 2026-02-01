@@ -2,9 +2,11 @@ package ingest
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"riffle/commons/progress"
 	"riffle/commons/utils"
 	"riffle/features/settings"
 	"time"
@@ -36,10 +38,8 @@ type ImportSessionsResponse struct {
 }
 
 func HandleImportProgress(w http.ResponseWriter, r *http.Request) {
-	progress := GetProgress()
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(progress)
+	json.NewEncoder(w).Encode(progress.Get())
 }
 
 func HandleGetImportSessions(w http.ResponseWriter, r *http.Request) {
@@ -99,18 +99,26 @@ func HandleCreateImportSession(w http.ResponseWriter, r *http.Request) {
 
 	importMode, _ := settings.GetImportMode()
 
+	if err := progress.StartOperation(progress.OperationImport); err != nil {
+		currentOp := progress.Get()
+		slog.Warn("cannot start import, operation already in progress", "current_operation", currentOp.Operation)
+		utils.SendErrorResponse(w, http.StatusConflict, "OPERATION_IN_PROGRESS", fmt.Sprintf("Cannot start import: %s operation is already in progress", currentOp.Operation))
+		return
+	}
+
 	ClearResults()
-	UpdateProgress(StatusScanning, 0, 0)
 
 	sessionID, err := CreateImportSession(importPath, string(importMode))
 	if err != nil {
 		slog.Error("failed to create import session", "error", err)
+		progress.CompleteOperation()
 		utils.SendErrorResponse(w, http.StatusInternalServerError, "SESSION_CREATE_ERROR", "Failed to create import session")
 		return
 	}
 	SetCurrentImportSessionID(sessionID)
 
 	go func() {
+		defer progress.CompleteOperation()
 		startedAt := time.Now()
 
 		stats, err := ProcessIngest(importPath, libraryPath)
@@ -128,7 +136,6 @@ func HandleCreateImportSession(w http.ResponseWriter, r *http.Request) {
 		}
 
 		SetResults(stats)
-		UpdateProgress(StatusScanningComplete, stats.TotalScanned, stats.TotalScanned)
 		slog.Info("scan complete, starting import", "totalScanned", stats.TotalScanned)
 
 		if err := ExecuteMoves(libraryPath, thumbnailsPath, stats, importMode); err != nil {

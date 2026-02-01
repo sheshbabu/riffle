@@ -2,9 +2,11 @@ package export
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"riffle/commons/progress"
 	"riffle/commons/utils"
 	"riffle/features/settings"
 )
@@ -37,6 +39,13 @@ func HandleCreateExportSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := progress.StartOperation(progress.OperationExport); err != nil {
+		currentOp := progress.Get()
+		slog.Warn("cannot start export, operation already in progress", "current_operation", currentOp.Operation)
+		utils.SendErrorResponse(w, http.StatusConflict, "OPERATION_IN_PROGRESS", fmt.Sprintf("Cannot start export: %s operation is already in progress", currentOp.Operation))
+		return
+	}
+
 	minRating, _ := settings.GetExportMinRating()
 	curationStatus, _ := settings.GetExportCurationStatus()
 
@@ -52,10 +61,8 @@ func HandleCreateExportSession(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleExportProgress(w http.ResponseWriter, r *http.Request) {
-	progress := GetProgress()
-
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(progress); err != nil {
+	if err := json.NewEncoder(w).Encode(progress.Get()); err != nil {
 		slog.Error("error encoding export progress response", "error", err)
 	}
 }

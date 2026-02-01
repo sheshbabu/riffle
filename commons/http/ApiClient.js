@@ -246,6 +246,22 @@ async function getExportSessions() {
   return await request('GET', '/api/export/sessions/');
 }
 
+/**
+ * @returns {
+ *  Promise<{
+ *    operation: '' | 'import' | 'export' | 'thumbnail_rebuild' | 'burst_rebuild',
+ *    status: '' | 'idle' | 'starting' | 'scanning' | 'hashing' | 'duplicate_check' | 'moving_files' | 'exporting' | 'processing' | 'generating' | 'rebuilding' | 'completed' | 'error' | 'cancelled',
+ *    completed: number,
+ *    total: number,
+ *    percent: number,
+ *    message: string
+ *  }>
+ * }
+ */
+async function getOperationProgress() {
+  return await request('GET', '/api/operations/progress/');
+}
+
 export default {
   request,
   getPhotos,
@@ -273,5 +289,6 @@ export default {
   getImportSessions,
   startExportSession,
   getExportProgress,
-  getExportSessions
+  getExportSessions,
+  getOperationProgress
 };

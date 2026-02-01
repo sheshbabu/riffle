@@ -9,6 +9,7 @@ const POLL_INTERVAL = 5 * 1000; // 5s
 
 export default function ImportPage() {
   const [progress, setProgress] = useState(null);
+  const [operationProgress, setOperationProgress] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [settings, setSettings] = useState(null);
   const [selectedSession, setSelectedSession] = useState(null);
@@ -29,10 +30,14 @@ export default function ImportPage() {
 
     const pollInterval = setInterval(async () => {
       try {
-        const data = await ApiClient.getImportProgress();
-        setProgress(data);
-        if (data.status === 'importing_complete') {
-          loadImportSessions();
+        const data = await ApiClient.getOperationProgress();
+        setOperationProgress(data);
+
+        if (data.operation === 'import') {
+          setProgress(data);
+          if (data.status === 'completed') {
+            loadImportSessions();
+          }
         }
       } catch (error) {
         // Continue
@@ -44,8 +49,10 @@ export default function ImportPage() {
 
   async function checkActiveImport() {
     try {
-      const data = await ApiClient.getImportProgress();
-      if (hasActiveImport(data)) {
+      const data = await ApiClient.getOperationProgress();
+      setOperationProgress(data);
+
+      if (data.operation === 'import' && hasActiveImport(data)) {
         setProgress(data);
         setShouldShowModal(true);
       }
@@ -127,10 +134,12 @@ export default function ImportPage() {
     }
   }
 
+  const isImportRunning = hasActiveImport(progress);
+
   return (
     <div className="page-container import-page">
       <div className="import-action">
-        <Button variant="primary" onClick={handleImportClick} isDisabled={hasActiveImport(progress)}>
+        <Button variant="primary" onClick={handleImportClick} isDisabled={isImportRunning}>
           Import
         </Button>
       </div>
@@ -151,11 +160,11 @@ function getProgressTitle(progress) {
     titlePrefix = 'Scanning...';
   } else if (progress.status === 'hashing') {
     titlePrefix = `Hashing ${progress.percent || 0}%`;
-  } else if (progress.status === 'checking_imported') {
+  } else if (progress.status === 'duplicate_check') {
     titlePrefix = `Checking ${progress.percent || 0}%`;
-  } else if (progress.status === 'finding_duplicates') {
+  } else if (progress.status === 'processing') {
     titlePrefix = 'Finding duplicates...';
-  } else if (progress.status === 'importing') {
+  } else if (progress.status === 'moving_files') {
     titlePrefix = `Importing ${progress.percent || 0}%`;
   }
 
@@ -163,5 +172,8 @@ function getProgressTitle(progress) {
 }
 
 function hasActiveImport(progress) {
-  return progress && progress.status !== '' && progress.status !== 'importing_complete'
+  if (!progress || progress.operation !== 'import') {
+    return false;
+  }
+  return progress.status !== 'idle' && progress.status !== 'completed' && progress.status !== 'error' && progress.status !== 'cancelled';
 }

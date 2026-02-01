@@ -114,12 +114,18 @@ export default function BurstPane() {
 
   async function checkRebuildProgress() {
     try {
-      const progress = await ApiClient.getBurstRebuildProgress();
-      setRebuildProgress(progress);
+      const progress = await ApiClient.getOperationProgress();
 
-      if (progress.status === 'processing') {
-        setIsRebuilding(true);
-      } else if (progress.status === 'complete' || progress.status === 'idle') {
+      if (progress.operation === 'burst_rebuild') {
+        setRebuildProgress(progress);
+
+        if (progress.status === 'processing') {
+          setIsRebuilding(true);
+        } else if (progress.status === 'completed' || progress.status === 'idle') {
+          setIsRebuilding(false);
+        }
+      } else {
+        setRebuildProgress({ status: 'idle', completed: 0, total: 0, percent: 0 });
         setIsRebuilding(false);
       }
     } catch (error) {
@@ -175,7 +181,7 @@ export default function BurstPane() {
   let rebuildSection = null;
   if (burstDetectionEnabled === 'true') {
     const isProcessing = rebuildProgress.status === 'processing';
-    const isComplete = rebuildProgress.status === 'complete';
+    const isComplete = rebuildProgress.status === 'completed';
 
     let progressContent = null;
     if (isProcessing) {

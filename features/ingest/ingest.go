@@ -11,6 +11,7 @@ import (
 	"riffle/commons/exif"
 	"riffle/commons/hash"
 	"riffle/commons/media"
+	"riffle/commons/progress"
 	"riffle/features/settings"
 	"runtime"
 	"strings"
@@ -75,7 +76,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 	slog.Info("starting import analysis")
 	sessionID := GetCurrentImportSessionID()
 
-	UpdateProgress(StatusScanning, 0, 0)
+	progress.Update(progress.StatusScanning, 0, 0, "Scanning import folder")
 	photos, err := ScanDirectory(importPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan ingest folder: %w", err)
@@ -100,7 +101,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 		UpdateImportSessionStatus(sessionID, "hashing")
 	}
 
-	UpdateProgress(StatusHashing, 0, len(photos))
+	progress.Update(progress.StatusHashing, 0, len(photos), "Computing file hashes")
 	workers := runtime.NumCPU()
 	if workers > 16 {
 		workers = 16
@@ -112,7 +113,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 		UpdateImportSessionStatus(sessionID, "checking_imported")
 	}
 
-	UpdateProgress(StatusCheckingImported, 0, len(photos))
+	progress.Update(progress.StatusDuplicateCheck, 0, len(photos), "Checking for previously imported files")
 	var newPhotos []PhotoFile
 	var alreadyImported int
 	for i := range photos {
@@ -133,7 +134,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 
 		processed := i + 1
 		if processed%100 == 0 || processed == len(photos) {
-			UpdateProgress(StatusCheckingImported, processed, len(photos))
+			progress.Update(progress.StatusDuplicateCheck, processed, len(photos), "Checking for previously imported files")
 		}
 	}
 
@@ -166,7 +167,7 @@ func ProcessIngest(importPath, libraryPath string) (*AnalysisStats, error) {
 		UpdateImportSessionStatus(sessionID, "finding_duplicates")
 	}
 
-	UpdateProgress(StatusFindingDuplicates, 0, 0)
+	progress.Update(progress.StatusProcessing, 0, 0, "Finding duplicate files")
 	hashGroups := make(map[string][]PhotoFile)
 
 	for i := range photos {
@@ -294,7 +295,7 @@ func ScanDirectory(path string) ([]PhotoFile, error) {
 
 		scannedCount++
 		if scannedCount%100 == 0 {
-			UpdateProgress(StatusScanning, scannedCount, 0)
+			progress.Update(progress.StatusScanning, scannedCount, 0, "Scanning import folder")
 			slog.Info("scanning progress", "scanned", scannedCount)
 		}
 
@@ -305,7 +306,7 @@ func ScanDirectory(path string) ([]PhotoFile, error) {
 		return nil, err
 	}
 
-	UpdateProgress(StatusScanning, scannedCount, scannedCount)
+	progress.Update(progress.StatusScanning, scannedCount, scannedCount, "Scanning complete")
 	slog.Info("scan completed", "totalFiles", scannedCount)
 
 	return photos, nil
@@ -352,7 +353,7 @@ func processFilesParallel(files []PhotoFile, workerCount int) []PhotoFile {
 
 				count := processed.Add(1)
 				if count%100 == 0 || count == total {
-					UpdateProgress(StatusHashing, int(count), int(total))
+					progress.Update(progress.StatusHashing, int(count), int(total), "Computing file hashes")
 					slog.Info("processing progress", "completed", count, "total", total, "percent", int(float64(count)/float64(total)*100))
 				}
 			}
@@ -378,7 +379,7 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, impo
 		slog.Info("starting file moves", "toLibrary", total)
 	}
 
-	UpdateProgress(StatusImporting, 0, total)
+	progress.Update(progress.StatusMovingFiles, 0, total, "Importing files to library")
 
 	movedToLibrary := 0
 
@@ -442,12 +443,12 @@ func ExecuteMoves(libraryPath, thumbnailsPath string, stats *AnalysisStats, impo
 		}
 
 		movedToLibrary++
-		UpdateProgress(StatusImporting, movedToLibrary, total)
+		progress.Update(progress.StatusMovingFiles, movedToLibrary, total, "Importing files to library")
 	}
 
 	stats.MovedToLibrary = movedToLibrary
 
-	UpdateProgress(StatusImportingComplete, movedToLibrary, total)
+	progress.Update(progress.StatusCompleted, movedToLibrary, total, "Import completed")
 	cache.InvalidateOnImport()
 
 	if importMode == settings.ImportModeCopy {

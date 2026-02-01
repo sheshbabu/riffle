@@ -13,8 +13,9 @@ export default function ThumbnailRebuildSection() {
   useEffect(() => {
     async function checkOngoingRebuild() {
       try {
-        const progressData = await ApiClient.getThumbnailRebuildProgress();
-        if (progressData.status === 'processing') {
+        const progressData = await ApiClient.getOperationProgress();
+
+        if (progressData.operation === 'thumbnail_rebuild' && progressData.status === 'processing') {
           setIsProcessing(true);
           setProgress(progressData);
           startPollingProgress();
@@ -54,16 +55,24 @@ export default function ThumbnailRebuildSection() {
 
     pollingIntervalRef.current = setInterval(async () => {
       try {
-        const progressData = await ApiClient.getThumbnailRebuildProgress();
-        setProgress(progressData);
+        const progressData = await ApiClient.getOperationProgress();
 
-        if (progressData.status === 'complete') {
+        if (progressData.operation === 'thumbnail_rebuild') {
+          setProgress(progressData);
+
+          if (progressData.status === 'completed') {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+            setIsProcessing(false);
+            setTimeout(() => {
+              setProgress(null);
+            }, 3000);
+          }
+        } else if (progressData.operation === '') {
           clearInterval(pollingIntervalRef.current);
           pollingIntervalRef.current = null;
           setIsProcessing(false);
-          setTimeout(() => {
-            setProgress(null);
-          }, 3000);
+          setProgress(null);
         }
       } catch (error) {
         console.error('Failed to fetch thumbnail progress', error);
@@ -87,7 +96,7 @@ export default function ThumbnailRebuildSection() {
       progressText = `Processing ${completedText} / ${totalText} (${percent}%)`;
     }
 
-    if (progress.status === 'complete') {
+    if (progress.status === 'completed') {
       const totalText = formatCount(progress.total, 0);
       progressText = `Successfully rebuilt ${totalText} thumbnails`;
     }
