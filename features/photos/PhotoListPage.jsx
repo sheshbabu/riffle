@@ -213,7 +213,12 @@ export default function PhotoListPage({ mode = 'library' }) {
         return;
       }
 
-      if (e.key === 'j' || e.key === 'J') {
+      if (e.key === 'Escape') {
+        if (selectedIndices.size > 0) {
+          e.preventDefault();
+          setSelectedIndices(new Set());
+        }
+      } else if (e.key === 'j' || e.key === 'J') {
         if (hasNext) {
           e.preventDefault();
           handleNextPage();
@@ -228,7 +233,7 @@ export default function PhotoListPage({ mode = 'library' }) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [hasNext, hasPrev]);
+  }, [hasNext, hasPrev, selectedIndices]);
 
   useEffect(() => {
     function handleCurateKeyDown(e) {
@@ -574,9 +579,13 @@ export default function PhotoListPage({ mode = 'library' }) {
     );
   }
 
+  function handleDeselectAll() {
+    setSelectedIndices(new Set());
+  }
+
   let selectionCountElement = null;
   if (!isLoading && !error && photos.length > 0) {
-    selectionCountElement = <SelectionCount count={selectedIndices.size} />;
+    selectionCountElement = <SelectionCount count={selectedIndices.size} onDeselect={handleDeselectAll} />;
   }
 
   let albumModal = null;

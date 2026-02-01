@@ -1,4 +1,48 @@
 .selection-count {
-  font: var(--sm);
-  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 4px 4px 4px 8px;
+  background-color: var(--neutral-100);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.selection-count-text {
+  user-select: none;
+}
+
+.selection-count-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--transition-normal);
+
+  &:focus {
+    outline: none;
+  }
+
+  &:hover {
+    background-color: var(--neutral-300);
+  }
+}
+
+.selection-count-close-icon {
+  width: 16px;
+  height: 16px;
+  transition: opacity var(--transition-normal);
+
+  path {
+    stroke: var(--neutral-600);
+  }
+
+  .selection-count-close:hover & {
+    opacity: 1;
+  }
 }
