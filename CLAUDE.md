@@ -23,7 +23,7 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - `make dev` - Run development server
 - `make watch` - Run with file watching (requires air)
 
-## Workflow: Import → Curate → Library → Calendar → Settings → Export
+## Workflow: Import → Curate → Library → Export
 
 ### 1. Import (File Management)
 - Point app at import folder (source files)
@@ -35,10 +35,14 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 
 ### 2. Curate (The Culling)
 - Dedicated view shows only uncurated photos (`is_curated = false`)
-- Keyboard shortcuts for fast review:
+- Keyboard shortcuts for fast review (work in both grid and lightbox):
   - **P (Accept)**: Sets `is_curated=true, rating=0`
   - **X (Reject)**: Sets `is_curated=true, is_trashed=true`
+  - **U (Unflag)**: Resets curation state
   - **1-5 (Rate)**: Sets `is_curated=true, rating=1-5`
+  - **Arrow keys**: Navigate grid; **Enter/Space**: Open lightbox
+  - **I**: Toggle metadata panel in lightbox
+- Lightbox curation mode: full-screen review with action buttons, auto-advance to next photo, metadata display (camera, settings, GPS, location)
 - Photos fade out with undo option after action
 - Clear progress indication
 
@@ -54,17 +58,26 @@ Riffle is a photos organizer app for managing and deduplicating photo collection
 - "Empty Trash" button (no-op for now)
 - Future: Physical deletion or move to OS trash
 
-### 5. Calendar
+### 5. Albums
+- User-defined collections to organize and group photos
+- Create, view, and manage albums
+- Bulk add selected photos to albums
+
+### 6. Calendar
 Month-by-month grid showing curated/uncurated counts and cover photos. Click to navigate to filtered library view.
 
-### 6. Settings
+### 7. Stats
+- Analytics dashboard showing photo collection statistics over time
+- Stacked bar charts grouped by decade (1920s, 1930s, etc.)
+
+### 8. Settings
 Tabbed interface with multiple configuration panes:
 - **Import**: Configure import folder, mode (move/copy), and view import history
 - **Library**: Configure library and thumbnails folders, view storage statistics, rebuild thumbnails
 - **Burst**: Enable/disable burst detection, configure time window (seconds) and similarity threshold (dHash distance)
 - **Export**: Configure export folder, organization options (maintain/flatten structure), duplicate handling (skip/include), and post-export cleanup (delete after export)
 
-### 7. Export
+### 9. Export
 Filter and export photos to local folder based on rating and curation status. Export sessions are tracked in the database with per-photo status logging. Supports:
 - Filtering by minimum rating (0-5) and curation status (all photos or picked only)
 - Organization options: maintain folder structure or flatten to single directory
@@ -138,11 +151,14 @@ Photos stored in `riffle.db` (SQLite) with EXIF metadata.
 - **Feature-based Structure**: Each feature has its own directory under `features/`
   - `ingest/` - Import workflow (scanning, deduplication, moving files)
   - `photos/` - Photo library management and serving
+  - `albums/` - User-defined photo collections
   - `calendar/` - Monthly overview and statistics
+  - `stats/` - Analytics dashboard with bar charts
+  - `export/` - Batch photo export with filtering
   - `settings/` - Application configuration and folder management
   - `geocoding/` - Reverse geocoding with offline GeoNames data
 - **Commons**: Shared utilities in `commons/`
-  - Backend: `exif/`, `hash/`, `media/`, `sqlite/`, `utils/`
+  - Backend: `exif/`, `hash/`, `media/`, `progress/`, `sqlite/`, `utils/`
   - Frontend: `http/` (ApiClient), `hooks/`, `components/` (Button, Modal, Lightbox, etc.)
 
 ### Frontend (React)
@@ -155,7 +171,8 @@ Photos stored in `riffle.db` (SQLite) with EXIF metadata.
 
 ### Key Patterns
 - **API Routes**: RESTful endpoints prefixed with `/api/`
-- **Background Processing**: Long-running tasks use goroutines with polling
+- **Background Processing**: Long-running tasks use goroutines with polling via `/api/operations/progress/`
+- **Global Operation Lock**: Only one long-running operation (import, export, thumbnail rebuild, burst rebuild) can run at a time, managed by `commons/progress/` with mutex-based locking
 - **Asset Handling**: Embedded in binary (`go:embed`) for production, file system for dev mode
 - **Feature Structure**: Self-contained features with models and utilities
 

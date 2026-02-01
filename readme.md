@@ -24,8 +24,9 @@ Import → Curate → Library → Export
 * Video playback support
 
 **Curate** (Photo Culling Interface)
-* Fast keyboard-driven review (P/X/1-5)
-* Accept, reject, or rate photos quickly
+* Fast keyboard-driven review (P/X/U/1-5)
+* Accept, reject, unflag, or rate photos quickly
+* Full-screen lightbox curation with auto-advance
 * Visual progress tracking
 * Undo with fade-out animations
 
@@ -41,6 +42,11 @@ Import → Curate → Library → Export
 **Albums**
 * Organize photos into custom collections
 * Add/remove photos from multiple albums
+
+**Stats**
+* Analytics dashboard showing photo collection statistics over time
+* Stacked bar charts grouped by decade
+* Breakdown by curated, uncurated, and trashed photos
 
 **Settings**
 * Import configuration (folder path, move/copy mode, history)
