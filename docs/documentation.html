@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="initial-scale=1, viewport-fit=cover, width=device-width, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>Riffle Documentation</title>
+    <meta name="description"
+        content="A fast, keyboard-driven photo culling tool. Import, review, rate, and export your photos to your main library with intelligent duplicate and burst detection.">
+
+    <style>
+        /* https: //www.joshwcomeau.com/css/custom-css-reset/ */
+
+        /* 1. Use a more-intuitive box-sizing model */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        /* 2. Remove default margin */
+        * {
+            margin: 0;
+        }
+
+        body {
+            /* 3. Add accessible line-height */
+            line-height: 1.5;
+            /* 4. Improve text rendering */
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 5. Improve media defaults */
+        img,
+        picture,
+        video,
+        canvas,
+        svg {
+            display: block;
+            max-width: 100%;
+        }
+
+        /* 6. Inherit fonts for form controls */
+        input,
+        button,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        /* 7. Avoid text overflows */
+        p,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            overflow-wrap: break-word;
+        }
+
+        /* 8. Improve line wrapping */
+        p {
+            text-wrap: pretty;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            text-wrap: balance;
+        }
+
+        /*
+        9. Create a root stacking context
+        */
+        #root,
+        #__next {
+            isolation: isolate;
+        }
+
+        :root {
+            /* https://tailwindcss.com/docs/colors */
+            /* https://gist.github.com/guvener/d8952570d5a8be430580b93800519439 */
+            --neutral-50: #FAFAFA;
+            --neutral-100: #F5F5F5;
+            --neutral-200: #E5E5E5;
+            --neutral-300: #D4D4D4;
+            --neutral-400: #A3A3A3;
+            --neutral-500: #737373;
+            --neutral-600: #525252;
+            --neutral-700: #404040;
+            --neutral-800: #262626;
+            --neutral-900: #171717;
+            --red-600: #DC2626;
+            --red-700: #B91C1C;
+            --yellow-100: #FEF9C3;
+
+            /* typography */
+            /* Major Second */
+            --font-scale: 1.125;
+            --font-family: ui-sans-serif, system-ui, sans-serif;
+            --font-family-code: ui-monospace, monospace;
+            /* 1rem * pow(var(--font-scale), 6) */
+            --h1: 600 2.027rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 5) */
+            --h2: 600 1.802rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 4) */
+            --h3: 600 1.602rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 3) */
+            --h4: 600 1.424rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 2) */
+            --h5: 600 1.266rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 1) */
+            --h6: 600 1.125rem/1.2 var(--font-family);
+            /* https://m3.material.io/styles/typography/applying-type */
+            --p1: normal 1rem/1.5 var(--font-family);
+            /* 1rem / var(--font-scale) */
+            --sm: normal 0.889rem/1.4 var(--font-family);
+            --code: normal 0.889rem/1.4 var(--font-family-code);
+
+            /* spacing */
+            /* https://medium.com/dwarves-design/the-principle-of-spacing-in-ui-design-part-1-3354d0d65e51 */
+            --spacing-xs: 6px;
+            --spacing-sm: 12px;
+            --spacing-md: 24px;
+            --spacing-lg: 48px;
+
+            /* elevation */
+            --shadow-1: rgba(0, 0, 0, 0.01) 0px 1px 3px 0px, rgba(0, 0, 0, 0.10) 0px 1px 3px 0px;
+            --shadow-2: rgba(0, 0, 0, 0.10) 0px 1px 3px 0px, rgba(0, 0, 0, 0.10) 0px 1px 3px 0px;
+            /* tailwind #37 https://getcssscan.com/css-box-shadow-examples */
+            --shadow-3: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+            /* tailwind #38 https://getcssscan.com/css-box-shadow-examples */
+            --shadow-4: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+            /* tailwind #40 https://getcssscan.com/css-box-shadow-examples */
+            --shadow-5: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+            --shadow-6: rgba(0, 0, 0, 0.1) 0px -10px 15px -3px;
+
+            /* globals */
+            --mobile-navbar-height: 60px;
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+            --sidebar-width: 250px;
+        }
+
+        * {
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizelegibility;
+        }
+
+        html {
+            /* 1rem */
+            font-size: 16px;
+        }
+
+        body {
+            font: var(--p1);
+            /* https://uxmovement.com/content/why-you-should-never-use-pure-black-for-text-or-backgrounds/ */
+            color: #444;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
+        }
+
+        .header {
+            padding: var(--spacing-md) 0;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font: var(--p);
+            font-weight: 600;
+            color: var(--neutral-900);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--neutral-600);
+            text-decoration: none;
+            font: var(--sm);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--neutral-900);
+        }
+
+        .nav-link.active {
+            color: var(--neutral-900);
+            font-weight: 500;
+        }
+
+        .content-container {
+            display: flex;
+            min-height: calc(100vh - 80px);
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .sidebar {
+            position: relative;
+            width: var(--sidebar-width);
+            background-color: white;
+            border-right: 1px solid var(--neutral-200);
+        }
+
+        .sidebar-content {
+            position: sticky;
+            top: var(--spacing-lg);
+            padding: var(--spacing-md);
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav>li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-nav-item {
+            display: block;
+            color: var(--neutral-600);
+            text-decoration: none;
+            padding: var(--spacing-xs) 0;
+            font: var(--sm);
+            font-weight: 400;
+            transition: color 0.2s ease;
+            border: none;
+            background: none;
+        }
+
+        .sidebar-nav-item:hover {
+            color: var(--neutral-900);
+        }
+
+        .sidebar-nav-sub {
+            list-style: none;
+            padding: 0;
+            margin: 0 16px;
+        }
+
+        .sidebar-nav-sub .sidebar-nav-item {
+            color: var(--neutral-500);
+        }
+
+        .sidebar-nav-sub .sidebar-nav-item:hover {
+            color: var(--neutral-700);
+        }
+
+        :target {
+            scroll-margin-top: 80px;
+        }
+
+        .content {
+            flex: 1;
+            padding: 0 40px;
+            max-width: calc(100% - var(--sidebar-width));
+        }
+
+        section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .content {
+
+            strong {
+                font-weight: 600;
+            }
+
+            em {
+                font-style: italic;
+            }
+
+            h1 {
+                font: var(--h2);
+                margin-bottom: 24px;
+            }
+
+            h2 {
+                font: var(--h3);
+            }
+
+            h3 {
+                font: var(--h5);
+            }
+
+            h4,
+            h5,
+            h6 {
+                font: var(--h6);
+            }
+
+            p,
+            blockquote,
+            ul,
+            li,
+            table {
+                font: var(--p1);
+                padding: 3px 0;
+            }
+
+            a {
+                color: var(--neutral-500);
+                text-decoration: none;
+                border-bottom: 1px dashed var(--neutral-500);
+            }
+
+            img {
+                width: auto;
+                max-width: 100%;
+            }
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                padding: 3px 0;
+                margin-top: 24px;
+                margin-bottom: 4px;
+                font-weight: 600;
+            }
+
+            code {
+                font: var(--code);
+                background-color: var(--neutral-50);
+                border-radius: 4px;
+                padding: 4px 8px;
+            }
+
+            pre {
+                margin: 4px 0;
+                padding: 12px;
+                background-color: var(--neutral-50);
+                border-radius: 4px;
+                overflow: scroll;
+                position: relative;
+
+                &::-webkit-scrollbar {
+                    display: none;
+                }
+
+                font: var(--code);
+                line-height: 24px;
+            }
+
+            blockquote {
+                border-left: 3px solid var(--neutral-700);
+                padding-left: 10px;
+                margin: 10px 4px;
+            }
+
+            ul {
+                padding-left: 20px;
+            }
+
+            ul>li>ul {
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+
+            li>ul>li {
+                padding-bottom: 0;
+            }
+
+            ul.contains-task-list {
+                padding-left: 0;
+            }
+
+            li.task-list-item {
+                list-style-type: none;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 24px 0;
+            }
+
+            table,
+            th,
+            td {
+                border: 1px solid var(--neutral-200);
+                padding: 5px 15px;
+                width: max-content;
+            }
+
+            th {
+                text-align: left;
+            }
+
+            hr {
+                margin-top: 24px;
+                margin-bottom: 24px;
+                border: 1px solid var(--neutral-100);
+            }
+
+            s {
+                color: var(--neutral-400);
+            }
+
+            mark {
+                background: var(--yellow-100);
+                border-radius: 4px;
+                padding: 2px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .content-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--neutral-200);
+                padding: var(--spacing-md);
+            }
+
+            .content {
+                max-width: 100%;
+                padding: var(--spacing-md);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: var(--spacing-sm);
+            }
+
+            .sidebar-content {
+                padding: 0;
+            }
+
+            .content {
+                padding: var(--spacing-md);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <nav class="nav container">
+            <a href="/riffle" class="logo">Riffle</a>
+            <div class="nav-links">
+                <a href="/riffle/documentation" class="nav-link active">Documentation</a>
+                <a href="https://github.com/sheshbabu/riffle" class="nav-link">GitHub</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="content-container">
+        <aside class="sidebar">
+            <div class="sidebar-content">
+                <ul class="sidebar-nav">
+                    <li>
+                        <a href="#getting-started" class="sidebar-nav-item">Getting Started</a>
+                        <ul class="sidebar-nav-sub">
+                            <li><a href="#installation" class="sidebar-nav-item">Installation</a></li>
+                            <li><a href="#environment-variables" class="sidebar-nav-item">Environment Variables</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#workflow" class="sidebar-nav-item">Workflow</a>
+                        <ul class="sidebar-nav-sub">
+                            <li><a href="#import" class="sidebar-nav-item">Import</a></li>
+                            <li><a href="#curate" class="sidebar-nav-item">Curate</a></li>
+                            <li><a href="#library" class="sidebar-nav-item">Library</a></li>
+                            <li><a href="#export" class="sidebar-nav-item">Export</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#keyboard-shortcuts" class="sidebar-nav-item">Keyboard Shortcuts</a>
+                        <ul class="sidebar-nav-sub">
+                            <li><a href="#grid-shortcuts" class="sidebar-nav-item">Grid View</a></li>
+                            <li><a href="#lightbox-shortcuts" class="sidebar-nav-item">Lightbox</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#features" class="sidebar-nav-item">Features</a>
+                        <ul class="sidebar-nav-sub">
+                            <li><a href="#duplicate-detection" class="sidebar-nav-item">Duplicate Detection</a></li>
+                            <li><a href="#burst-detection" class="sidebar-nav-item">Burst Detection</a></li>
+                            <li><a href="#albums" class="sidebar-nav-item">Albums</a></li>
+                            <li><a href="#calendar" class="sidebar-nav-item">Calendar</a></li>
+                            <li><a href="#stats" class="sidebar-nav-item">Stats</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="content">
+            <section id="getting-started">
+                <h1>Getting Started</h1>
+
+                <h3 id="installation">Installation</h3>
+                <p>
+                    Riffle can be run as a standalone binary or with Docker. Follow the instructions below to get
+                    started.
+                </p>
+
+                <h4>Prerequisites:</h4>
+                <ul>
+                    <li>Go 1.23 or later</li>
+                    <li>Git</li>
+                    <li>esbuild</li>
+                    <li>libvips (for image processing)</li>
+                    <li>exiftool (for EXIF metadata extraction)</li>
+                </ul>
+
+                <h4>Build steps:</h4>
+                <ol>
+                    <li>Install tools:
+                        <ul>
+                            <li>Install <a href="https://go.dev/doc/install">Go</a></li>
+                            <li>Install esbuild</li>
+                        </ul>
+                        <pre><code>$ go install github.com/evanw/esbuild/cmd/esbuild@latest</code></pre>
+                    </li>
+                </ol>
+
+                <ol start="2">
+                    <li>Clone the repository:</li>
+                    <pre><code>$ git clone https://github.com/sheshbabu/riffle.git
+ $ cd riffle</code></pre>
+                </ol>
+
+                <ol start="3">
+                    <li>Build the application:</li>
+                    <pre><code>$ make build</code></pre>
+                </ol>
+
+                <ol start="4">
+                    <li>Set up environment variables (see below)</li>
+                </ol>
+
+                <ol start="5">
+                    <li>Run the application:</li>
+                    <pre><code>$ ./riffle</code></pre>
+                </ol>
+
+                <ol start="6">
+                    <li>Access Riffle in your browser at <code>http://localhost:8080</code></li>
+                </ol>
+
+                <h3 id="environment-variables">Environment Variables</h3>
+                <p>
+                    Create a <code>.env</code> file in the project root with the following variables:
+                </p>
+
+                <pre><code>DEV_MODE=false
+ PORT=8080
+ IMPORT_PATH=/path/to/import
+ LIBRARY_PATH=/path/to/library
+ THUMBNAILS_PATH=/path/to/thumbnails
+ EXPORT_PATH=/path/to/export</code></pre>
+
+                <ul>
+                    <li><code>DEV_MODE</code> - Set to <code>true</code> for development mode (serves assets from file
+                        system)</li>
+                    <li><code>PORT</code> - Port number for the web server (default: 8080)</li>
+                    <li><code>IMPORT_PATH</code> - Source folder containing photos to import</li>
+                    <li><code>LIBRARY_PATH</code> - Destination folder for organized photos</li>
+                    <li><code>THUMBNAILS_PATH</code> - Folder for 300x300px thumbnail cache</li>
+                    <li><code>EXPORT_PATH</code> - Destination folder for exported photos</li>
+                </ul>
+            </section>
+
+            <section id="workflow">
+                <h1>Workflow</h1>
+
+                <p>
+                    Riffle follows a four-step workflow: Import → Curate → Library → Export. This design keeps your
+                    culling process fast and your main photo library clean.
+                </p>
+
+                <h3 id="import">1. Import</h3>
+                <p>
+                    Point Riffle at your import folder (typically where you copy photos from your camera or phone). The
+                    import process:
+                </p>
+
+                <ul>
+                    <li>Scans all files recursively from <code>IMPORT_PATH</code></li>
+                    <li>Detects exact duplicates using SHA256 hashing</li>
+                    <li>Keeps only the best candidate (prefers files with EXIF data)</li>
+                    <li>Moves or copies unique files to <code>LIBRARY_PATH</code></li>
+                    <li>Organizes into <code>Year/Month</code> folders</li>
+                    <li>Renames files as <code>YYYY-MM-DD-HHMMSS-hash.ext</code></li>
+                    <li>Generates 300x300px thumbnails</li>
+                    <li>Extracts and stores EXIF metadata in SQLite</li>
+                </ul>
+
+                <blockquote>
+                    <p><strong>Note:</strong> Original file timestamps are preserved during the move operation.</p>
+                </blockquote>
+
+                <h3 id="curate">2. Curate</h3>
+                <p>
+                    The Curate view shows only uncurated photos (<code>is_curated = false</code>). This is where you do
+                    your culling work:
+                </p>
+
+                <ul>
+                    <li>Navigate with arrow keys in grid view</li>
+                    <li>Press <code>Enter</code> or <code>Space</code> to open lightbox</li>
+                    <li>Use keyboard shortcuts to rate photos:</li>
+                    <ul>
+                        <li><strong>P</strong> - Accept (pick)</li>
+                        <li><strong>X</strong> - Reject (trash)</li>
+                        <li><strong>1-5</strong> - Rate with stars</li>
+                        <li><strong>U</strong> - Unflag (reset curation state)</li>
+                    </ul>
+                    <li>Photos fade out after action with undo option</li>
+                    <li>Auto-advance to next photo in lightbox mode</li>
+                    <li>Press <code>I</code> to toggle metadata panel</li>
+                </ul>
+
+                <h3 id="library">3. Library</h3>
+                <p>
+                    The Library view shows only curated, non-trashed photos
+                    (<code>is_curated=true AND is_trashed=false</code>). Features include:
+                </p>
+
+                <ul>
+                    <li>Masonry grid layout with responsive columns</li>
+                    <li>Group headers showing date, photo count, and size</li>
+                    <li>Filter by date range, rating, camera, and location</li>
+                    <li>Select photos to add to albums</li>
+                </ul>
+
+                <h3 id="export">4. Export</h3>
+                <p>
+                    Export your curated photos to a destination folder for use in your main photo management tool:
+                </p>
+
+                <ul>
+                    <li>Filter by minimum rating (0-5)</li>
+                    <li>Filter by curation status (all photos or picked only)</li>
+                    <li>Choose to maintain or flatten folder structure</li>
+                    <li>Skip or include duplicate files based on SHA256 hash</li>
+                    <li>Optional cleanup: delete originals after successful export</li>
+                    <li>Export sessions tracked in database with per-photo status</li>
+                </ul>
+            </section>
+
+            <section id="keyboard-shortcuts">
+                <h1>Keyboard Shortcuts</h1>
+
+                <p>
+                    Riffle is designed for keyboard-driven workflows. All shortcuts work in both grid and lightbox
+                    views.
+                </p>
+
+                <h3 id="grid-shortcuts">Grid View</h3>
+                <ul>
+                    <li><code>Arrow Keys</code> - Navigate between photos</li>
+                    <li><code>Enter</code> or <code>Space</code> - Open photo in lightbox</li>
+                    <li><code>P</code> - Accept photo (mark as curated)</li>
+                    <li><code>X</code> - Reject photo (move to trash)</li>
+                    <li><code>U</code> - Unflag photo (reset curation state)</li>
+                    <li><code>1-5</code> - Rate photo with stars</li>
+                </ul>
+
+                <h3 id="lightbox-shortcuts">Lightbox</h3>
+                <ul>
+                    <li><code>Arrow Left/Right</code> - Navigate to previous/next photo</li>
+                    <li><code>P</code> - Accept photo (mark as curated)</li>
+                    <li><code>X</code> - Reject photo (move to trash)</li>
+                    <li><code>U</code> - Unflag photo (reset curation state)</li>
+                    <li><code>1-5</code> - Rate photo with stars</li>
+                    <li><code>I</code> - Toggle metadata panel</li>
+                    <li><code>Escape</code> - Close lightbox</li>
+                </ul>
+
+                <blockquote>
+                    <p><strong>Tip:</strong> After rating a photo in lightbox mode, Riffle automatically advances to the
+                        next photo, keeping your workflow fast.</p>
+                </blockquote>
+            </section>
+
+            <section id="features">
+                <h1>Features</h1>
+
+                <h3 id="duplicate-detection">Duplicate Detection</h3>
+                <p>
+                    Riffle uses SHA256 file hashing to identify exact duplicates during import. When duplicates are
+                    found:
+                </p>
+
+                <ul>
+                    <li>Only the best candidate is moved to the library</li>
+                    <li>Files with EXIF data are preferred over those without</li>
+                    <li>Duplicates remain in the import folder for manual cleanup</li>
+                    <li>All files are scanned for EXIF metadata to aid selection</li>
+                </ul>
+
+                <h3 id="burst-detection">Burst Detection</h3>
+                <p>
+                    Photos taken within a configurable time window (default: 3 seconds) with similar visual content are
+                    grouped as bursts:
+                </p>
+
+                <ul>
+                    <li>Uses dHash (perceptual hashing) to detect similar images</li>
+                    <li>Configurable similarity threshold (default: dHash distance &lt; 4)</li>
+                    <li>Displayed as collapsed stacks with count badge</li>
+                    <li>Click to expand and review individual photos</li>
+                    <li>Can be disabled or reconfigured in Settings → Burst</li>
+                    <li>Existing bursts can be rebuilt with new parameters</li>
+                </ul>
+
+                <h3 id="albums">Albums</h3>
+                <p>
+                    Create custom collections to organize photos:
+                </p>
+
+                <ul>
+                    <li>User-defined collections for themed groupings</li>
+                    <li>Bulk add selected photos from library view</li>
+                    <li>Create, view, and manage albums from the Albums page</li>
+                </ul>
+
+                <h3 id="calendar">Calendar</h3>
+                <p>
+                    Month-by-month overview of your photo collection:
+                </p>
+
+                <ul>
+                    <li>Grid showing curated and uncurated photo counts</li>
+                    <li>Cover photos for each month</li>
+                    <li>Click to navigate to filtered library view for that month</li>
+                </ul>
+
+                <h3 id="stats">Stats</h3>
+                <p>
+                    Analytics dashboard showing collection statistics:
+                </p>
+
+                <ul>
+                    <li>Photo collection statistics over time</li>
+                    <li>Stacked bar charts grouped by decade (1920s, 1930s, etc.)</li>
+                    <li>Visual insights into your photography history</li>
+                </ul>
+            </section>
+
+        </main>
+    </div>
+
+</body>
+
+</html>

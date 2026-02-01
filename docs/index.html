@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="initial-scale=1, viewport-fit=cover, width=device-width, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>Riffle</title>
+    <meta name="description"
+        content="A fast, keyboard-driven photo curating tool. Import, review, rate, and export your photos to Immich, PhotoPrism, Google Photos, or iCloud with intelligent duplicate and burst detection.">
+
+    <style>
+        /* https: //www.joshwcomeau.com/css/custom-css-reset/ */
+
+        /* 1. Use a more-intuitive box-sizing model */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        /* 2. Remove default margin */
+        * {
+            margin: 0;
+        }
+
+        body {
+            /* 3. Add accessible line-height */
+            line-height: 1.5;
+            /* 4. Improve text rendering */
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 5. Improve media defaults */
+        img,
+        picture,
+        video,
+        canvas,
+        svg {
+            display: block;
+            max-width: 100%;
+        }
+
+        /* 6. Inherit fonts for form controls */
+        input,
+        button,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        /* 7. Avoid text overflows */
+        p,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            overflow-wrap: break-word;
+        }
+
+        /* 8. Improve line wrapping */
+        p {
+            text-wrap: pretty;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            text-wrap: balance;
+        }
+
+        /*
+        9. Create a root stacking context
+        */
+        #root,
+        #__next {
+            isolation: isolate;
+        }
+
+        :root {
+            /* https://tailwindcss.com/docs/colors */
+            /* https://gist.github.com/guvener/d8952570d5a8be430580b93800519439 */
+            --neutral-50: #FAFAFA;
+            --neutral-100: #F5F5F5;
+            --neutral-200: #E5E5E5;
+            --neutral-300: #D4D4D4;
+            --neutral-400: #A3A3A3;
+            --neutral-500: #737373;
+            --neutral-600: #525252;
+            --neutral-700: #404040;
+            --neutral-800: #262626;
+            --neutral-900: #171717;
+            --red-600: #DC2626;
+            --red-700: #B91C1C;
+            --yellow-100: #FEF9C3;
+            --yellow-500: #EAB308;
+
+            /* typography */
+            /* Major Second */
+            --font-scale: 1.125;
+            --font-family: ui-sans-serif, system-ui, sans-serif;
+            --font-family-code: ui-monospace, monospace;
+            /* 1rem * pow(var(--font-scale), 6) */
+            --h1: 600 2.027rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 5) */
+            --h2: 600 1.802rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 4) */
+            --h3: 600 1.602rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 3) */
+            --h4: 600 1.424rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 2) */
+            --h5: 600 1.266rem/1.2 var(--font-family);
+            /* 1rem * pow(var(--font-scale), 1) */
+            --h6: 600 1.125rem/1.2 var(--font-family);
+            /* https://m3.material.io/styles/typography/applying-type */
+            --p1: normal 1rem/1.5 var(--font-family);
+            /* 1rem / var(--font-scale) */
+            --sm: normal 0.889rem/1.4 var(--font-family);
+            --code: normal 0.889rem/1.4 var(--font-family-code);
+
+            /* spacing */
+            /* https://medium.com/dwarves-design/the-principle-of-spacing-in-ui-design-part-1-3354d0d65e51 */
+            --spacing-xs: 6px;
+            --spacing-sm: 12px;
+            --spacing-md: 24px;
+            --spacing-lg: 48px;
+
+            /* elevation */
+            --shadow-1: rgba(0, 0, 0, 0.01) 0px 1px 3px 0px, rgba(0, 0, 0, 0.10) 0px 1px 3px 0px;
+            --shadow-2: rgba(0, 0, 0, 0.10) 0px 1px 3px 0px, rgba(0, 0, 0, 0.10) 0px 1px 3px 0px;
+            /* tailwind #37 https://getcssscan.com/css-box-shadow-examples */
+            --shadow-3: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
+            /* tailwind #38 https://getcssscan.com/css-box-shadow-examples */
+            --shadow-4: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+            /* tailwind #40 https://getcssscan.com/css-box-shadow-examples */
+            --shadow-5: rgba(0, 0, 0, 0.25) 0px 25px 50px -12px;
+            --shadow-6: rgba(0, 0, 0, 0.1) 0px -10px 15px -3px;
+
+            /* globals */
+            --mobile-navbar-height: 60px;
+            --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * {
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizelegibility;
+        }
+
+        html {
+            /* 1rem */
+            font-size: 16px;
+        }
+
+        body {
+            font: var(--p1);
+            /* https://uxmovement.com/content/why-you-should-never-use-pure-black-for-text-or-backgrounds/ */
+            color: #444;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
+        }
+
+        .section {
+            padding: var(--spacing-lg) 0;
+        }
+
+        .header {
+            padding: var(--spacing-md) 0;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fade-from-top 0.6s ease-out 0.1s forwards;
+        }
+
+        @keyframes fade-from-top {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font: var(--p);
+            font-weight: 600;
+            color: var(--neutral-900);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--neutral-600);
+            text-decoration: none;
+            font: var(--sm);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--neutral-900);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+        }
+
+        .hero-title {
+            color: var(--neutral-900);
+            margin-bottom: 8px;
+            font-size: 48px;
+            font-weight: 400;
+        }
+
+        .hero-subtitle {
+            font: var(--h4);
+            color: var(--neutral-600);
+            margin-bottom: var(--spacing-lg);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: normal;
+        }
+
+        .hero-description {
+            font: var(--p1);
+            color: var(--neutral-500);
+            max-width: 700px;
+            margin: 0 auto var(--spacing-md);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            margin-bottom: var(--spacing-lg);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fade-from-bottom 0.8s ease-out 0.2s forwards;
+        }
+
+        .button {
+            display: flex;
+            height: 36px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            border-radius: 6px;
+            border: 1px solid var(--neutral-200);
+            overflow: hidden;
+            font: var(--sm);
+            font-weight: 600;
+            transition-property: background-color, box-shadow;
+            transition-duration: 500ms;
+            text-decoration: none;
+            box-shadow: var(--shadow-1);
+            background-color: #fff;
+        }
+
+        .button:hover {
+            background-color: var(--neutral-100);
+            cursor: pointer;
+        }
+
+        .button:active {
+            box-shadow: none;
+        }
+
+        .button.primary {
+            background-color: var(--neutral-900);
+            color: white;
+
+            svg {
+                margin-left: 6px;
+            }
+        }
+
+        .button.primary:hover {
+            background-color: var(--neutral-700);
+        }
+
+        .button.secondary {
+            background-color: white;
+            color: var(--neutral-900);
+        }
+
+        .button.secondary:hover {
+            background-color: var(--neutral-50);
+        }
+
+        .screenshot {
+            margin: 0 auto;
+            border: 1px solid var(--neutral-200);
+            outline: 5px solid var(--neutral-100);
+            border-radius: 8px;
+            box-shadow: var(--shadow-5);
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fade-from-bottom 0.8s ease-out 0.3s forwards;
+        }
+
+        @keyframes fade-from-bottom {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .screenshot img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .features {
+            background-color: var(--neutral-50);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-top: 32px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 18px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-3);
+        }
+
+        .feature-title {
+            color: var(--neutral-900);
+            display: flex;
+
+            svg {
+                margin-right: 6px;
+                ;
+            }
+        }
+
+        .feature-description {
+            color: var(--neutral-500);
+        }
+
+        .focus-section {
+            text-align: center;
+        }
+
+        .section-title {
+            font: var(--h2);
+            color: var(--neutral-900);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .section-description {
+            color: var(--neutral-700);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        h1 {
+            font: var(--h2);
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font: var(--h3);
+        }
+
+        h3 {
+            font: var(--h5);
+        }
+
+        h4,
+        h5,
+        h6 {
+            font: var(--h6);
+        }
+
+        p,
+        blockquote,
+        ul,
+        li,
+        table {
+            font: var(--p1);
+            padding: 3px 0;
+        }
+
+        img {
+            width: auto;
+            max-width: 100%;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            padding: 3px 0;
+            margin-top: 4px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        code {
+            font: var(--code);
+            background-color: var(--neutral-50);
+            border-radius: 4px;
+            padding: 4px 8px;
+        }
+
+        pre {
+            margin: 4px 0;
+            padding: 12px;
+            background-color: var(--neutral-50);
+            border-radius: 4px;
+            overflow: scroll;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
+            font: var(--code);
+            line-height: 24px;
+        }
+
+        blockquote {
+            border-left: 3px solid var(--neutral-700);
+            padding-left: 10px;
+            margin: 10px 4px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        ul>li>ul {
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        li>ul>li {
+            padding-bottom: 0;
+        }
+
+        ul.contains-task-list {
+            padding-left: 0;
+        }
+
+        li.task-list-item {
+            list-style-type: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid var(--neutral-200);
+            padding: 5px 15px;
+            width: max-content;
+        }
+
+        th {
+            text-align: left;
+        }
+
+        hr {
+            margin-top: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--neutral-100);
+        }
+
+        s {
+            color: var(--neutral-400);
+        }
+
+        mark {
+            background: var(--yellow-100);
+            border-radius: 4px;
+            padding: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: var(--spacing-sm);
+            }
+
+            .hero-title {
+                font-size: 40px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <nav class="nav container">
+            <a href="/riffle" class="logo">Riffle</a>
+            <div class="nav-links">
+                <a href="/riffle/documentation" class="nav-link">Documentation</a>
+                <a href="https://github.com/sheshbabu/riffle" class="nav-link">GitHub</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero section">
+            <div class="container">
+                <h1 class="hero-title">Thousands of Photos. Keep What Counts</h1>
+                <p class="hero-description">
+                    A keyboard-driven photo curating tool for photographers. Import from your camera, review and rate
+                    with lightning-fast shortcuts, then export only your picks to your library of choice.
+                </p>
+
+                <div class="hero-buttons">
+                    <a href="https://github.com/sheshbabu/riffle" class="button primary" target="_blank">View on GitHub
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-arrow-right-icon lucide-arrow-right">
+                            <path d="M5 12h14" />
+                            <path d="m12 5 7 7-7 7" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="features section">
+            <div class="container">
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-fan-icon lucide-fan">
+                                <path
+                                    d="M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z" />
+                                <path d="M12 12v.01" />
+                            </svg>
+                            Works With Your Library
+                        </h3>
+                        <p class="feature-description">
+                            Export to Immich, PhotoPrism, Google Photos, iCloud Photos, or any photo management tool.
+                            Riffle is the step before your main library.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-zap-icon lucide-zap">
+                                <path
+                                    d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
+                            </svg>
+                            Lightning-Fast Curation
+                        </h3>
+                        <p class="feature-description">
+                            Keyboard shortcuts for instant photo review. P to pick, X to reject, 1-5 to rate. Navigate
+                            with arrow keys and keep your hands on the keyboard.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-copy-icon lucide-copy">
+                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                            </svg>
+                            Smart Duplicate Detection
+                        </h3>
+                        <p class="feature-description">
+                            SHA256 hashing identifies exact duplicates. Perceptual hashing groups similar shots into
+                            bursts. Only the best candidates make it to your library.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-folder-tree-icon lucide-folder-tree">
+                                <path
+                                    d="M20 10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2.5a1 1 0 0 1-.8-.4l-.9-1.2A1 1 0 0 0 15 3h-2a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1Z" />
+                                <path
+                                    d="M20 21a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-2.9a1 1 0 0 1-.88-.55l-.42-.85a1 1 0 0 0-.92-.6H13a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1Z" />
+                                <path d="M3 5a2 2 0 0 0 2 2h3" />
+                                <path d="M3 3v13a2 2 0 0 0 2 2h3" />
+                            </svg>
+                            Automatic Organization
+                        </h3>
+                        <p class="feature-description">
+                            Photos organized by date into Year/Month folders with timestamp-based filenames. EXIF
+                            metadata extracted and stored in SQLite.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-layers-icon lucide-layers">
+                                <path
+                                    d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" />
+                                <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
+                                <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
+                            </svg>
+                            Burst Detection
+                        </h3>
+                        <p class="feature-description">
+                            Photos taken within seconds of each other are grouped into collapsible stacks. Configurable
+                            time window and similarity threshold.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-maximize-icon lucide-maximize">
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+                                <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+                                <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+                                <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+                            </svg>
+                            Lightbox Curation
+                        </h3>
+                        <p class="feature-description">
+                            Full-screen review mode with EXIF metadata panel. Auto-advance after rating keeps the
+                            workflow moving. Undo option for accidental actions.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-filter-icon lucide-filter">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                            </svg>
+                            Powerful Filtering
+                        </h3>
+                        <p class="feature-description">
+                            Filter by date range, rating, camera, and location. View only uncurated photos, or browse
+                            your organized library of rated picks.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-calendar-icon lucide-calendar">
+                                <path d="M8 2v4" />
+                                <path d="M16 2v4" />
+                                <rect width="18" height="18" x="3" y="4" rx="2" />
+                                <path d="M3 10h18" />
+                            </svg>
+                            Calendar Overview
+                        </h3>
+                        <p class="feature-description">
+                            See your entire collection at a glance. Monthly grid with photo counts and cover images
+                            shows where you need to catch up on curation.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-bar-chart-icon lucide-bar-chart">
+                                <line x1="12" x2="12" y1="20" y2="10" />
+                                <line x1="18" x2="18" y1="20" y2="4" />
+                                <line x1="6" x2="6" y1="20" y2="16" />
+                            </svg>
+                            Stats Dashboard
+                        </h3>
+                        <p class="feature-description">
+                            Track your photography over time. Visual charts show when you shoot most, helping you
+                            understand your collection's growth and patterns.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-book-image-icon lucide-book-image">
+                                <path
+                                    d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" />
+                                <circle cx="10" cy="8" r="2" />
+                                <path d="m20 13.7-2.1-2.1a2 2 0 0 0-2.8 0L9.7 17" />
+                            </svg>
+                            Albums
+                        </h3>
+                        <p class="feature-description">
+                            Create custom collections to organize photos. Bulk add selected photos to albums for themed
+                            groupings.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-image-icon lucide-image">
+                                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                                <circle cx="9" cy="9" r="2" />
+                                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+                            </svg>
+                            Format Support
+                        </h3>
+                        <p class="feature-description">
+                            Supports common image formats including JPG, PNG, HEIC, WebP and video formats like MP4,
+                            MOV, AVI with thumbnail generation.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-map-pin-icon lucide-map-pin">
+                                <path
+                                    d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+                                <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            Location Data
+                        </h3>
+                        <p class="feature-description">
+                            GPS coordinates from EXIF metadata with offline reverse geocoding using GeoNames data.
+                            Filter by location in library view.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-trash-2-icon lucide-trash-2">
+                                <path d="M3 6h18" />
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                                <line x1="10" x2="10" y1="11" y2="17" />
+                                <line x1="14" x2="14" y1="11" y2="17" />
+                            </svg>
+                            Safe Trash
+                        </h3>
+                        <p class="feature-description">
+                            Rejected photos are soft-deleted, not removed from disk. Review your rejects and restore
+                            any photo before permanent cleanup.
+                        </p>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3 class="feature-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-server-icon lucide-server">
+                                <rect width="20" height="8" x="2" y="2" rx="2" ry="2" />
+                                <rect width="20" height="8" x="2" y="14" rx="2" ry="2" />
+                                <line x1="6" x2="6.01" y1="6" y2="6" />
+                                <line x1="6" x2="6.01" y1="18" y2="18" />
+                            </svg>
+                            Self-Hosted & Lightweight
+                        </h3>
+                        <p class="feature-description">
+                            Single Go binary with SQLite storage. Runs locally on your machine with a web UI.
+                            No cloud, no subscriptions, no vendor lock-in.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+</body>
+
+</html>
