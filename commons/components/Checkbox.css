@@ -5,41 +5,9 @@
   cursor: pointer;
   user-select: none;
 
-  &:hover .checkbox-icon svg {
-
-    rect,
-    path {
-      stroke: var(--text-primary);
-    }
-  }
-
-  &:hover .checkbox-input:checked+.checkbox-icon svg {
-
-    rect,
-    path {
-      stroke: var(--text-primary);
-    }
-  }
-
   &.checkbox--disabled {
     cursor: not-allowed;
     opacity: 0.5;
-
-    .checkbox-icon svg {
-
-      rect,
-      path {
-        stroke: var(--text-secondary);
-      }
-    }
-
-    &:hover .checkbox-icon svg {
-
-      rect,
-      path {
-        stroke: var(--text-secondary);
-      }
-    }
   }
 }
 
@@ -54,11 +22,16 @@
   white-space: nowrap;
   border: 0;
 
-  &:checked+.checkbox-icon svg {
+  &:checked+.checkbox-icon {
+    svg {
 
-    rect,
-    path {
-      stroke: var(--text-primary);
+      rect {
+        fill: var(--neutral-900);
+      }
+
+      path {
+        stroke: var(--neutral-50);
+      }
     }
   }
 
@@ -83,8 +56,7 @@
 
     rect,
     path {
-      stroke: var(--text-secondary);
-      transition: stroke var(--transition-fast) ease-out;
+      stroke: var(--neutral-900);
     }
   }
 }

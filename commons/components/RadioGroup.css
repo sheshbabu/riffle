@@ -23,8 +23,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 24px;
+  height: 24px;
   color: var(--neutral-500);
   flex-shrink: 0;
+
+  svg {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 .radio-input:checked+.radio-icon {
@@ -32,6 +39,5 @@
 }
 
 .radio-label {
-  font-size: 13px;
-  color: var(--neutral-900);
+  font-size: 14px;
 }

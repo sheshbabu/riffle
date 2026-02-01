@@ -20,7 +20,7 @@
 }
 
 .accordion-header:hover {
-  background-color: var(--neutral-200);
+  background-color: var(--neutral-100);
 }
 
 .accordion-title {
