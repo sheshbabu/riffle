@@ -18,6 +18,7 @@ import (
 	"riffle/features/ingest"
 	"riffle/features/photos"
 	"riffle/features/settings"
+	"riffle/features/stats"
 	"syscall"
 
 	"github.com/joho/godotenv"
@@ -112,6 +113,7 @@ func newRouter() *http.ServeMux {
 	mux.HandleFunc("POST /api/burst/rebuild/", photos.HandleRebuildBurstData)
 	mux.HandleFunc("GET /api/burst/rebuild/progress/", photos.HandleGetBurstRebuildProgress)
 	mux.HandleFunc("GET /api/calendar/months/", calendar.HandleGetCalendarMonths)
+	mux.HandleFunc("GET /api/stats/", stats.HandleGetStats)
 	mux.HandleFunc("GET /api/settings/", settings.HandleGetSettings)
 	mux.HandleFunc("POST /api/settings/", settings.HandleUpdateSetting)
 	mux.HandleFunc("GET /api/albums/", albums.HandleGetAlbums)

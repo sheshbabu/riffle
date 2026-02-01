@@ -141,6 +141,10 @@ async function getCalendarMonths() {
   return await request('GET', '/api/calendar/months/');
 }
 
+async function getStats() {
+  return await request('GET', '/api/stats/');
+}
+
 async function getSettings() {
   return await request('GET', '/api/settings/');
 }
@@ -290,5 +294,6 @@ export default {
   startExportSession,
   getExportProgress,
   getExportSessions,
-  getOperationProgress
+  getOperationProgress,
+  getStats
 };

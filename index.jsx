@@ -11,6 +11,7 @@ import SettingsPage from './features/settings/SettingsPage.jsx';
 import ExportPage from './features/export/ExportPage.jsx';
 import AlbumsPage from './features/albums/AlbumsPage.jsx';
 import AlbumDetailPage from './features/albums/AlbumDetailPage.jsx';
+import StatsPage from './features/stats/StatsPage.jsx';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/albums" component={AlbumsPage} />
             <Route path="/albums/:albumId" component={AlbumDetailPage} />
             <Route path="/calendar" component={CalendarPage} />
+            <Route path="/stats" component={StatsPage} />
             <Route path="/export" component={ExportPage} />
             <Route path="/trash" component={TrashPage} />
             <Route path="/settings" component={SettingsPage} />
