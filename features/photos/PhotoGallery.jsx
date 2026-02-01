@@ -13,6 +13,7 @@ import './PhotoGallery.css';
 
 const { useState, useEffect } = React;
 
+
 export default function PhotoGallery({
   photos,
   groups,
@@ -216,16 +217,9 @@ export default function PhotoGallery({
       }
     }
 
-    let undoButton = null;
+    let undoOverlay = null;
     if (isFading && onUndo) {
-      undoButton = (
-        <div className="undo-overlay">
-          <Button variant="primary" onClick={(e) => {
-            e.stopPropagation();
-            onUndo(photo.filePath);
-          }}>Undo</Button>
-        </div>
-      );
+      undoOverlay = <UndoOverlay photo={photo} onUndo={onUndo} />;
     }
 
     let videoIndicator = null;
@@ -261,7 +255,7 @@ export default function PhotoGallery({
         />
         {videoIndicator}
         {burstIndicator}
-        {undoButton}
+        {undoOverlay}
       </div>
     );
   }
@@ -399,6 +393,36 @@ export default function PhotoGallery({
       {galleryContent}
       {lightboxElement}
     </>
+  );
+}
+
+
+function UndoOverlay({ photo, onUndo }) {
+  const isPicked = photo.isCurated && !photo.isTrashed && photo.rating === 0;
+  const isRejected = photo.isTrashed;
+  const isRated = photo.rating > 0;
+
+  let actionBadge = null;
+  if (isRejected) {
+    actionBadge = <div className="undo-action-badge rejected">Rejected</div>;
+  } else if (isPicked) {
+    actionBadge = <div className="undo-action-badge picked">Picked</div>;
+  } else if (isRated) {
+    actionBadge = <div className="undo-action-badge rated">Rated {photo.rating}★</div>;
+  }
+
+  function handleUndoClick(e) {
+    e.stopPropagation();
+    onUndo(photo.filePath);
+  }
+
+  return (
+    <div className="undo-overlay">
+      <div className="undo-content">
+        {actionBadge}
+        <Button variant="primary" onClick={handleUndoClick}>Undo</Button>
+      </div>
+    </div>
   );
 }
 

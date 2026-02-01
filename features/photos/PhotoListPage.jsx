@@ -317,9 +317,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     try {
       await ApiClient.curatePhoto(filePath, isCurated, isTrashed, rating);
 
-      if (isCurated && !isTrashed && rating === 0) {
-        setFadingPhotos(prev => new Set([...prev, filePath]));
-      } else if (isTrashed) {
+      if (isCurated || isTrashed) {
         setFadingPhotos(prev => new Set([...prev, filePath]));
       }
 

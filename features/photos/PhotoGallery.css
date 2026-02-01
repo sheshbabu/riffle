@@ -82,11 +82,41 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: all;
+}
+
+.undo-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-3);
+
+
+  .undo-action-badge {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    border-radius: 6px;
+    font-weight: 600;
+    color: white;
+
+    &.rejected {
+      color: var(--red-600);
+    }
+
+    &.picked {
+      color: var(--green-600);
+    }
+
+    &.rated {
+      color: var(--yellow-500);
+    }
+  }
 }
 
 .gallery-media {
