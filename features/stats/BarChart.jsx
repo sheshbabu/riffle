@@ -236,6 +236,29 @@ function Bar({ bar, barWidth, barBottom, onMouseEnter, onMouseLeave }) {
   );
 }
 
+export function Summary({ totals }) {
+  return (
+    <div className="stats-summary">
+      <div className="stats-summary-item">
+        <span className="stats-summary-value">{totals.total}</span>
+        <span className="stats-summary-label">Total</span>
+      </div>
+      <div className="stats-summary-item">
+        <span className="stats-summary-value" style={{ color: COLORS.curated }}>{totals.curated}</span>
+        <span className="stats-summary-label">Curated</span>
+      </div>
+      <div className="stats-summary-item">
+        <span className="stats-summary-value" style={{ color: COLORS.uncurated }}>{totals.uncurated}</span>
+        <span className="stats-summary-label">Uncurated</span>
+      </div>
+      <div className="stats-summary-item">
+        <span className="stats-summary-value" style={{ color: COLORS.trashed }}>{totals.trashed}</span>
+        <span className="stats-summary-label">Trashed</span>
+      </div>
+    </div>
+  );
+}
+
 export function Legend() {
   return (
     <div className="stats-legend">

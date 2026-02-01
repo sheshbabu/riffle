@@ -1,11 +1,12 @@
 import ApiClient from '../../commons/http/ApiClient.js';
-import BarChart, { Legend } from './BarChart.jsx';
+import BarChart, { Summary, Legend } from './BarChart.jsx';
 import './StatsPage.css';
 
 const { useState, useEffect } = React;
 
 export default function StatsPage() {
   const [months, setMonths] = useState([]);
+  const [totals, setTotals] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -17,6 +18,7 @@ export default function StatsPage() {
       setIsLoading(true);
       const data = await ApiClient.getStats();
       setMonths(data.months || []);
+      setTotals(data.totals || null);
     } catch (err) {
       console.error('Failed to fetch stats:', err);
     } finally {
@@ -62,8 +64,14 @@ export default function StatsPage() {
       );
     });
 
+    let summaryElement = null;
+    if (totals) {
+      summaryElement = <Summary totals={totals} />;
+    }
+
     content = (
       <>
+        {summaryElement}
         <Legend />
         {decadeSections}
       </>

@@ -4,16 +4,21 @@ import (
 	"fmt"
 	"log/slog"
 	"riffle/commons/sqlite"
-	"time"
 )
 
 type MonthStats struct {
-	Year           int    `json:"year"`
-	Month          int    `json:"month"`
-	MonthName      string `json:"monthName"`
-	CuratedCount   int    `json:"curatedCount"`
-	UncuratedCount int    `json:"uncuratedCount"`
-	TrashedCount   int    `json:"trashedCount"`
+	Year           int `json:"year"`
+	Month          int `json:"month"`
+	CuratedCount   int `json:"curatedCount"`
+	UncuratedCount int `json:"uncuratedCount"`
+	TrashedCount   int `json:"trashedCount"`
+}
+
+type TotalStats struct {
+	Total     int `json:"total"`
+	Curated   int `json:"curated"`
+	Uncurated int `json:"uncurated"`
+	Trashed   int `json:"trashed"`
 }
 
 func GetMonthlyStats() ([]MonthStats, error) {
@@ -50,18 +55,29 @@ func GetMonthlyStats() ([]MonthStats, error) {
 
 		fmt.Sscanf(yearStr, "%d", &m.Year)
 		fmt.Sscanf(monthStr, "%d", &m.Month)
-		m.MonthName = getShortMonthName(m.Month)
-
 		months = append(months, m)
 	}
 
 	return months, nil
 }
 
-func getShortMonthName(month int) string {
-	if month < 1 || month > 12 {
-		return ""
+func GetTotalStats() (TotalStats, error) {
+	query := `
+		SELECT
+			COUNT(*) as total,
+			SUM(CASE WHEN is_curated = 1 AND is_trashed = 0 THEN 1 ELSE 0 END) as curated,
+			SUM(CASE WHEN is_curated = 0 AND is_trashed = 0 THEN 1 ELSE 0 END) as uncurated,
+			SUM(CASE WHEN is_trashed = 1 THEN 1 ELSE 0 END) as trashed
+		FROM photos
+	`
+
+	var stats TotalStats
+	err := sqlite.DB.QueryRow(query).Scan(&stats.Total, &stats.Curated, &stats.Uncurated, &stats.Trashed)
+	if err != nil {
+		err = fmt.Errorf("error querying total stats: %w", err)
+		slog.Error(err.Error())
+		return stats, err
 	}
-	t := time.Date(2000, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
-	return t.Format("Jan")
+
+	return stats, nil
 }

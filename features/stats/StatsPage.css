@@ -10,6 +10,32 @@
   text-align: center;
 }
 
+.stats-summary {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.stats-summary-item {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border: 1px solid var(--neutral-200);
+  width: 200px;
+  border-radius: 8px;
+}
+
+.stats-summary-value {
+  font-size: 30px;
+  font-weight: 500;
+  color: var(--neutral-800);
+}
+
+.stats-summary-label {
+  font-size: 14px;
+  color: var(--neutral-600);
+}
+
 .stats-legend {
   display: flex;
   gap: 16px;
