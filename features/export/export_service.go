@@ -1,7 +1,6 @@
 package export
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -56,15 +55,11 @@ func HandleCreateExportSession(w http.ResponseWriter, r *http.Request) {
 
 	StartExport(exportPath, criteria)
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "started"})
+	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"status": "started"})
 }
 
 func HandleExportProgress(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(progress.Get()); err != nil {
-		slog.Error("error encoding export progress response", "error", err)
-	}
+	utils.SendJSONResponse(w, http.StatusOK, progress.Get())
 }
 
 func HandleGetExportSessions(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +107,5 @@ func HandleGetExportSessions(w http.ResponseWriter, r *http.Request) {
 		jsonSessions = []ExportSessionsResponse{}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(jsonSessions)
+	utils.SendJSONResponse(w, http.StatusOK, jsonSessions)
 }

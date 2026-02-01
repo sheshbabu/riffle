@@ -1,7 +1,6 @@
 package calendar
 
 import (
-	"encoding/json"
 	"log/slog"
 	"net/http"
 	"riffle/commons/cache"
@@ -28,7 +27,5 @@ func HandleGetCalendarMonths(w http.ResponseWriter, r *http.Request) {
 		Months: months,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	utils.SendJSONResponse(w, http.StatusOK, response)
 }

@@ -1,7 +1,6 @@
 package photos
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -31,15 +30,12 @@ func HandleRebuildBurstData(w http.ResponseWriter, r *http.Request) {
 		slog.Info("burst data rebuild completed")
 	}()
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(BurstRebuildResponse{
+	utils.SendJSONResponse(w, http.StatusOK, BurstRebuildResponse{
 		Success: true,
 		Message: "burst data rebuild started",
 	})
 }
 
 func HandleGetBurstRebuildProgress(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(progress.Get())
+	utils.SendJSONResponse(w, http.StatusOK, progress.Get())
 }

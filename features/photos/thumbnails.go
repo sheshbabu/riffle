@@ -2,7 +2,6 @@ package photos
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -87,15 +86,12 @@ func HandleRebuildThumbnails(w http.ResponseWriter, r *http.Request) {
 		slog.Info("thumbnail rebuild completed")
 	}()
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(ThumbnailRebuildResponse{
+	utils.SendJSONResponse(w, http.StatusOK, ThumbnailRebuildResponse{
 		Success: true,
 		Message: "thumbnail rebuild started",
 	})
 }
 
 func HandleGetThumbnailProgress(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(progress.Get())
+	utils.SendJSONResponse(w, http.StatusOK, progress.Get())
 }

@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 )
 
@@ -17,4 +18,12 @@ func SendErrorResponse(w http.ResponseWriter, statusCode int, code string, messa
 		Code:    code,
 		Message: message,
 	})
+}
+
+func SendJSONResponse(w http.ResponseWriter, statusCode int, data any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		slog.Error("failed to encode JSON response", "error", err)
+	}
 }

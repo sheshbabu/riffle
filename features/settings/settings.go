@@ -152,9 +152,7 @@ func HandleUpdateSetting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"status": "success"})
 }
 
 func validate(key, value string) error {

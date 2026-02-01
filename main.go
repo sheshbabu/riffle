@@ -2,7 +2,6 @@ package main
 
 import (
 	"embed"
-	"encoding/json"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -173,6 +172,5 @@ func handleStaticAssets(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGetOperationProgress(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(progress.Get())
+	utils.SendJSONResponse(w, http.StatusOK, progress.Get())
 }

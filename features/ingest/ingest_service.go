@@ -1,7 +1,6 @@
 package ingest
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -38,8 +37,7 @@ type ImportSessionsResponse struct {
 }
 
 func HandleImportProgress(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(progress.Get())
+	utils.SendJSONResponse(w, http.StatusOK, progress.Get())
 }
 
 func HandleGetImportSessions(w http.ResponseWriter, r *http.Request) {
@@ -87,9 +85,7 @@ func HandleGetImportSessions(w http.ResponseWriter, r *http.Request) {
 		jsonSessions = []ImportSessionsResponse{}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(jsonSessions)
+	utils.SendJSONResponse(w, http.StatusOK, jsonSessions)
 }
 
 func HandleCreateImportSession(w http.ResponseWriter, r *http.Request) {
@@ -154,9 +150,7 @@ func HandleCreateImportSession(w http.ResponseWriter, r *http.Request) {
 		slog.Info("import complete", "movedToLibrary", stats.MovedToLibrary, "importMode", importMode)
 	}()
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(ImportSessionResponse{
+	utils.SendJSONResponse(w, http.StatusCreated, ImportSessionResponse{
 		Success:   true,
 		Message:   "import session started",
 		SessionID: sessionID,
