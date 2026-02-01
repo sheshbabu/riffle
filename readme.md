@@ -1,6 +1,10 @@
 # Riffle
 
-A photo organizer designed for photographers who need to efficiently manage and curate large photo collections.
+A photo culling tool for reviewing and organizing photos before importing to your photo library.
+
+### Overview
+
+Riffle handles the curation stage between camera and photo library. Import photos, review and rate them, then export selected photos to Immich, PhotoPrism, Google Photos, iCloud Photos, or other photo management software.
 
 ### Workflow
 
@@ -61,6 +65,7 @@ Import → Curate → Library → Export
 * Optional cleanup (delete from library after export)
 * Session tracking with per-photo export status logging
 * Preserves original file timestamps
+* Export to folder for import into other photo management software
 
 ### Docker
 

@@ -4,7 +4,14 @@ This file provides guidance to Claude Code when working with code in this reposi
 
 ## Project Overview
 
-Riffle is a photos organizer app for managing and deduplicating photo collections.
+Riffle is a photo culling tool for reviewing photo collections. It functions as an intermediate step: users import photos from camera/phone, review and rate them, then export selected photos to their main photo library (Immich, PhotoPrism, Google Photos, iCloud Photos, etc.).
+
+**Core features:**
+- Exact duplicate detection using SHA256 hashing
+- Burst detection using dHash similarity
+- Keyboard-driven curation workflow (P/X/U/1-5 shortcuts)
+
+**Out of scope:** Face recognition, sharing features, photo editing, mobile upload - these are handled by downstream photo management tools.
 
 ## Technology Stack
 
