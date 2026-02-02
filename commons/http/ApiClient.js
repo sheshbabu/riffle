@@ -173,6 +173,10 @@ async function curatePhoto(filePath, isCurated, isTrashed, rating) {
   return await request('POST', '/api/photos/curate/', { filePath, isCurated, isTrashed, rating });
 }
 
+async function deletePhotos(filePaths) {
+  return await request('DELETE', '/api/photos/', { filePaths });
+}
+
 async function getAlbums() {
   return await request('GET', '/api/albums/');
 }
@@ -280,6 +284,7 @@ export default {
   rebuildBurstData,
   getBurstRebuildProgress,
   curatePhoto,
+  deletePhotos,
   getAlbums,
   getAlbum,
   createAlbum,

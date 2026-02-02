@@ -300,3 +300,69 @@ func HandleCuratePhoto(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
+
+type DeletePhotosRequest struct {
+	FilePaths []string `json:"filePaths"`
+}
+
+func HandleDeletePhotos(w http.ResponseWriter, r *http.Request) {
+	var req DeletePhotosRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_BODY", "Invalid request body")
+		return
+	}
+
+	if len(req.FilePaths) == 0 {
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATHS", "File paths are required")
+		return
+	}
+
+	var photosToDelete []Photo
+	for _, filePath := range req.FilePaths {
+		photo, err := GetPhotoByPath(filePath)
+		if err != nil {
+			slog.Error("failed to get photo", "filePath", filePath, "error", err)
+			continue
+		}
+		photosToDelete = append(photosToDelete, photo)
+	}
+
+	if len(photosToDelete) == 0 {
+		utils.SendErrorResponse(w, http.StatusNotFound, "NO_PHOTOS_FOUND", "No photos found to delete")
+		return
+	}
+
+	for _, photo := range photosToDelete {
+		if err := os.Remove(photo.FilePath); err != nil {
+			if !os.IsNotExist(err) {
+				slog.Error("failed to delete library file", "filePath", photo.FilePath, "error", err)
+				utils.SendErrorResponse(w, http.StatusInternalServerError, "DELETE_FILE_ERROR", "Failed to delete file from disk")
+				return
+			}
+		}
+
+		if photo.ThumbnailPath != nil && *photo.ThumbnailPath != "" {
+			if err := os.Remove(*photo.ThumbnailPath); err != nil {
+				if !os.IsNotExist(err) {
+					slog.Warn("failed to delete thumbnail", "path", *photo.ThumbnailPath, "error", err)
+				}
+			}
+		}
+	}
+
+	if err := DeletePhotos(req.FilePaths); err != nil {
+		slog.Error("failed to delete photos from database", "error", err)
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "DELETE_DB_ERROR", "Failed to delete photos from database")
+		return
+	}
+
+	cache.InvalidateOnPhotoCuration()
+
+	slog.Info("permanently deleted photos", "count", len(photosToDelete))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]any{
+		"status":  "success",
+		"deleted": len(photosToDelete),
+	})
+}

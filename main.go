@@ -106,6 +106,7 @@ func newRouter() *http.ServeMux {
 	mux.HandleFunc("GET /api/photos/trashed/", photos.HandleGetTrashedPhotos)
 	mux.HandleFunc("GET /api/photos/filters/", photos.HandleGetFilterOptions)
 	mux.HandleFunc("POST /api/photos/curate/", photos.HandleCuratePhoto)
+	mux.HandleFunc("DELETE /api/photos/", photos.HandleDeletePhotos)
 	mux.HandleFunc("GET /api/photo/", photos.HandleServePhoto)
 	mux.HandleFunc("POST /api/thumbnails/rebuild/", photos.HandleRebuildThumbnails)
 	mux.HandleFunc("GET /api/thumbnails/rebuild/progress/", photos.HandleGetThumbnailProgress)

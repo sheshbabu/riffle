@@ -3,11 +3,13 @@ import PhotoGallery from './PhotoGallery.jsx';
 import FilterPanel from './FilterPanel.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import AddToAlbumModal from '../albums/AddToAlbumModal.jsx';
+import DeletePhotosModal from './DeletePhotosModal.jsx';
 import IconButton from '../../commons/components/IconButton.jsx';
+import pluralize from '../../commons/utils/pluralize.js';
 import EmptyState from '../../commons/components/EmptyState.jsx';
 import MessageBox from '../../commons/components/MessageBox.jsx';
 import SelectionCount from '../../commons/components/SelectionCount.jsx';
-import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmptyIcon, SparklesIcon, ImageIcon, FolderIcon, StarIcon } from '../../commons/components/Icon.jsx';
+import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmptyIcon, TrashIcon, SparklesIcon, ImageIcon, FolderIcon, StarIcon } from '../../commons/components/Icon.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import useSearchParams from '../../commons/hooks/useSearchParams.js';
 import { updateSearchParams } from '../../commons/components/Link.jsx';
@@ -164,6 +166,8 @@ export default function PhotoListPage({ mode = 'library' }) {
   const [isCurating, setIsCurating] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isAlbumModalOpen, setIsAlbumModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filtersKey = JSON.stringify(filters);
 
@@ -400,6 +404,27 @@ export default function PhotoListPage({ mode = 'library' }) {
     filePaths.forEach(filePath => handleCurate(filePath, true, false, rating));
   }
 
+  async function handleDeletePhotos() {
+    const filePaths = getSelectedFilePaths();
+    if (filePaths.length === 0) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await ApiClient.deletePhotos(filePaths);
+      showToast(`Permanently deleted ${filePaths.length} ${pluralize(filePaths.length, 'photo')}`);
+      setIsDeleteModalOpen(false);
+      setSelectedIndices(new Set());
+
+      setPhotos(prevPhotos => prevPhotos.filter(photo => !filePaths.includes(photo.filePath)));
+    } catch (error) {
+      console.error('Failed to delete photos:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   function handlePrevPage() {
     if (hasPrev) {
       const newOffset = Math.max(0, offset - 100);
@@ -545,8 +570,10 @@ export default function PhotoListPage({ mode = 'library' }) {
     });
 
 
+    const isTrashMode = mode === 'trash';
+
     let addToAlbumButton = null;
-    if (!isCurateMode) {
+    if (!isCurateMode && !isTrashMode) {
       addToAlbumButton = (
         <IconButton onClick={() => setIsAlbumModalOpen(true)} title="Add to Album">
           <FolderIcon />
@@ -555,24 +582,44 @@ export default function PhotoListPage({ mode = 'library' }) {
       );
     }
 
+    let curationButtons = null;
+    if (!isTrashMode) {
+      curationButtons = (
+        <>
+          <IconButton variant="pick" active={isPicked && currentRating === 0} onClick={handlePickClick} title="Pick (P)" disabled={isCurating}>
+            <PickIcon />
+            <span>Pick</span>
+          </IconButton>
+          <IconButton variant="reject" active={isRejected} onClick={handleRejectClick} title="Reject (X)" disabled={isCurating}>
+            <RejectIcon />
+            <span>Reject</span>
+          </IconButton>
+          <IconButton onClick={handleUnflagClick} title="Unflag (U)" disabled={isCurating}>
+            <UnflagIcon />
+            <span>Unflag</span>
+          </IconButton>
+          <div className="rating-buttons">
+            {starElements}
+          </div>
+        </>
+      );
+    }
+
+    let deleteButton = null;
+    if (isTrashMode) {
+      deleteButton = (
+        <IconButton onClick={() => setIsDeleteModalOpen(true)} title="Remove from Disk" variant="reject">
+          <TrashIcon />
+          <span>Remove from Disk</span>
+        </IconButton>
+      );
+    }
+
     actionButtons = (
       <div className="library-actions">
-        <IconButton variant="pick" active={isPicked && currentRating === 0} onClick={handlePickClick} title="Pick (P)" disabled={isCurating}>
-          <PickIcon />
-          <span>Pick</span>
-        </IconButton>
-        <IconButton variant="reject" active={isRejected} onClick={handleRejectClick} title="Reject (X)" disabled={isCurating}>
-          <RejectIcon />
-          <span>Reject</span>
-        </IconButton>
-        <IconButton onClick={handleUnflagClick} title="Unflag (U)" disabled={isCurating}>
-          <UnflagIcon />
-          <span>Unflag</span>
-        </IconButton>
-        <div className="rating-buttons">
-          {starElements}
-        </div>
+        {curationButtons}
         {addToAlbumButton}
+        {deleteButton}
       </div>
     );
   }
@@ -590,6 +637,18 @@ export default function PhotoListPage({ mode = 'library' }) {
   if (isAlbumModalOpen && hasSelection) {
     const selectedPhotoPaths = Array.from(selectedIndices).map(index => photos[index].filePath);
     albumModal = (<AddToAlbumModal selectedPhotos={selectedPhotoPaths} onClose={() => setIsAlbumModalOpen(false)} />);
+  }
+
+  let deleteModal = null;
+  if (isDeleteModalOpen && hasSelection) {
+    deleteModal = (
+      <DeletePhotosModal
+        count={selectedIndices.size}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeletePhotos}
+        isDeleting={isDeleting}
+      />
+    );
   }
 
   return (
@@ -615,6 +674,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         onFiltersChange={handleFiltersChange}
       />
       {albumModal}
+      {deleteModal}
     </div>
   );
 }
