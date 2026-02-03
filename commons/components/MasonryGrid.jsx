@@ -1,5 +1,7 @@
 const { useEffect, useRef } = React;
 
+const COLUMN_COUNT = 4;
+
 export default function MasonryGrid({ children, className = '' }) {
   const gridRef = useRef(null);
   const masonryRef = useRef(null);
@@ -19,8 +21,7 @@ export default function MasonryGrid({ children, className = '' }) {
       }
 
       const containerWidth = gridRef.current.offsetWidth;
-      const columns = 5;
-      const columnWidth = containerWidth / columns;
+      const columnWidth = containerWidth / COLUMN_COUNT;
 
       const items = gridRef.current.querySelectorAll('.masonry-item');
       items.forEach((item) => {
@@ -77,8 +78,7 @@ export default function MasonryGrid({ children, className = '' }) {
       }
 
       const containerWidth = gridRef.current.offsetWidth;
-      const columns = 5;
-      const columnWidth = containerWidth / columns;
+      const columnWidth = containerWidth / COLUMN_COUNT;
 
       const items = gridRef.current.querySelectorAll('.masonry-item');
       items.forEach(item => item.style.width = `${columnWidth}px`);
