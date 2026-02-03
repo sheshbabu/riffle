@@ -1,6 +1,10 @@
-# Riffle
-
-A photo culling tool for reviewing and organizing photos before importing to your photo library.
+<p align="center">
+  <img width="256" src="assets/android-chrome-512x512.png">
+  <h1 align="center">Riffle</h1>
+  <p align="center">
+    A photo culling tool for reviewing and organizing photos before importing to your photo library.
+  </p>
+</p>
 
 ### Overview
 
