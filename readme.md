@@ -6,6 +6,8 @@
   </p>
 </p>
 
+<p align="center"><img src="https://github.com/sheshbabu/riffle/blob/master/docs/screenshot.png?raw=true"/></p>
+
 ### Overview
 
 Riffle handles the curation stage between camera and photo library. Import photos, review and rate them, then export selected photos to Immich, PhotoPrism, Google Photos, iCloud Photos, or other photo management software.
