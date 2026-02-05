@@ -29,12 +29,14 @@ Import → Curate → Library → Export
 * Burst detection for rapid-fire sequences (configurable)
 * Photo metadata display (camera, settings, GPS)
 * Image lightbox with full-screen view
+* Side-by-side compare mode for detailed photo comparison
 * Video playback support
 
 **Curate** (Photo Culling Interface)
-* Fast keyboard-driven review (P/X/U/1-5)
+* Fast keyboard-driven review (P/X/U/1-5/C)
 * Accept, reject, unflag, or rate photos quickly
 * Full-screen lightbox curation with auto-advance
+* Side-by-side compare mode for choosing between similar shots
 * Visual progress tracking
 * Undo with fade-out animations
 

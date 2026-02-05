@@ -4,12 +4,13 @@ import FilterPanel from './FilterPanel.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import AddToAlbumModal from '../albums/AddToAlbumModal.jsx';
 import DeletePhotosModal from './DeletePhotosModal.jsx';
+import CompareMode from '../../commons/components/CompareMode.jsx';
 import IconButton from '../../commons/components/IconButton.jsx';
 import pluralize from '../../commons/utils/pluralize.js';
 import EmptyState from '../../commons/components/EmptyState.jsx';
 import MessageBox from '../../commons/components/MessageBox.jsx';
 import SelectionCount from '../../commons/components/SelectionCount.jsx';
-import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmptyIcon, TrashIcon, SparklesIcon, ImageIcon, FolderIcon, StarIcon } from '../../commons/components/Icon.jsx';
+import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmptyIcon, TrashIcon, SparklesIcon, ImageIcon, FolderIcon, StarIcon, ScaleIcon } from '../../commons/components/Icon.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import useSearchParams from '../../commons/hooks/useSearchParams.js';
 import { updateSearchParams } from '../../commons/components/Link.jsx';
@@ -168,6 +169,7 @@ export default function PhotoListPage({ mode = 'library' }) {
   const [isAlbumModalOpen, setIsAlbumModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [compareModeState, setCompareModeState] = useState(null);
 
   const filtersKey = JSON.stringify(filters);
 
@@ -232,12 +234,40 @@ export default function PhotoListPage({ mode = 'library' }) {
           e.preventDefault();
           handlePrevPage();
         }
+      } else if (e.key === 'c' || e.key === 'C') {
+        if (selectedIndices.size >= 2) {
+          e.preventDefault();
+          const indices = Array.from(selectedIndices).sort((a, b) => a - b);
+          setCompareModeState({
+            selectIndex: indices[0],
+            candidateIndex: indices[1]
+          });
+        } else if (selectedIndices.size === 1) {
+          const currentIndex = Array.from(selectedIndices)[0];
+          if (currentIndex < photos.length - 1) {
+            e.preventDefault();
+            setCompareModeState({
+              selectIndex: currentIndex,
+              candidateIndex: currentIndex + 1
+            });
+          } else {
+            showToast('Select at least 2 photos to compare');
+          }
+        } else if (photos.length >= 2) {
+          e.preventDefault();
+          setCompareModeState({
+            selectIndex: 0,
+            candidateIndex: 1
+          });
+        } else {
+          showToast('Need at least 2 photos to compare');
+        }
       }
     }
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [hasNext, hasPrev, selectedIndices]);
+  }, [hasNext, hasPrev, selectedIndices, photos.length]);
 
   useEffect(() => {
     function handleCurateKeyDown(e) {
@@ -402,6 +432,33 @@ export default function PhotoListPage({ mode = 'library' }) {
       return;
     }
     filePaths.forEach(filePath => handleCurate(filePath, true, false, rating));
+  }
+
+  function handleCompareClick() {
+    if (selectedIndices.size >= 2) {
+      const indices = Array.from(selectedIndices).sort((a, b) => a - b);
+      setCompareModeState({
+        selectIndex: indices[0],
+        candidateIndex: indices[1]
+      });
+    } else if (selectedIndices.size === 1) {
+      const currentIndex = Array.from(selectedIndices)[0];
+      if (currentIndex < photos.length - 1) {
+        setCompareModeState({
+          selectIndex: currentIndex,
+          candidateIndex: currentIndex + 1
+        });
+      } else {
+        showToast('Select at least 2 photos to compare');
+      }
+    } else if (photos.length >= 2) {
+      setCompareModeState({
+        selectIndex: 0,
+        candidateIndex: 1
+      });
+    } else {
+      showToast('Need at least 2 photos to compare');
+    }
   }
 
   async function handleDeletePhotos() {
@@ -582,10 +639,21 @@ export default function PhotoListPage({ mode = 'library' }) {
       );
     }
 
+    let compareButton = null;
+    if (isCurateMode && selectedIndices.size >= 1) {
+      compareButton = (
+        <IconButton onClick={handleCompareClick} title="Compare (C)">
+          <ScaleIcon />
+          <span>Compare</span>
+        </IconButton>
+      );
+    }
+
     let curationButtons = null;
     if (!isTrashMode) {
       curationButtons = (
         <>
+          {compareButton}
           <IconButton variant="pick" active={isPicked && currentRating === 0} onClick={handlePickClick} title="Pick (P)" disabled={isCurating}>
             <PickIcon />
             <span>Pick</span>
@@ -651,6 +719,19 @@ export default function PhotoListPage({ mode = 'library' }) {
     );
   }
 
+  let compareMode = null;
+  if (compareModeState) {
+    compareMode = (
+      <CompareMode
+        photos={photos}
+        selectIndex={compareModeState.selectIndex}
+        candidateIndex={compareModeState.candidateIndex}
+        onClose={() => setCompareModeState(null)}
+        onCurate={handleCurate}
+      />
+    );
+  }
+
   return (
     <div className="page-container">
       <div className="page-toolbar">
@@ -675,6 +756,7 @@ export default function PhotoListPage({ mode = 'library' }) {
       />
       {albumModal}
       {deleteModal}
+      {compareMode}
     </div>
   );
 }

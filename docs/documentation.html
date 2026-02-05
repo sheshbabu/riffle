@@ -502,6 +502,7 @@
                         <ul class="sidebar-nav-sub">
                             <li><a href="#grid-shortcuts" class="sidebar-nav-item">Grid View</a></li>
                             <li><a href="#lightbox-shortcuts" class="sidebar-nav-item">Lightbox</a></li>
+                            <li><a href="#compare-shortcuts" class="sidebar-nav-item">Compare Mode</a></li>
                         </ul>
                     </li>
                     <li>
@@ -677,7 +678,7 @@
                 <h1>Keyboard Shortcuts</h1>
 
                 <p>
-                    Riffle is designed for keyboard-driven workflows. All shortcuts work in both grid and lightbox
+                    Riffle is designed for keyboard-driven workflows. All shortcuts work in grid, lightbox, and compare
                     views.
                 </p>
 
@@ -685,6 +686,7 @@
                 <ul>
                     <li><code>Arrow Keys</code> - Navigate between photos</li>
                     <li><code>Enter</code> or <code>Space</code> - Open photo in lightbox</li>
+                    <li><code>C</code> - Open compare mode (side-by-side view)</li>
                     <li><code>P</code> - Accept photo (mark as curated)</li>
                     <li><code>X</code> - Reject photo (move to trash)</li>
                     <li><code>U</code> - Unflag photo (reset curation state)</li>
@@ -702,8 +704,21 @@
                     <li><code>Escape</code> - Close lightbox</li>
                 </ul>
 
+                <h3 id="compare-shortcuts">Compare Mode</h3>
+                <ul>
+                    <li><code>Arrow Left/Right</code> - Change candidate photo</li>
+                    <li><code>Arrow Down</code> - Swap reference and candidate positions</li>
+                    <li><code>Arrow Up</code> - Make candidate the new reference</li>
+                    <li><code>P</code> - Accept candidate photo (auto-advances)</li>
+                    <li><code>X</code> - Reject candidate photo (auto-advances)</li>
+                    <li><code>U</code> - Unflag candidate photo</li>
+                    <li><code>1-5</code> - Rate candidate photo (auto-advances)</li>
+                    <li><code>I</code> - Toggle metadata panel</li>
+                    <li><code>C</code> or <code>Escape</code> - Close compare mode</li>
+                </ul>
+
                 <blockquote>
-                    <p><strong>Tip:</strong> After rating a photo in lightbox mode, Riffle automatically advances to the
+                    <p><strong>Tip:</strong> After rating a photo in lightbox or compare mode, Riffle automatically advances to the
                         next photo, keeping your workflow fast.</p>
                 </blockquote>
             </section>

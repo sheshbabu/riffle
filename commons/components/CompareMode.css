@@ -1,0 +1,153 @@
+.compare-controls {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  z-index: var(--z-overlay);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--neutral-100) 60%, transparent), 60%, transparent);
+  padding: 12px;
+
+  .compare-button {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    background-color: transparent;
+    transition: background-color var(--transition-normal);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    svg {
+      width: 20px;
+      height: 20px;
+
+      line,
+      circle,
+      rect,
+      path {
+        stroke: white;
+      }
+    }
+
+    span {
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+.modal-backdrop-container:hover .compare-controls {
+  opacity: 1;
+}
+
+.compare-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  gap: 0;
+  position: relative;
+}
+
+.compare-photo-pane {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+
+  .compare-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+.compare-labels {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: row;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  z-index: var(--z-overlay);
+  background: linear-gradient(to top, color-mix(in srgb, var(--neutral-100) 60%, transparent), 60%, transparent);
+  padding: 12px;
+
+  .compare-label {
+    flex: 1;
+    font-size: 14px;
+    color: white;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+}
+
+.modal-backdrop-container:hover .compare-labels {
+  opacity: 1;
+}
+
+.compare-metadata {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--neutral-100);
+  max-height: 40vh;
+  overflow-y: auto;
+  z-index: var(--z-overlay);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+  .compare-metadata-content {
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-6);
+    padding: var(--spacing-4);
+
+    .compare-metadata-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-3);
+
+      .compare-metadata-item {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: var(--spacing-2);
+
+        .compare-metadata-label {
+          font-size: 11px;
+          color: var(--neutral-400);
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .compare-metadata-value {
+          font-size: 13px;
+          color: var(--neutral-700);
+          word-break: break-word;
+          margin-top: 4px;
+        }
+      }
+    }
+  }
+}

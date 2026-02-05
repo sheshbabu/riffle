@@ -42,14 +42,16 @@ Riffle is a photo culling tool for reviewing photo collections. It functions as 
 
 ### 2. Curate (The Culling)
 - Dedicated view shows only uncurated photos (`is_curated = false`)
-- Keyboard shortcuts for fast review (work in both grid and lightbox):
+- Keyboard shortcuts for fast review (work in grid, lightbox, and compare mode):
   - **P (Accept)**: Sets `is_curated=true, rating=0`
   - **X (Reject)**: Sets `is_curated=true, is_trashed=true`
   - **U (Unflag)**: Resets curation state
   - **1-5 (Rate)**: Sets `is_curated=true, rating=1-5`
+  - **C (Compare)**: Open side-by-side comparison mode
   - **Arrow keys**: Navigate grid; **Enter/Space**: Open lightbox
-  - **I**: Toggle metadata panel in lightbox
+  - **I**: Toggle metadata panel in lightbox/compare mode
 - Lightbox curation mode: full-screen review with action buttons, auto-advance to next photo, metadata display (camera, settings, GPS, location)
+- Compare mode: side-by-side photo comparison for choosing between similar shots, with reference photo (left) and candidate photo (right), arrow key navigation, swap/promote actions
 - Photos fade out with undo option after action
 - Clear progress indication
 
