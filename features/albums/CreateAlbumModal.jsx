@@ -5,12 +5,24 @@ import Input from '../../commons/components/Input.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import './CreateAlbumModal.css';
 
-const { useState } = React;
+const { useState, useEffect } = React;
 
 export default function CreateAlbumModal({ onClose, onAlbumCreated }) {
   const [albumName, setAlbumName] = useState('');
   const [albumDescription, setAlbumDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onClose();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => document.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, [onClose]);
 
   async function handleCreateAlbum() {
     if (!albumName.trim()) {

@@ -134,6 +134,13 @@ func parseFiltersFromQuery(r *http.Request) *PhotoFilters {
 		hasFilters = true
 	}
 
+	if tagId := query.Get("tagId"); tagId != "" {
+		if id, err := strconv.Atoi(tagId); err == nil && id > 0 {
+			filters.TagId = id
+			hasFilters = true
+		}
+	}
+
 	if !hasFilters {
 		return nil
 	}

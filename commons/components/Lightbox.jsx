@@ -7,6 +7,9 @@ import formatExposureTime from '../utils/formatExposureTime.js';
 import formatDuration from '../utils/formatDuration.js';
 import formatFocalLength from '../utils/formatFocalLength.js';
 import getFileName from '../utils/getFileName.js';
+import PhotoTagsInput from '../../features/tags/PhotoTagsInput.jsx';
+import ApiClient from '../http/ApiClient.js';
+import { showToast } from './Toast.jsx';
 import './Lightbox.css';
 
 const { useState, useEffect } = React;
@@ -15,11 +18,16 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
   const [currentIndex, setCurrentIndex] = useState(selectedIndex);
   const [isZoomed, setIsZoomed] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
+  const [photoTags, setPhotoTags] = useState([]);
 
   const currentPhoto = photos[currentIndex];
 
   useEffect(() => {
     function handleKeyDown(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
       switch (e.key) {
         case 'Escape':
           e.stopPropagation();
@@ -75,6 +83,44 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
     document.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => document.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, [currentIndex, photos.length, onClose, showMetadata, onCurate, currentPhoto]);
+
+  useEffect(() => {
+    setPhotoTags([]);
+    async function loadTags() {
+      try {
+        const tags = await ApiClient.getPhotoTags(currentPhoto.filePath);
+        setPhotoTags(tags);
+      } catch (err) {
+        console.error('Failed to load tags:', err);
+      }
+    }
+    if (currentPhoto) {
+      loadTags();
+    }
+  }, [currentPhoto.filePath]);
+
+  async function handleAddTag(tag) {
+    try {
+      let tagId = tag.tagId;
+      if (tagId === -1) {
+        const createdTag = await ApiClient.createTag(tag.name);
+        tagId = createdTag.tagId;
+      }
+      await ApiClient.addTagsToPhotos([tagId], [currentPhoto.filePath]);
+      setPhotoTags([...photoTags, { tagId, name: tag.name }]);
+    } catch (err) {
+      showToast('Unable to add tag');
+    }
+  }
+
+  async function handleRemoveTag(tag) {
+    try {
+      await ApiClient.removeTagFromPhotos(tag.tagId, [currentPhoto.filePath]);
+      setPhotoTags(photoTags.filter(t => t.tagId !== tag.tagId));
+    } catch (err) {
+      showToast('Unable to remove tag');
+    }
+  }
 
   function advanceToNext() {
     if (currentIndex < photos.length - 1) {
@@ -188,10 +234,20 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
       </div>
     ));
 
+    const tags = (
+      <div className="metadata-item">
+        <div className="metadata-label">Tags</div>
+        <div className="metadata-value">
+          <PhotoTagsInput tags={photoTags} onAddTag={handleAddTag} onRemoveTag={handleRemoveTag} />
+        </div>
+      </div>
+    );
+
     metadataPanel = (
       <div className="lightbox-metadata">
         <div className="metadata-content">
           {metadataElements}
+          {tags}
         </div>
       </div>
     );

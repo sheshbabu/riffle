@@ -101,6 +101,9 @@ function buildFilterParams(filters) {
   if (filters.fileFormats && filters.fileFormats.length > 0) {
     filters.fileFormats.forEach(f => params.push(`fileFormats=${encodeURIComponent(f)}`));
   }
+  if (filters.tagId) {
+    params.push(`tagId=${filters.tagId}`);
+  }
 
   return params.length > 0 ? '&' + params.join('&') : '';
 }
@@ -209,6 +212,35 @@ async function getPhotoAlbums(filePath) {
   return await request('GET', `/api/photo/albums/?path=${encodeURIComponent(filePath)}`);
 }
 
+async function getTags(query) {
+  const url = query ? `/api/tags/?query=${encodeURIComponent(query)}` : '/api/tags/';
+  return await request('GET', url);
+}
+
+async function createTag(name) {
+  return await request('POST', '/api/tags/', { name });
+}
+
+async function updateTag(tagId, name) {
+  return await request('PUT', `/api/tags/${tagId}/`, { name });
+}
+
+async function deleteTag(tagId) {
+  return await request('DELETE', `/api/tags/${tagId}/`);
+}
+
+async function getPhotoTags(filePath) {
+  return await request('GET', `/api/photos/tags/?path=${encodeURIComponent(filePath)}`);
+}
+
+async function addTagsToPhotos(tagIds, filePaths) {
+  return await request('PUT', '/api/photos/tags/', { tagIds, filePaths });
+}
+
+async function removeTagFromPhotos(tagId, filePaths) {
+  return await request('DELETE', '/api/photos/tags/', { tagId, filePaths });
+}
+
 async function startImportSession() {
   return await request('POST', '/api/import/sessions/');
 }
@@ -293,6 +325,13 @@ export default {
   deleteAlbum,
   getAlbumPhotos,
   getPhotoAlbums,
+  getTags,
+  createTag,
+  updateTag,
+  deleteTag,
+  getPhotoTags,
+  addTagsToPhotos,
+  removeTagFromPhotos,
   startImportSession,
   getImportProgress,
   getImportSessions,

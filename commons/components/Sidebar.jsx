@@ -1,6 +1,7 @@
 import Link from './Link.jsx';
 import Logo from './Logo.jsx';
 import { ImportIcon, CurateIcon, LibraryIcon, FolderIcon, TrashIcon, CalendarIcon, StatsIcon, SettingsIcon, ExportIcon } from './Icon.jsx';
+import SidebarTagsList from '../../features/tags/SidebarTagsList.jsx';
 import './Sidebar.css';
 
 export default function Sidebar() {
@@ -47,6 +48,10 @@ export default function Sidebar() {
           <SettingsIcon />
           Settings
         </Link>
+
+        <div className="sidebar-section">
+          <SidebarTagsList />
+        </div>
       </div>
     </div>
   );

@@ -19,6 +19,7 @@ import (
 	"riffle/features/photos"
 	"riffle/features/settings"
 	"riffle/features/stats"
+	"riffle/features/tags"
 	"syscall"
 
 	"github.com/joho/godotenv"
@@ -125,6 +126,13 @@ func newRouter() *http.ServeMux {
 	mux.HandleFunc("DELETE /api/albums/{id}/photos/", albums.HandleRemovePhotosFromAlbum)
 	mux.HandleFunc("DELETE /api/albums/{id}/", albums.HandleDeleteAlbum)
 	mux.HandleFunc("GET /api/photo/albums/", albums.HandleGetPhotoAlbums)
+	mux.HandleFunc("GET /api/tags/", tags.HandleGetTags)
+	mux.HandleFunc("POST /api/tags/", tags.HandleCreateTag)
+	mux.HandleFunc("PUT /api/tags/{id}/", tags.HandleUpdateTag)
+	mux.HandleFunc("DELETE /api/tags/{id}/", tags.HandleDeleteTag)
+	mux.HandleFunc("GET /api/photos/tags/", tags.HandleGetPhotoTags)
+	mux.HandleFunc("PUT /api/photos/tags/", tags.HandleAddTagsToPhotos)
+	mux.HandleFunc("DELETE /api/photos/tags/", tags.HandleRemoveTagFromPhotos)
 	mux.HandleFunc("POST /api/export/sessions/", export.HandleCreateExportSession)
 	mux.HandleFunc("GET /api/export/sessions/", export.HandleGetExportSessions)
 	mux.HandleFunc("GET /api/export/sessions/progress/", export.HandleExportProgress)

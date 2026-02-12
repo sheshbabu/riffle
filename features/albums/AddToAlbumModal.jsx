@@ -19,6 +19,18 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
     loadAlbums();
   }, []);
 
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        onClose();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => document.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, [onClose]);
+
   async function loadAlbums() {
     try {
       const data = await ApiClient.getAlbums();

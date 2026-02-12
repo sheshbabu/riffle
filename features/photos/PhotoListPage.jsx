@@ -3,6 +3,7 @@ import PhotoGallery from './PhotoGallery.jsx';
 import FilterPanel from './FilterPanel.jsx';
 import Pagination from '../../commons/components/Pagination.jsx';
 import AddToAlbumModal from '../albums/AddToAlbumModal.jsx';
+import ManageTagsModal from '../tags/ManageTagsModal.jsx';
 import DeletePhotosModal from './DeletePhotosModal.jsx';
 import CompareMode from '../../commons/components/CompareMode.jsx';
 import IconButton from '../../commons/components/IconButton.jsx';
@@ -10,7 +11,7 @@ import pluralize from '../../commons/utils/pluralize.js';
 import EmptyState from '../../commons/components/EmptyState.jsx';
 import MessageBox from '../../commons/components/MessageBox.jsx';
 import SelectionCount from '../../commons/components/SelectionCount.jsx';
-import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmptyIcon, TrashIcon, SparklesIcon, ImageIcon, FolderIcon, StarIcon, ScaleIcon } from '../../commons/components/Icon.jsx';
+import { LoadingSpinner, PickIcon, RejectIcon, UnflagIcon, FilterIcon, TrashEmptyIcon, TrashIcon, SparklesIcon, ImageIcon, FolderIcon, StarIcon, ScaleIcon, TagIcon } from '../../commons/components/Icon.jsx';
 import { showToast } from '../../commons/components/Toast.jsx';
 import useSearchParams from '../../commons/hooks/useSearchParams.js';
 import { updateSearchParams } from '../../commons/components/Link.jsx';
@@ -102,6 +103,11 @@ function parseFiltersFromUrl(searchParams) {
     filters.fileFormats = fileFormats;
   }
 
+  const tagId = searchParams.get('tagId');
+  if (tagId) {
+    filters.tagId = parseInt(tagId, 10);
+  }
+
   return filters;
 }
 
@@ -138,6 +144,9 @@ function filtersToUrlParams(filters) {
   if (filters.fileFormats && filters.fileFormats.length > 0) {
     params.fileFormats = filters.fileFormats;
   }
+  if (filters.tagId) {
+    params.tagId = filters.tagId;
+  }
 
   return params;
 }
@@ -167,6 +176,7 @@ export default function PhotoListPage({ mode = 'library' }) {
   const [isCurating, setIsCurating] = useState(false);
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [isAlbumModalOpen, setIsAlbumModalOpen] = useState(false);
+  const [isTagsModalOpen, setIsTagsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [compareModeState, setCompareModeState] = useState(null);
@@ -337,6 +347,7 @@ export default function PhotoListPage({ mode = 'library' }) {
       states: null,
       cities: null,
       fileFormats: null,
+      tagId: null,
       offset: null,
     };
     updateSearchParams({ ...clearParams, ...filterParams });
@@ -639,6 +650,16 @@ export default function PhotoListPage({ mode = 'library' }) {
       );
     }
 
+    let manageTagsButton = null;
+    if (!isTrashMode && hasSelection) {
+      manageTagsButton = (
+        <IconButton onClick={() => setIsTagsModalOpen(true)} title="Manage Tags">
+          <TagIcon />
+          <span>Tags</span>
+        </IconButton>
+      );
+    }
+
     let compareButton = null;
     if (isCurateMode && selectedIndices.size >= 1) {
       compareButton = (
@@ -687,6 +708,7 @@ export default function PhotoListPage({ mode = 'library' }) {
       <div className="library-actions">
         {curationButtons}
         {addToAlbumButton}
+        {manageTagsButton}
         {deleteButton}
       </div>
     );
@@ -704,7 +726,23 @@ export default function PhotoListPage({ mode = 'library' }) {
   let albumModal = null;
   if (isAlbumModalOpen && hasSelection) {
     const selectedPhotoPaths = Array.from(selectedIndices).map(index => photos[index].filePath);
-    albumModal = (<AddToAlbumModal selectedPhotos={selectedPhotoPaths} onClose={() => setIsAlbumModalOpen(false)} />);
+    albumModal = (
+      <AddToAlbumModal
+        selectedPhotos={selectedPhotoPaths}
+        onClose={() => setIsAlbumModalOpen(false)}
+      />
+    );
+  }
+
+  let tagsModal = null;
+  if (isTagsModalOpen && hasSelection) {
+    const selectedPhotoPaths = Array.from(selectedIndices).map(index => photos[index].filePath);
+    tagsModal = (
+      <ManageTagsModal
+        selectedPhotos={selectedPhotoPaths}
+        onClose={() => setIsTagsModalOpen(false)}
+      />
+    );
   }
 
   let deleteModal = null;
@@ -755,6 +793,7 @@ export default function PhotoListPage({ mode = 'library' }) {
         onFiltersChange={handleFiltersChange}
       />
       {albumModal}
+      {tagsModal}
       {deleteModal}
       {compareMode}
     </div>

@@ -1,0 +1,117 @@
+.photo-tags-input {
+  position: relative;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.tag-badges-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px var(--spacing-2);
+  margin-right: var(--spacing-1);
+  margin-bottom: var(--spacing-1);
+  border-radius: 4px;
+  font-weight: 500;
+  color: var(--neutral-400);
+  background-color: var(--neutral-100);
+  font-size: 14px;
+  transition-property: color, background-color;
+  transition-duration: var(--transition-normal);
+  cursor: pointer;
+  text-decoration: none;
+  user-select: none;
+  font: var(--sm);
+
+  svg.lucide {
+    height: 14px;
+    width: 14px;
+    margin-left: var(--spacing-1);
+  }
+}
+
+.tag-badge-name {
+  line-height: 1;
+}
+
+.tag-badge-remove {
+  background: none;
+  border: none;
+  color: var(--bg-primary);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.tag-input {
+  padding: 2px var(--spacing-2);
+  outline: none;
+  font-weight: 500;
+  color: var(--neutral-400);
+  font-size: 14px;
+  border: 1px dashed var(--neutral-300);
+  background-color: var(--bg-primary);
+  border-radius: 4px;
+  width: 100px;
+  margin-right: var(--spacing-1);
+  margin-bottom: var(--spacing-1);
+}
+
+.tag-input:focus {
+  border-color: var(--neutral-500);
+}
+
+.tag-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.tag-suggestions-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: var(--z-base);
+}
+
+.tag-suggestion-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.1s;
+}
+
+.tag-suggestion-item:hover,
+.tag-suggestion-item.selected {
+  background-color: var(--neutral-100);
+}
+
+.tag-suggestion-item.add-new {
+  border-top: 1px solid var(--neutral-200);
+  color: var(--neutral-500);
+  font-weight: 500;
+}

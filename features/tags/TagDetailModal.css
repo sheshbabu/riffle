@@ -1,0 +1,12 @@
+.tag-detail-modal {
+  min-width: 400px;
+
+  .tag-detail-danger-zone {
+    border-top: 1px solid var(--border-color);
+
+    .tag-detail-warning {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+  }
+}

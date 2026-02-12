@@ -28,6 +28,7 @@ type PhotoFilters struct {
 	States       []string `json:"states"`
 	Cities       []string `json:"cities"`
 	FileFormats  []string `json:"fileFormats"`
+	TagId        int      `json:"tagId"`
 }
 
 func BuildFilterConditions(filters *PhotoFilters) (string, []any) {
@@ -124,6 +125,11 @@ func BuildFilterConditions(filters *PhotoFilters) (string, []any) {
 			args = append(args, f)
 		}
 		conditions = append(conditions, fmt.Sprintf("file_format IN (%s)", strings.Join(placeholders, ",")))
+	}
+
+	if filters.TagId > 0 {
+		conditions = append(conditions, "file_path IN (SELECT file_path FROM photo_tags WHERE tag_id = ?)")
+		args = append(args, filters.TagId)
 	}
 
 	if len(conditions) == 0 {

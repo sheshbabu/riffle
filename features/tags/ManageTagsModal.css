@@ -1,0 +1,19 @@
+.manage-tags-modal {
+  min-width: 500px;
+}
+
+.manage-tags-loading {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.manage-tags-info {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.manage-tags-input-wrapper {
+  border-radius: 6px;
+}
