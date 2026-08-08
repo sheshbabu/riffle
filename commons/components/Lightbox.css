@@ -87,6 +87,22 @@
 
       &.zoomable {
         cursor: zoom-in;
+        opacity: 0;
+        transition: opacity var(--transition-normal);
+
+        &.is-loaded {
+          opacity: 1;
+        }
+      }
+    }
+
+    .lightbox-image-thumbnail {
+      position: absolute;
+      filter: blur(8px);
+      transition: opacity var(--transition-normal);
+
+      &.is-hidden {
+        opacity: 0;
       }
     }
   }

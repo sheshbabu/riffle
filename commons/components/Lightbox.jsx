@@ -1,6 +1,7 @@
 import { ModalBackdrop, ModalContainer } from './Modal.jsx';
 import { CloseIcon, InfoIcon, PickIcon, RejectIcon, UnflagIcon, StarIcon } from './Icon.jsx';
 import getPhotoUrl from '../utils/getPhotoUrl.js';
+import getThumbnailUrl from '../utils/getThumbnailUrl.js';
 import formatDateTime from '../utils/formatDateTime.js';
 import formatFileSize from '../utils/formatFileSize.js';
 import formatExposureTime from '../utils/formatExposureTime.js';
@@ -19,6 +20,7 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
   const [isZoomed, setIsZoomed] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [photoTags, setPhotoTags] = useState([]);
+  const [isFullImageLoaded, setIsFullImageLoaded] = useState(false);
 
   const currentPhoto = photos[currentIndex];
 
@@ -85,6 +87,10 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
   }, [currentIndex, photos.length, onClose, showMetadata, onCurate, currentPhoto]);
 
   useEffect(() => {
+    setIsFullImageLoaded(false);
+  }, [currentIndex]);
+
+  useEffect(() => {
     setPhotoTags([]);
     async function loadTags() {
       try {
@@ -143,6 +149,7 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
   }
 
   const photoUrl = getPhotoUrl(currentPhoto.filePath);
+  const thumbnailUrl = getThumbnailUrl(currentPhoto.filePath);
   const isVideo = currentPhoto.isVideo;
 
   let mediaElement = null;
@@ -156,12 +163,20 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
     );
   } else {
     mediaElement = (
-      <img
-        src={photoUrl}
-        alt=""
-        className={`lightbox-image ${!isVideo ? 'zoomable' : ''}`}
-        onClick={!isVideo ? handleImageClick : null}
-      />
+      <>
+        <img
+          src={thumbnailUrl}
+          alt=""
+          className={`lightbox-image lightbox-image-thumbnail ${isFullImageLoaded ? 'is-hidden' : ''}`}
+        />
+        <img
+          src={photoUrl}
+          alt=""
+          className={`lightbox-image zoomable ${isFullImageLoaded ? 'is-loaded' : ''}`}
+          onClick={handleImageClick}
+          onLoad={() => setIsFullImageLoaded(true)}
+        />
+      </>
     );
   }
 
