@@ -1,4 +1,4 @@
-const { useEffect, useRef } = React;
+const { useEffect, useRef, useState } = React;
 
 const COLUMN_COUNT = 4;
 
@@ -6,6 +6,7 @@ export default function MasonryGrid({ children, className = '' }) {
   const gridRef = useRef(null);
   const masonryRef = useRef(null);
   const childCountRef = useRef(0);
+  const [isLaidOut, setIsLaidOut] = useState(false);
 
   useEffect(() => {
     if (!gridRef.current || typeof Masonry === 'undefined') {
@@ -47,6 +48,8 @@ export default function MasonryGrid({ children, className = '' }) {
     } else if (masonryRef.current) {
       masonryRef.current.layout();
     }
+
+    setIsLaidOut(true);
 
     const images = gridRef.current.querySelectorAll('img');
 
@@ -109,7 +112,7 @@ export default function MasonryGrid({ children, className = '' }) {
   }, []);
 
   return (
-    <div ref={gridRef} className={`masonry-grid ${className}`}>
+    <div ref={gridRef} className={`masonry-grid ${isLaidOut ? 'is-laid-out' : ''} ${className}`}>
       {children}
     </div>
   );

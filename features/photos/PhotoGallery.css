@@ -50,6 +50,12 @@
 
 .masonry-grid {
   width: 100%;
+  opacity: 0;
+
+  &.is-laid-out {
+    opacity: 1;
+    transition: opacity var(--transition-normal);
+  }
 }
 
 .gallery-item {
