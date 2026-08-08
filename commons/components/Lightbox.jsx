@@ -60,12 +60,14 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
           case 'p':
           case 'P':
             e.preventDefault();
+            e.stopPropagation();
             onCurate(currentPhoto.filePath, true, false, 0);
             advanceToNext();
             break;
           case 'x':
           case 'X':
             e.preventDefault();
+            e.stopPropagation();
             onCurate(currentPhoto.filePath, true, true, 0);
             advanceToNext();
             break;
@@ -75,6 +77,7 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
           case '4':
           case '5':
             e.preventDefault();
+            e.stopPropagation();
             onCurate(currentPhoto.filePath, true, false, parseInt(e.key));
             advanceToNext();
             break;
