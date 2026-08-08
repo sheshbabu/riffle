@@ -171,6 +171,7 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
           src={thumbnailUrl}
           alt=""
           className={`lightbox-image lightbox-image-thumbnail ${isFullImageLoaded ? 'is-hidden' : ''}`}
+          style={{ aspectRatio: currentPhoto.width && currentPhoto.height ? `${currentPhoto.width} / ${currentPhoto.height}` : undefined }}
         />
         <img
           src={photoUrl}
