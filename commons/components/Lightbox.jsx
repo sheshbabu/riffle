@@ -171,7 +171,6 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
           src={thumbnailUrl}
           alt=""
           className={`lightbox-image lightbox-image-thumbnail ${isFullImageLoaded ? 'is-hidden' : ''}`}
-          style={{ aspectRatio: currentPhoto.width && currentPhoto.height ? `${currentPhoto.width} / ${currentPhoto.height}` : undefined }}
         />
         <img
           src={photoUrl}
@@ -319,7 +318,10 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
         </div>
       </div>
       <ModalContainer className={isZoomed === true ? 'lightbox zoomed' : 'lightbox'}>
-        <div className="lightbox-image-container">
+        <div
+          className="lightbox-image-container"
+          style={{ aspectRatio: !isVideo && currentPhoto.width && currentPhoto.height ? `${currentPhoto.width} / ${currentPhoto.height}` : undefined }}
+        >
           {mediaElement}
         </div>
         {metadataPanel}
