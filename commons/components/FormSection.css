@@ -1,10 +1,10 @@
 .form-section {
-  margin-top: 32px;
+  margin-top: var(--spacing-8);
 }
 
 .form-section-title {
   margin: 0 0 var(--spacing-1) 0;
-  font-size: 16px;
+  font: var(--p1);
   font-weight: 500;
 }
 

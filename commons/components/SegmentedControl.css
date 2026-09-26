@@ -14,14 +14,14 @@
   align-items: center;
   justify-content: center;
   height: 28px;
-  padding: 6px 12px;
-  margin: 4px;
+  padding: 6px var(--spacing-3);
+  margin: var(--spacing-1);
   font: var(--sm);
   font-weight: 600;
   color: var(--text-primary);
   background: none;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-1);
   cursor: pointer;
   transition-property: background-color;
   transition-duration: var(--transition-normal);

@@ -24,7 +24,7 @@
 
 .duplicate-file-media {
   width: 100%;
-  border-radius: 4px;
+  border-radius: var(--radius-1);
   margin-bottom: var(--spacing-2);
   box-shadow: var(--shadow-4);
 
@@ -46,8 +46,8 @@
 }
 
 .badge {
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 2px var(--spacing-2);
+  border-radius: var(--radius-1);
   font: var(--sm);
 
   &.badge-picked {
@@ -69,8 +69,8 @@
 .file-path {
   font: var(--code);
   word-break: break-all;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 2px var(--spacing-2);
+  border-radius: var(--radius-1);
   background-color: var(--neutral-100);
   color: var(--neutral-600);
 }

@@ -11,14 +11,14 @@
 }
 
 .export-header h2 {
-    font-size: 24px;
+    font: var(--h4);
     font-weight: 500;
-    margin-bottom: 8px;
+    margin-bottom: var(--spacing-2);
 }
 
 .export-header p {
     color: var(--text-secondary);
-    font-size: 14px;
+    font: var(--sm);
 }
 
 .export-content {
@@ -28,27 +28,27 @@
 }
 
 .export-content .settings-section {
-    margin-bottom: 32px;
+    margin-bottom: var(--spacing-8);
 }
 
 .export-content .settings-section h4 {
-    margin-bottom: 4px;
+    margin-bottom: var(--spacing-1);
     color: var(--text-primary);
     font-weight: 500;
 }
 
 .export-content .settings-section p {
-    margin-bottom: 12px;
+    margin-bottom: var(--spacing-3);
     color: var(--text-secondary);
-    font-size: 14px;
+    font: var(--sm);
 }
 
 .export-progress-section {
     background-color: var(--neutral-50);
     border: 1px solid var(--neutral-200);
-    border-radius: 8px;
+    border-radius: var(--radius-2);
     padding: var(--spacing-3);
-    margin-bottom: 24px;
+    margin-bottom: var(--spacing-6);
 }
 
 .export-progress-content {
@@ -59,12 +59,12 @@
 
 .export-progress-text {
     flex: 1;
-    font-size: 14px;
+    font: var(--sm);
 }
 
 .export-progress-count {
-    margin-top: 4px;
-    font-size: 13px;
+    margin-top: var(--spacing-1);
+    font: var(--sm);
     color: var(--text-secondary);
 }
 
@@ -79,5 +79,5 @@
 .export-progress-fill {
     height: 100%;
     background-color: var(--blue-500);
-    transition: width 200ms ease-in-out;
+    transition: width var(--transition-fast) ease-in-out;
 }

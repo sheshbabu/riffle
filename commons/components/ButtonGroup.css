@@ -1,4 +1,4 @@
 .button-group {
   display: flex;
-  gap: 4px;
+  gap: var(--spacing-1);
 }

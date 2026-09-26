@@ -1,5 +1,5 @@
 .export-page {
-  padding: 8px;
+  padding: var(--spacing-2);
   padding-top: 0;
 }
 
@@ -11,12 +11,12 @@
 .export-action {
   display: flex;
   justify-content: flex-start;
-  padding: 16px 8px;
+  padding: var(--spacing-4) var(--spacing-2);
 }
 
 .export-progress-section {
   background-color: var(--bg-secondary);
-  border-radius: 8px;
+  border-radius: var(--radius-2);
   padding: var(--spacing-4);
 }
 
@@ -33,14 +33,14 @@
 
 .export-progress-count {
   margin-top: var(--spacing-1);
-  font-size: 14px;
+  font: var(--sm);
   color: var(--text-secondary);
 }
 
 .export-sessions {
   display: flex;
   flex-direction: column;
-  margin-top: 16px;
+  margin-top: var(--spacing-4);
 }
 
 .export-empty-state {
@@ -48,7 +48,7 @@
   text-align: center;
   color: var(--text-secondary);
   background-color: var(--bg-secondary);
-  border-radius: 8px;
+  border-radius: var(--radius-2);
 }
 
 .export-empty-state p {

@@ -9,18 +9,18 @@
   transition: opacity var(--transition-normal);
   z-index: var(--z-overlay);
   background: linear-gradient(to bottom, color-mix(in srgb, var(--neutral-100) 60%, transparent), 60%, transparent);
-  padding: 12px;
+  padding: var(--spacing-3);
 
   .lightbox-divider {
     width: 1px;
     background-color: var(--neutral-300);
-    margin: 8px 16px;
+    margin: var(--spacing-2) var(--spacing-4);
   }
 
   .lightbox-button {
-    padding: 8px 12px;
+    padding: var(--spacing-2) var(--spacing-3);
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: var(--radius-1);
     background-color: transparent;
     transition: background-color var(--transition-normal);
     border: none;
@@ -43,7 +43,7 @@
 
     span {
       color: white;
-      font-size: 14px;
+      font: var(--sm);
       font-weight: 500;
     }
 
@@ -63,7 +63,7 @@
   background-color: transparent;
   border: none;
   box-shadow: none;
-  animation-duration: 0.1s;
+  animation-duration: var(--transition-fast);
   display: flex;
   flex-direction: row;
   overflow-y: auto;
@@ -156,7 +156,7 @@
         margin-bottom: var(--spacing-3);
 
         .metadata-label {
-          font-size: 12px;
+          font: var(--xs);
           color: var(--neutral-400);
           font-weight: 500;
         }

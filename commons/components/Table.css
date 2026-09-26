@@ -1,18 +1,18 @@
 .table-container {
-  margin-top: 16px;
+  margin-top: var(--spacing-4);
   overflow-x: auto;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font: var(--sm);
 
   th {
     padding: var(--spacing-3) var(--spacing-4);
     text-align: left;
+    font: var(--sm);
     font-weight: 600;
-    font-size: 13px;
     color: var(--text-secondary);
     white-space: nowrap;
     border: 1px solid var(--neutral-100);

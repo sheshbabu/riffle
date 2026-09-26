@@ -11,7 +11,7 @@
 }
 
 .description-item-label {
-  font-size: 12px;
+  font: var(--xs);
   color: var(--neutral-400);
   font-weight: 500;
 }

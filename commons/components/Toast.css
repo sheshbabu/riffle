@@ -10,13 +10,13 @@
         display: flex;
         align-items: center;
         background-color: var(--neutral-800);
-        border-radius: 50px;
+        border-radius: var(--radius-full);
         box-shadow: var(--shadow-4);
-        padding: 10px 12px 10px 20px;
+        padding: 10px var(--spacing-3) 10px var(--spacing-5);
         min-width: 280px;
         max-width: 400px;
         pointer-events: auto;
-        animation: toast-slide-up 0.2s ease-out;
+        animation: toast-slide-up var(--transition-fast) ease-out;
         will-change: transform, opacity;
 
         .toast-message {
@@ -32,7 +32,7 @@
             align-items: center;
             justify-content: center;
             padding: var(--spacing-1);
-            border-radius: 50px;
+            border-radius: var(--radius-full);
 
             svg {
                 width: 16px;
@@ -75,7 +75,7 @@
 }
 
 .toast-container.toast-exit {
-    animation: toast-slide-down 0.2s ease-in forwards;
+    animation: toast-slide-down var(--transition-fast) ease-in forwards;
 }
 
 @media (max-width: 640px) {

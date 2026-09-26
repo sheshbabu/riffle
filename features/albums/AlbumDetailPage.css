@@ -1,4 +1,4 @@
 .album-detail-page-count {
   color: var(--neutral-500);
-  font-size: 14px;
+  font: var(--sm);
 }

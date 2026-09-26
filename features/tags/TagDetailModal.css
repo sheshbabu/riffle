@@ -5,7 +5,7 @@
     border-top: 1px solid var(--border-color);
 
     .tag-detail-warning {
-      font-size: 13px;
+      font: var(--sm);
       color: var(--text-secondary);
     }
   }

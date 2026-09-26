@@ -1,7 +1,7 @@
 .photo-tags-input {
   position: relative;
   width: 100%;
-  margin-top: 4px;
+  margin-top: var(--spacing-1);
 }
 
 .tag-badges-container {
@@ -17,11 +17,10 @@
   padding: 6px var(--spacing-2);
   margin-right: var(--spacing-1);
   margin-bottom: var(--spacing-1);
-  border-radius: 4px;
+  border-radius: var(--radius-1);
   font-weight: 500;
   color: var(--neutral-400);
   background-color: var(--neutral-100);
-  font-size: 14px;
   transition-property: color, background-color;
   transition-duration: var(--transition-normal);
   cursor: pointer;
@@ -45,7 +44,7 @@
   border: none;
   color: var(--bg-primary);
   cursor: pointer;
-  font-size: 18px;
+  font: var(--h6);
   line-height: 1;
   padding: 0;
   margin: 0;
@@ -55,7 +54,7 @@
   align-items: center;
   justify-content: center;
   opacity: 0.8;
-  transition: opacity 0.2s;
+  transition: opacity var(--transition-fast);
 
   &:hover {
     opacity: 1;
@@ -65,12 +64,12 @@
 .tag-input {
   padding: 2px var(--spacing-2);
   outline: none;
+  font: var(--sm);
   font-weight: 500;
   color: var(--neutral-400);
-  font-size: 14px;
   border: 1px dashed var(--neutral-300);
   background-color: var(--bg-primary);
-  border-radius: 4px;
+  border-radius: var(--radius-1);
   width: 100px;
   margin-right: var(--spacing-1);
   margin-bottom: var(--spacing-1);
@@ -99,10 +98,10 @@
 }
 
 .tag-suggestion-item {
-  padding: 8px 12px;
+  padding: var(--spacing-2) var(--spacing-3);
   cursor: pointer;
-  font-size: 13px;
-  transition: background-color 0.1s;
+  font: var(--sm);
+  transition: background-color var(--transition-fast);
 }
 
 .tag-suggestion-item:hover,

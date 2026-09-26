@@ -1,7 +1,7 @@
 .alert {
   padding: var(--spacing-3);
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: var(--radius-2);
+  font: var(--sm);
   margin-top: var(--spacing-4);
 }
 

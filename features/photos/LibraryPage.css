@@ -1,7 +1,7 @@
 .library-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacing-1);
 }
 
 .rating-buttons {
@@ -12,18 +12,18 @@
 .left-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--spacing-4);
 }
 
 .middle-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--spacing-4);
 }
 
 .right-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--spacing-4);
   justify-self: end;
 }

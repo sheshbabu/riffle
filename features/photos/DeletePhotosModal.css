@@ -1,5 +1,5 @@
 .delete-modal-warning {
-  margin-top: 8px;
+  margin-top: var(--spacing-2);
   color: var(--text-secondary);
   font: var(--sm);
 }

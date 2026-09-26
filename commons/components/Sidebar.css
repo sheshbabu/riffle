@@ -11,7 +11,7 @@
 }
 
 .sidebar-header {
-  padding: 20px 16px 8px;
+  padding: var(--spacing-5) var(--spacing-4) var(--spacing-2);
 }
 
 .sidebar-header h2 {
@@ -23,7 +23,7 @@
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 0 8px;
+  padding: 0 var(--spacing-2);
   text-decoration: none;
   color: var(--neutral-500);
   transition: color var(--transition-normal), stroke var(--transition-normal);
@@ -56,36 +56,36 @@
 }
 
 .sidebar-button svg.lucide {
-  padding: 8px;
+  padding: var(--spacing-2);
 }
 
 .sidebar-section {
-  margin-top: 24px;
+  margin-top: var(--spacing-6);
 
   .sidebar-section-title {
-    font-size: 12px;
+    font: var(--xs);
     font-weight: 600;
     text-transform: uppercase;
     color: var(--text-secondary);
-    padding: 8px 16px 8px 16px;
+    padding: var(--spacing-2) var(--spacing-4) var(--spacing-2) var(--spacing-4);
     letter-spacing: 0.5px;
   }
 
   .sidebar-tags-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--spacing-1);
 
     .sidebar-tag-item {
       display: flex;
       align-items: center;
-      padding-left: 16px;
-      padding-right: 8px;
+      padding-left: var(--spacing-4);
+      padding-right: var(--spacing-2);
       text-decoration: none;
       color: var(--text-primary);
-      transition: background-color 0.2s;
+      transition: background-color var(--transition-fast);
       cursor: pointer;
-      gap: 8px;
+      gap: var(--spacing-2);
 
       &:hover {
         .sidebar-tag-name {
@@ -104,7 +104,7 @@
 
       .sidebar-tag-name {
         flex: 1;
-        font-size: 14px;
+        font: var(--sm);
         color: var(--text-secondary);
         overflow: hidden;
         text-overflow: ellipsis;
@@ -112,7 +112,7 @@
       }
 
       .sidebar-tag-count {
-        font-size: 12px;
+        font: var(--xs);
         color: var(--text-secondary);
         flex-shrink: 0;
       }
@@ -124,7 +124,7 @@
         cursor: pointer;
         color: var(--text-secondary);
         opacity: 0;
-        transition: opacity 0.2s, color 0.2s;
+        transition: opacity var(--transition-fast), color var(--transition-fast);
         display: flex;
         align-items: center;
         justify-content: center;

@@ -1,7 +1,7 @@
 .message-box {
   padding: var(--spacing-6);
   background-color: var(--bg-secondary);
-  border-radius: 4px;
+  border-radius: var(--radius-1);
   text-align: center;
   color: var(--text-secondary);
 

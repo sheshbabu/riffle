@@ -1,12 +1,12 @@
 .import-page {
-  padding: 8px;
+  padding: var(--spacing-2);
   padding-top: 0;
 }
 
 .import-sessions {
   display: flex;
   flex-direction: column;
-  margin-top: 16px;
+  margin-top: var(--spacing-4);
 }
 
 .import-empty-state {
@@ -14,7 +14,7 @@
   text-align: center;
   color: var(--text-secondary);
   background-color: var(--bg-secondary);
-  border-radius: 8px;
+  border-radius: var(--radius-2);
 }
 
 .import-empty-state p {
@@ -24,7 +24,7 @@
 .import-action {
   display: flex;
   justify-content: flex-start;
-  padding: 16px 8px;
+  padding: var(--spacing-4) var(--spacing-2);
 }
 
 .session-detail-container {
@@ -44,7 +44,7 @@
 }
 
 .import-help {
-  font-size: 14px;
+  font: var(--sm);
   color: var(--text-secondary);
 }
 
@@ -115,7 +115,7 @@
 }
 
 .import-step-subtext {
-  font-size: 14px;
+  font: var(--sm);
   color: var(--text-secondary);
   margin-top: var(--spacing-1);
 }

@@ -67,6 +67,8 @@
     --p1: normal 1rem/1.5 var(--font-family);
     /* 1rem / var(--font-scale) */
     --sm: normal 0.889rem/1.4 var(--font-family);
+    /* 1rem / pow(var(--font-scale), 2) */
+    --xs: normal 0.79rem/1.4 var(--font-family);
     --code: normal 0.889rem/1.4 var(--font-family-code);
 
     /* spacing - 4px-based system */
@@ -93,6 +95,11 @@
     /* globals */
     --mobile-navbar-height: 60px;
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+
+    /* border radius */
+    --radius-1: 4px;
+    --radius-2: 8px;
+    --radius-full: 9999px;
 
     /* z-index layers */
     --z-base: 1;
@@ -171,7 +178,7 @@ svg.lucide {
 }
 
 .page-container {
-    padding: 16px;
+    padding: var(--spacing-4);
     padding-top: 0;
     min-height: 100%;
 
@@ -184,9 +191,9 @@ svg.lucide {
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 16px;
+    gap: var(--spacing-4);
     position: sticky;
-    padding: 16px 0;
+    padding: var(--spacing-4) 0;
     z-index: var(--z-base);
     background-color: var(--bg-primary);
     top: 0;
@@ -202,7 +209,7 @@ svg.lucide {
     margin-top: var(--spacing-6);
     padding: var(--spacing-4);
     background-color: var(--bg-secondary);
-    border-radius: 4px;
+    border-radius: var(--radius-1);
     border: 1px solid var(--neutral-200);
 }
 

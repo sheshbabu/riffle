@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  border-radius: 4px;
+  border-radius: var(--radius-1);
   cursor: pointer;
   transition: background-color var(--transition-normal);
   user-select: none;
@@ -39,5 +39,5 @@
 }
 
 .radio-label {
-  font-size: 14px;
+  font: var(--sm);
 }

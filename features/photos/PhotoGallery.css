@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-3);
-  margin: 8px 0;
+  margin: var(--spacing-2) 0;
 }
 
 .group-header-info {
@@ -61,10 +61,10 @@
 .gallery-item {
   position: relative;
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: var(--radius-1);
   background-color: var(--neutral-100);
   cursor: pointer;
-  transition: opacity 0.3s ease, border 0.2s ease;
+  transition: opacity var(--transition-normal) ease, border var(--transition-fast) ease;
   border: 3px solid transparent;
   box-sizing: border-box;
 
@@ -137,9 +137,9 @@
   right: var(--spacing-2);
   padding: 2px 6px;
   background-color: rgba(0, 0, 0, 0.7);
-  border-radius: 4px;
+  border-radius: var(--radius-1);
   color: white;
-  font-size: 12px;
+  font: var(--xs);
   font-weight: 500;
   pointer-events: none;
 }
@@ -155,7 +155,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    border-radius: 4px;
+    border-radius: var(--radius-1);
     background-color: var(--neutral-200);
     z-index: -1;
   }
@@ -177,12 +177,12 @@
   right: var(--spacing-2);
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  gap: var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-2);
   background-color: rgba(0, 0, 0, 0.75);
-  border-radius: 4px;
+  border-radius: var(--radius-1);
   color: white;
-  font-size: 12px;
+  font: var(--xs);
   font-weight: 600;
   pointer-events: none;
 
@@ -227,9 +227,9 @@
   right: var(--spacing-2);
   padding: 2px 6px;
   background-color: rgba(0, 0, 0, 0.7);
-  border-radius: 4px;
+  border-radius: var(--radius-1);
   color: white;
-  font-size: 12px;
+  font: var(--xs);
   font-weight: 500;
   pointer-events: none;
 }

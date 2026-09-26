@@ -1,48 +1,48 @@
 .stats-page {
-  padding: 32px;
+  padding: var(--spacing-8);
 }
 
 .stats-loading,
 .stats-empty {
   color: var(--neutral-500);
-  font-size: 14px;
+  font: var(--sm);
   padding: 48px 0;
   text-align: center;
 }
 
 .stats-summary {
   display: flex;
-  gap: 16px;
+  gap: var(--spacing-4);
   margin-bottom: 36px;
 }
 
 .stats-summary-item {
   display: flex;
   flex-direction: column;
-  padding: 16px;
+  padding: var(--spacing-4);
   background-color: var(--neutral-50);
   width: 200px;
-  border-radius: 8px;
+  border-radius: var(--radius-2);
 }
 
 .stats-summary-value {
-  font-size: 30px;
+  font: var(--h2);
   font-weight: 500;
   color: var(--neutral-800);
 }
 
 .stats-summary-label {
-  font-size: 14px;
+  font: var(--sm);
   color: var(--neutral-600);
 }
 
 .stats-legend {
   display: flex;
-  gap: 16px;
-  font-size: 13px;
+  gap: var(--spacing-4);
+  font: var(--sm);
   flex-direction: row-reverse;
   color: var(--neutral-600);
-  margin-bottom: 32px;
+  margin-bottom: var(--spacing-8);
 }
 
 .stats-legend-item {
@@ -63,10 +63,10 @@
 }
 
 .stats-year-header {
-  font-size: 16px;
+  font: var(--p1);
   font-weight: 600;
   color: var(--neutral-700);
-  margin-bottom: 12px;
+  margin-bottom: var(--spacing-3);
 }
 
 .stats-chart-wrapper {
@@ -79,7 +79,7 @@
 }
 
 .stats-bar-label {
-  font-size: 12px;
+  font: var(--xs);
   fill: var(--neutral-500);
 }
 
@@ -89,7 +89,7 @@
   color: var(--neutral-100);
   padding: 10px 14px;
   border-radius: 6px;
-  font-size: 12px;
+  font: var(--xs);
   pointer-events: none;
   transform: translateY(-100%);
   white-space: nowrap;
@@ -115,8 +115,8 @@
 }
 
 .stats-tooltip-total {
-  margin-top: 4px;
-  padding-top: 4px;
+  margin-top: var(--spacing-1);
+  padding-top: var(--spacing-1);
   border-top: 1px solid var(--neutral-700);
   font-weight: 600;
 }

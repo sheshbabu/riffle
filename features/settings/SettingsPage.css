@@ -20,11 +20,11 @@
                 align-items: center;
                 cursor: pointer;
                 margin: 0 var(--spacing-2);
-                border-radius: 4px;
+                border-radius: var(--radius-1);
                 text-decoration: none;
                 color: var(--neutral-500);
                 transition-property: background-color;
-                transition-duration: 500ms;
+                transition-duration: var(--transition-normal);
 
                 &:hover,
                 &.is-active {
@@ -51,20 +51,20 @@
 
         .settings-main {
             flex: 1;
-            padding: var(--spacing-3) 24px;
-            padding-top: 32px;
+            padding: var(--spacing-3) var(--spacing-6);
+            padding-top: var(--spacing-8);
             overflow-y: auto;
 
             .settings-tab-content {
                 h3 {
                     font-weight: 500;
-                    margin-bottom: 4px;
+                    margin-bottom: var(--spacing-1);
                 }
 
                 p {
-                    margin-bottom: 12px;
+                    margin-bottom: var(--spacing-3);
                     color: var(--text-secondary);
-                    font-size: 14px;
+                    font: var(--sm);
                 }
 
                 .settings-form {
@@ -76,33 +76,33 @@
                         gap: var(--spacing-2);
                         padding: var(--spacing-3) 0;
                         cursor: pointer;
-                        font-size: 14px;
+                        font: var(--sm);
                     }
                 }
 
                 .progress-text {
-                    margin-top: 8px;
-                    font-size: 14px;
+                    margin-top: var(--spacing-2);
+                    font: var(--sm);
                     color: var(--text-secondary);
                 }
 
                 .settings-field {
-                    margin-top: 16px;
+                    margin-top: var(--spacing-4);
 
                     label {
                         display: block;
                         margin-bottom: 6px;
-                        font-size: 14px;
+                        font: var(--sm);
                         font-weight: 500;
                         color: var(--text-primary);
                     }
 
                     .settings-input {
                         width: 200px;
-                        padding: 8px 12px;
+                        padding: var(--spacing-2) var(--spacing-3);
                         border: 1px solid var(--neutral-300);
-                        border-radius: 4px;
-                        font-size: 14px;
+                        border-radius: var(--radius-1);
+                        font: var(--sm);
                         color: var(--text-primary);
                         background-color: var(--neutral-50);
 
@@ -114,8 +114,8 @@
                     }
 
                     .settings-field-description {
-                        margin-top: 4px;
-                        font-size: 13px;
+                        margin-top: var(--spacing-1);
+                        font: var(--sm);
                         color: var(--text-secondary);
                     }
                 }
@@ -123,7 +123,7 @@
                 .export-progress-section {
                     background-color: var(--neutral-50);
                     border: 1px solid var(--neutral-200);
-                    border-radius: 8px;
+                    border-radius: var(--radius-2);
                     padding: var(--spacing-3);
 
                     .export-progress-content {
@@ -133,11 +133,11 @@
 
                         .export-progress-text {
                             flex: 1;
-                            font-size: 14px;
+                            font: var(--sm);
 
                             .export-progress-count {
-                                margin-top: 4px;
-                                font-size: 13px;
+                                margin-top: var(--spacing-1);
+                                font: var(--sm);
                                 color: var(--text-secondary);
                             }
                         }
@@ -153,7 +153,7 @@
                         .export-progress-fill {
                             height: 100%;
                             background-color: var(--blue-500);
-                            transition: width 200ms ease-in-out;
+                            transition: width var(--transition-fast) ease-in-out;
                         }
                     }
                 }

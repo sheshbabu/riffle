@@ -3,7 +3,7 @@
     height: 36px;
     align-items: center;
     justify-content: space-between;
-    padding: 0 8px;
+    padding: 0 var(--spacing-2);
     border-radius: 6px;
     border: 1px solid var(--neutral-200);
     overflow: hidden;
@@ -27,7 +27,7 @@
         cursor: pointer;
         width: 20px;
         height: 20px;
-        margin-right: 8px;
+        margin-right: var(--spacing-2);
         transition-property: stroke;
         transition-duration: var(--transition-normal);
 
@@ -51,7 +51,7 @@
         color: var(--neutral-50);
 
         svg.lucide {
-            margin-right: 8px;
+            margin-right: var(--spacing-2);
             margin-left: 0;
 
             line,
@@ -117,7 +117,7 @@
     transition: background-color var(--transition-normal);
     border: none;
     background: none;
-    border-radius: 4px;
+    border-radius: var(--radius-1);
 
     &:hover {
         background-color: var(--neutral-100);

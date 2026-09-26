@@ -9,8 +9,8 @@
 }
 
 .manage-tags-info {
-  margin: 0 0 16px 0;
-  font-size: 14px;
+  margin: 0 0 var(--spacing-4) 0;
+  font: var(--sm);
   color: var(--text-secondary);
 }
 

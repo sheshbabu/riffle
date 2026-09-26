@@ -1,7 +1,7 @@
 .badge {
   padding: var(--spacing-1) var(--spacing-2);
-  border-radius: 4px;
-  font-size: 12px;
+  border-radius: var(--radius-1);
+  font: var(--xs);
   font-weight: 600;
   text-transform: uppercase;
 }

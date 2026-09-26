@@ -1,20 +1,20 @@
 .albums-page-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 24px;
-  margin-top: 24px;
+  gap: var(--spacing-6);
+  margin-top: var(--spacing-6);
 
   .albums-page-card {
     display: flex;
     flex-direction: column;
     background: var(--bg-secondary);
-    border-radius: 8px;
+    border-radius: var(--radius-2);
     overflow: hidden;
-    transition: all 0.15s ease;
+    transition: all var(--transition-fast) ease;
     cursor: pointer;
     text-decoration: none;
     box-shadow: none;
-    transition: box-shadow 300ms ease;
+    transition: box-shadow var(--transition-normal) ease;
 
     &:hover {
       box-shadow: var(--shadow-3);
@@ -43,16 +43,16 @@
     }
 
     .albums-page-card-info {
-      padding: 16px;
+      padding: var(--spacing-4);
 
       .albums-page-card-name {
-        font-size: 16px;
+        font: var(--p1);
         font-weight: 600;
         color: var(--text-primary);
       }
 
       .albums-page-card-count {
-        font-size: 13px;
+        font: var(--sm);
         color: var(--text-secondary);
       }
     }

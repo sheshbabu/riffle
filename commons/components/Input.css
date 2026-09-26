@@ -2,15 +2,15 @@
 
     input,
     textarea {
-        border-radius: 4px;
+        border-radius: var(--radius-1);
         border: 1px solid var(--neutral-200);
         background-color: var(--bg-primary);
         color: var(--text-primary);
         padding: var(--spacing-2);
-        margin-top: 16px;
+        margin-top: var(--spacing-4);
         width: 100%;
         outline: none;
-        transition: border-color 200ms;
+        transition: border-color var(--transition-fast);
         box-sizing: border-box;
     }
 

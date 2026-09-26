@@ -2,9 +2,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: var(--spacing-1);
   height: 32px;
-  padding: 8px;
+  padding: var(--spacing-2);
   border: 0;
   border-radius: 6px;
   background-color: var(--bg-primary);
