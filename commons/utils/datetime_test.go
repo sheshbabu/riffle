@@ -95,9 +95,9 @@ func TestNormalizeDateTime(t *testing.T) {
 			expectedOutput: "2023-06-15T08:30:45Z",
 		},
 		{
-			name:           "OffsetTimeOriginal takes priority over GPSDateTime",
-			input:          "2023:06:15 10:30:45",
-			exif:           map[string]any{
+			name:  "OffsetTimeOriginal takes priority over GPSDateTime",
+			input: "2023:06:15 10:30:45",
+			exif: map[string]any{
 				"OffsetTimeOriginal": "+05:30",
 				"GPSDateTime":        "2023:06:15 05:00:45Z",
 			},

@@ -5,8 +5,8 @@ import (
 )
 
 var (
-	resultsMutex        sync.RWMutex
-	currentResults      *AnalysisStats
+	resultsMutex           sync.RWMutex
+	currentResults         *AnalysisStats
 	currentImportSessionID int64
 )
 
