@@ -52,11 +52,7 @@ func StartExport(exportPath string, criteria ExportCriteria) {
 }
 
 func ProcessExport(exportPath string, criteria ExportCriteria, exportID int64) (*ExportResult, error) {
-	cleanupEnabled, err := settings.GetExportCleanupEnabled()
-	if err != nil {
-		slog.Warn("failed to get export cleanup setting, using default", "error", err)
-		cleanupEnabled = false
-	}
+	cleanupEnabled := settings.GetExportCleanupEnabled()
 
 	if cleanupEnabled {
 		slog.Info("cleaning export directory", "path", exportPath)
@@ -77,11 +73,7 @@ func ProcessExport(exportPath string, criteria ExportCriteria, exportID int64) (
 		return nil, fmt.Errorf("failed to get photos for export: %w", err)
 	}
 
-	deduplicationEnabled, err := settings.GetExportDeduplicationEnabled()
-	if err != nil {
-		slog.Warn("failed to get export deduplication setting, using default", "error", err)
-		deduplicationEnabled = true
-	}
+	deduplicationEnabled := settings.GetExportDeduplicationEnabled()
 
 	if deduplicationEnabled {
 		filteredPhotos := []PhotoToExport{}
@@ -129,11 +121,7 @@ func ProcessExport(exportPath string, criteria ExportCriteria, exportID int64) (
 		UpdateExportSessionStatus(exportID, "exporting")
 	}
 
-	organizationMode, err := settings.GetExportOrganizationMode()
-	if err != nil {
-		slog.Warn("failed to get export organization mode, using default", "error", err)
-		organizationMode = settings.ExportOrgOrganized
-	}
+	organizationMode := settings.GetExportOrganizationMode()
 
 	for i, photo := range photos {
 		progress.Update(progress.StatusExporting, i, len(photos), fmt.Sprintf("Exporting %d/%d", i+1, len(photos)))
@@ -186,7 +174,6 @@ func getPhotosForExport(criteria ExportCriteria) ([]PhotoToExport, error) {
 	rows, err := sqlite.DB.Query(query, args...)
 	if err != nil {
 		err = fmt.Errorf("error querying photos for export: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()

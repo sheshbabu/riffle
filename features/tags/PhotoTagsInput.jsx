@@ -123,7 +123,7 @@ export default function PhotoTagsInput({ tags, onAddTag, onRemoveTag }) {
     const suggestionItems = suggestions.map((tag, index) => (
       <div
         key={tag.tagId}
-        className={`tag-suggestion-item ${index === selectedIndex ? 'selected' : ''}`}
+        className={`tag-suggestion-item ${index === selectedIndex ? 'is-selected' : ''}`}
         onClick={() => handleSelectTag(tag)}
       >
         {tag.name}
@@ -133,7 +133,7 @@ export default function PhotoTagsInput({ tags, onAddTag, onRemoveTag }) {
     const addNewItem = (
       <div
         key="add-new"
-        className={`tag-suggestion-item add-new ${selectedIndex === suggestions.length ? 'selected' : ''}`}
+        className={`tag-suggestion-item add-new ${selectedIndex === suggestions.length ? 'is-selected' : ''}`}
         onClick={handleAddNewTag}
       >
         Add "{query.trim()}"

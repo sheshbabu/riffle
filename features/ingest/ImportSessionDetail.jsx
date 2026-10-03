@@ -24,42 +24,42 @@ export default function ImportSessionDetail({ session, hasCompleted = true, impo
       </div>
     );
   } else if (session) {
-    const formattedDateTime = formatDateTime(session.started_at);
+    const formattedDateTime = formatDateTime(session.startedAt);
 
     let durationText = '';
-    if (session.duration_seconds) {
-      const minutes = Math.floor(session.duration_seconds / 60);
-      const seconds = session.duration_seconds % 60;
+    if (session.durationSeconds) {
+      const minutes = Math.floor(session.durationSeconds / 60);
+      const seconds = session.durationSeconds % 60;
       durationText = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
     }
 
-    const modeText = session.import_mode === 'copy' ? 'Copy' : 'Move';
+    const modeText = session.importMode === 'copy' ? 'Copy' : 'Move';
 
     let uniqueFilesEl = null;
-    if (session.unique_files > 0) {
-      uniqueFilesEl = <DescriptionItem label="Unique Files" value={session.unique_files} />;
+    if (session.uniqueFiles > 0) {
+      uniqueFilesEl = <DescriptionItem label="Unique Files" value={session.uniqueFiles} />;
     }
 
     let duplicatesRemovedEl = null;
-    if (session.duplicates_removed > 0) {
-      duplicatesRemovedEl = <DescriptionItem label="Duplicates Removed" value={session.duplicates_removed} />;
+    if (session.duplicatesRemoved > 0) {
+      duplicatesRemovedEl = <DescriptionItem label="Duplicates Removed" value={session.duplicatesRemoved} />;
     }
 
     let duplicateGroupsEl = null;
-    if (session.duplicate_groups > 0) {
-      duplicateGroupsEl = <DescriptionItem label="Duplicate Groups" value={session.duplicate_groups} />;
+    if (session.duplicateGroups > 0) {
+      duplicateGroupsEl = <DescriptionItem label="Duplicate Groups" value={session.duplicateGroups} />;
     }
 
     let alreadyImportedEl = null;
-    if (session.already_imported > 0) {
-      alreadyImportedEl = <DescriptionItem label="Already Imported" value={session.already_imported} />;
+    if (session.alreadyImported > 0) {
+      alreadyImportedEl = <DescriptionItem label="Already Imported" value={session.alreadyImported} />;
     }
 
     let errorsEl = null;
-    if (session.error_count > 0) {
+    if (session.errorCount > 0) {
       errorsEl = (
         <DescriptionItem label="Errors">
-          <span className="session-detail-error">{session.error_count}</span>
+          <span className="session-detail-error">{session.errorCount}</span>
         </DescriptionItem>
       );
     }
@@ -70,10 +70,10 @@ export default function ImportSessionDetail({ session, hasCompleted = true, impo
     }
 
     let errorMessageEl = null;
-    if (session.error_message) {
+    if (session.errorMessage) {
       errorMessageEl = (
         <DescriptionItem label="Error">
-          <span className="session-detail-error">{session.error_message}</span>
+          <span className="session-detail-error">{session.errorMessage}</span>
         </DescriptionItem>
       );
     }
@@ -81,18 +81,18 @@ export default function ImportSessionDetail({ session, hasCompleted = true, impo
     modalBody = (
       <DescriptionList className="session-detail-container">
         <DescriptionItem label="Date" value={formattedDateTime} />
-        <DescriptionItem label="Source Folder" value={session.import_path} />
+        <DescriptionItem label="Source Folder" value={session.importPath} />
         <DescriptionItem label="Import Mode" value={modeText} />
         {durationEl}
         <DescriptionItem label="Status">
           <StatusBadge status={session.status} />
         </DescriptionItem>
-        <DescriptionItem label="Total Scanned" value={session.total_scanned} />
+        <DescriptionItem label="Total Scanned" value={session.totalScanned} />
         {uniqueFilesEl}
         {duplicatesRemovedEl}
         {duplicateGroupsEl}
         {alreadyImportedEl}
-        <DescriptionItem label="Moved to Library" value={session.moved_to_library} />
+        <DescriptionItem label="Moved to Library" value={session.movedToLibrary} />
         {errorsEl}
         {errorMessageEl}
       </DescriptionList>

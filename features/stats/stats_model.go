@@ -38,7 +38,6 @@ func GetMonthlyStats() ([]MonthStats, error) {
 	rows, err := sqlite.DB.Query(query)
 	if err != nil {
 		err = fmt.Errorf("error querying monthly stats: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -75,7 +74,6 @@ func GetTotalStats() (TotalStats, error) {
 	err := sqlite.DB.QueryRow(query).Scan(&stats.Total, &stats.Curated, &stats.Uncurated, &stats.Trashed)
 	if err != nil {
 		err = fmt.Errorf("error querying total stats: %w", err)
-		slog.Error(err.Error())
 		return stats, err
 	}
 

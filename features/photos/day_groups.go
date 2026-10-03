@@ -2,7 +2,6 @@ package photos
 
 import (
 	"fmt"
-	"log/slog"
 	"riffle/commons/sqlite"
 )
 
@@ -69,7 +68,6 @@ func GetPhotosWithDayGroups(limit, offset int, isCurated, isTrashed bool, filter
 	rows, err := sqlite.DB.Query(photoQuery, photoArgs...)
 	if err != nil {
 		err = fmt.Errorf("error querying photos: %w", err)
-		slog.Error(err.Error())
 		return nil, nil, 0, 0, 0, err
 	}
 	defer rows.Close()
@@ -89,7 +87,6 @@ func GetPhotosWithDayGroups(limit, offset int, isCurated, isTrashed bool, filter
 		)
 		if err != nil {
 			err = fmt.Errorf("error scanning photo: %w", err)
-			slog.Error(err.Error())
 			return nil, nil, 0, 0, 0, err
 		}
 		photos = append(photos, p)
@@ -97,7 +94,6 @@ func GetPhotosWithDayGroups(limit, offset int, isCurated, isTrashed bool, filter
 
 	if err = rows.Err(); err != nil {
 		err = fmt.Errorf("error iterating photos: %w", err)
-		slog.Error(err.Error())
 		return nil, nil, 0, 0, 0, err
 	}
 
@@ -146,7 +142,6 @@ func getGroupsForPage(whereClause string, args []any, limit, offset int) ([]Grou
 	rows, err := sqlite.DB.Query(query, groupArgs...)
 	if err != nil {
 		err = fmt.Errorf("error querying groups: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -157,7 +152,6 @@ func getGroupsForPage(whereClause string, args []any, limit, offset int) ([]Grou
 		err := rows.Scan(&g.Date, &g.PhotoCount, &g.TotalSize)
 		if err != nil {
 			err = fmt.Errorf("error scanning group: %w", err)
-			slog.Error(err.Error())
 			return nil, err
 		}
 		groups = append(groups, g)
@@ -165,7 +159,6 @@ func getGroupsForPage(whereClause string, args []any, limit, offset int) ([]Grou
 
 	if err = rows.Err(); err != nil {
 		err = fmt.Errorf("error iterating groups: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 

@@ -18,7 +18,7 @@ Riffle is a photo culling tool: import photos from a camera or phone, review and
 - `make build` - Build production binary
 - `make dev` - Run development server
 - `make watch` - Run with file watching (requires air)
-- `make test` - Run Go tests
+- `make test` - Run Go and JS unit tests (`go test` and `node --test`, no extra dependencies)
 
 ## Progressive disclosure: load only what you need
 Do not read every documentation file at the start of a task.

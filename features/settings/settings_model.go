@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"riffle/commons/sqlite"
+	"riffle/commons/utils"
 )
 
 type Setting struct {
@@ -21,10 +22,9 @@ func GetSetting(key string) (string, error) {
 	err := sqlite.DB.QueryRow(query, key).Scan(&value)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", fmt.Errorf("setting not found: %s", key)
+			return "", fmt.Errorf("setting %s: %w", key, utils.ErrNotFound)
 		}
 		err = fmt.Errorf("error getting setting: %w", err)
-		slog.Error(err.Error())
 		return "", err
 	}
 	return value, nil
@@ -35,7 +35,6 @@ func GetAllSettings() (map[string]string, error) {
 	rows, err := sqlite.DB.Query(query)
 	if err != nil {
 		err = fmt.Errorf("error getting all settings: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -65,7 +64,6 @@ func UpsertSetting(key, value string) error {
 	_, err := sqlite.DB.Exec(query, key, value)
 	if err != nil {
 		err = fmt.Errorf("error upserting setting: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
@@ -78,7 +76,6 @@ func DeleteSetting(key string) error {
 	_, err := sqlite.DB.Exec(query, key)
 	if err != nil {
 		err = fmt.Errorf("error deleting setting: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 

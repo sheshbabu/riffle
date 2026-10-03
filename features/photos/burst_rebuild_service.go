@@ -17,7 +17,6 @@ func RebuildBurstData() error {
 	allPhotos, err := GetAllImagePhotos()
 	if err != nil {
 		err = fmt.Errorf("failed to get photos from database: %w", err)
-		slog.Error(err.Error())
 		progress.Update(progress.StatusError, 0, 0, err.Error())
 		return err
 	}
@@ -75,7 +74,6 @@ func GetAllImagePhotos() ([]Photo, error) {
 	rows, err := sqlite.DB.Query(query)
 	if err != nil {
 		err = fmt.Errorf("error getting all image photos: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -103,7 +101,6 @@ func UpdatePhotoDhash(filePath, dhash string) error {
 	_, err := sqlite.DB.Exec(query, dhash, filePath)
 	if err != nil {
 		err = fmt.Errorf("error updating photo dhash: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 

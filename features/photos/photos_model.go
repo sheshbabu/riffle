@@ -1,9 +1,12 @@
 package photos
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"riffle/commons/sqlite"
+	"riffle/commons/utils"
 )
 
 type Photo struct {
@@ -50,11 +53,20 @@ func UpdatePhotoCuration(filePath string, isCurated, isTrashed bool, rating int)
 		WHERE file_path = ?
 	`
 
-	_, err := sqlite.DB.Exec(query, isCurated, isTrashed, rating, filePath)
+	result, err := sqlite.DB.Exec(query, isCurated, isTrashed, rating, filePath)
 	if err != nil {
 		err = fmt.Errorf("error updating photo curation: %w", err)
-		slog.Error(err.Error())
 		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		err = fmt.Errorf("error getting rows affected: %w", err)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("photo %s: %w", filePath, utils.ErrNotFound)
 	}
 
 	return nil
@@ -82,9 +94,11 @@ func GetPhotoByPath(filePath string) (Photo, error) {
 		&photo.City, &photo.State, &photo.CountryName, &photo.IsCurated, &photo.IsTrashed, &photo.Rating, &photo.Notes,
 		&photo.CreatedAt, &photo.UpdatedAt, &photo.ThumbnailPath,
 	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Photo{}, fmt.Errorf("photo %s: %w", filePath, utils.ErrNotFound)
+	}
 	if err != nil {
 		err = fmt.Errorf("error getting photo by path: %w", err)
-		slog.Error(err.Error())
 		return Photo{}, err
 	}
 
@@ -99,7 +113,6 @@ func DeletePhotos(filePaths []string) error {
 	tx, err := sqlite.DB.Begin()
 	if err != nil {
 		err = fmt.Errorf("error starting transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer tx.Rollback()
@@ -107,7 +120,6 @@ func DeletePhotos(filePaths []string) error {
 	stmt, err := tx.Prepare("DELETE FROM photos WHERE file_path = ?")
 	if err != nil {
 		err = fmt.Errorf("error preparing delete statement: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer stmt.Close()
@@ -115,14 +127,12 @@ func DeletePhotos(filePaths []string) error {
 	for _, filePath := range filePaths {
 		if _, err := stmt.Exec(filePath); err != nil {
 			err = fmt.Errorf("error deleting photo %s: %w", filePath, err)
-			slog.Error(err.Error())
 			return err
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
 		err = fmt.Errorf("error committing transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 

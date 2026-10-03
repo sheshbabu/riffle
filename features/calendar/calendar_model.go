@@ -55,7 +55,6 @@ func GetCalendarMonths() ([]CalendarMonth, error) {
 	rows, err := sqlite.DB.Query(query)
 	if err != nil {
 		err = fmt.Errorf("error querying calendar months: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()

@@ -87,7 +87,7 @@
       height: auto;
       object-fit: contain;
 
-      &.zoomable {
+      &.is-zoomable {
         cursor: zoom-in;
         opacity: 0;
         transition: opacity var(--transition-normal);
@@ -114,7 +114,7 @@
     }
   }
 
-  &.zoomed {
+  &.is-zoomed {
     max-width: 80vw;
     max-height: 95vh;
 
@@ -129,7 +129,7 @@
         height: auto;
         object-fit: contain;
 
-        &.zoomable {
+        &.is-zoomable {
           cursor: zoom-out;
         }
       }

@@ -167,7 +167,7 @@ export default function PhotoGallery({
 
     let className = 'gallery-item burst-stack masonry-item';
     if (isSelected) {
-      className += ' selected';
+      className += ' is-selected';
     }
 
     return (
@@ -202,10 +202,10 @@ export default function PhotoGallery({
 
     let className = 'gallery-item masonry-item';
     if (isSelected) {
-      className += ' selected';
+      className += ' is-selected';
     }
     if (isFading) {
-      className += ' fading';
+      className += ' is-fading';
     }
     if (burstContext) {
       className += ' burst-photo';

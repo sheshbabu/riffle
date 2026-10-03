@@ -121,7 +121,10 @@ func CreatePhoto(photo PhotoFile) error {
 		if lon, ok := photo.ExifData["Longitude"].(float64); ok {
 			if lat != 0 && lon != 0 {
 				location, err := geocoding.ReverseGeocode(lat, lon)
-				if err == nil && location != nil {
+				if err != nil {
+					slog.Error(err.Error())
+				}
+				if location != nil {
 					city = location.City
 					state = location.State
 					countryName = location.CountryName
@@ -142,7 +145,6 @@ func CreatePhoto(photo PhotoFile) error {
 
 	if err != nil {
 		err = fmt.Errorf("error inserting photo: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
@@ -154,7 +156,6 @@ func UpdatePhotoThumbnail(filePath, thumbnailPath string) error {
 	_, err := sqlite.DB.Exec(query, thumbnailPath, filePath)
 	if err != nil {
 		err = fmt.Errorf("error updating photo thumbnail: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	return nil
@@ -166,7 +167,6 @@ func CheckHashExists(hash string) (bool, error) {
 	err := sqlite.DB.QueryRow(query, hash).Scan(&count)
 	if err != nil {
 		err = fmt.Errorf("error checking hash existence: %w", err)
-		slog.Error(err.Error())
 		return false, err
 	}
 	return count > 0, nil

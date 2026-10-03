@@ -20,13 +20,13 @@ type ThumbnailRebuildResponse struct {
 func HandleServeThumbnail(w http.ResponseWriter, r *http.Request) {
 	encodedPath := r.URL.Query().Get("path")
 	if encodedPath == "" {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATH", "Path parameter required")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATH", "Path parameter required", nil)
 		return
 	}
 
 	decodedPath, err := base64.URLEncoding.DecodeString(encodedPath)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_PATH", "Invalid path encoding")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_PATH", "Invalid path encoding", nil)
 		return
 	}
 
@@ -35,7 +35,7 @@ func HandleServeThumbnail(w http.ResponseWriter, r *http.Request) {
 	thumbnailsPath := os.Getenv("THUMBNAILS_PATH")
 
 	if !strings.HasPrefix(filePath, libraryPath) {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_PATH", "File not in library")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_PATH", "File not in library", nil)
 		return
 	}
 
@@ -46,17 +46,16 @@ func HandleServeThumbnail(w http.ResponseWriter, r *http.Request) {
 	thumbnailInfo, err := os.Stat(thumbnailPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			utils.SendErrorResponse(w, http.StatusNotFound, "NOT_FOUND", "Thumbnail not found")
+			utils.SendErrorResponse(w, http.StatusNotFound, "NOT_FOUND", "Thumbnail not found", nil)
 			return
 		}
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "STAT_ERROR", "Failed to access thumbnail")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "STAT_ERROR", "Failed to access thumbnail", err)
 		return
 	}
 
 	thumbnailFile, err := os.Open(thumbnailPath)
 	if err != nil {
-		slog.Error("failed to open thumbnail", "path", thumbnailPath, "error", err)
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to read thumbnail")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to read thumbnail", err)
 		return
 	}
 	defer thumbnailFile.Close()
@@ -73,7 +72,7 @@ func HandleRebuildThumbnails(w http.ResponseWriter, r *http.Request) {
 	if err := progress.StartOperation(progress.OperationThumbnailRebuild); err != nil {
 		currentOp := progress.Get()
 		slog.Warn("cannot start thumbnail rebuild, operation already in progress", "current_operation", currentOp.Operation)
-		utils.SendErrorResponse(w, http.StatusConflict, "OPERATION_IN_PROGRESS", fmt.Sprintf("Cannot start thumbnail rebuild: %s operation is already in progress", currentOp.Operation))
+		utils.SendErrorResponse(w, http.StatusConflict, "OPERATION_IN_PROGRESS", fmt.Sprintf("Cannot start thumbnail rebuild: %s operation is already in progress", currentOp.Operation), nil)
 		return
 	}
 

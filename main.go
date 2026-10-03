@@ -154,8 +154,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		slog.Error("error reading index.html", "error", err)
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to load page")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to load page", err)
 		return
 	}
 
@@ -172,8 +171,7 @@ func handleStaticAssets(w http.ResponseWriter, r *http.Request) {
 	} else {
 		subtree, err := fs.Sub(assets, "assets")
 		if err != nil {
-			slog.Error("error reading assets subtree", "error", err)
-			utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to load assets")
+			utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to load assets", err)
 			return
 		}
 		fsys = http.FS(subtree)

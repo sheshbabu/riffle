@@ -28,14 +28,14 @@
         border-color: var(--neutral-600);
     }
 
-    input.error,
-    textarea.error {
+    input.has-error,
+    textarea.has-error {
         border: 1px solid var(--red-600);
         color: var(--neutral-900);
     }
 
-    input.error:focus,
-    textarea.error:focus {
+    input.has-error:focus,
+    textarea.has-error:focus {
         border-color: var(--red-700);
     }
 

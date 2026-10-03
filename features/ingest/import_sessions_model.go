@@ -36,34 +36,28 @@ func CreateImportSession(importPath, importMode string) (int64, error) {
 	result, err := sqlite.DB.Exec(query, importPath, importMode, time.Now(), "scanning")
 	if err != nil {
 		err = fmt.Errorf("error creating import session: %w", err)
-		slog.Error(err.Error())
 		return 0, err
 	}
 
 	importID, err := result.LastInsertId()
 	if err != nil {
 		err = fmt.Errorf("error getting import session ID: %w", err)
-		slog.Error(err.Error())
 		return 0, err
 	}
 
 	return importID, nil
 }
 
-func UpdateImportSessionStatus(importID int64, status string) error {
+func UpdateImportSessionStatus(importID int64, status string) {
 	query := `UPDATE import_sessions SET status = ? WHERE import_id = ?`
 
 	_, err := sqlite.DB.Exec(query, status, importID)
 	if err != nil {
-		err = fmt.Errorf("error updating import session status: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error updating import session status", "error", err)
 	}
-
-	return nil
 }
 
-func UpdateImportSessionStats(importID int64, stats *AnalysisStats) error {
+func UpdateImportSessionStats(importID int64, stats *AnalysisStats) {
 	query := `
 		UPDATE import_sessions
 		SET total_scanned = ?,
@@ -84,15 +78,11 @@ func UpdateImportSessionStats(importID int64, stats *AnalysisStats) error {
 		importID,
 	)
 	if err != nil {
-		err = fmt.Errorf("error updating import session stats: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error updating import session stats", "error", err)
 	}
-
-	return nil
 }
 
-func CompleteImportSession(importID int64, stats *AnalysisStats, startedAt time.Time, errorMsg string) error {
+func CompleteImportSession(importID int64, stats *AnalysisStats, startedAt time.Time, errorMsg string) {
 	completedAt := time.Now()
 	duration := int(completedAt.Sub(startedAt).Seconds())
 	status := "completed"
@@ -125,15 +115,11 @@ func CompleteImportSession(importID int64, stats *AnalysisStats, startedAt time.
 		importID,
 	)
 	if err != nil {
-		err = fmt.Errorf("error completing import session: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error completing import session", "error", err)
 	}
-
-	return nil
 }
 
-func RecordImportedPhoto(importID int64, filePath, status, errorMessage string) error {
+func RecordImportedPhoto(importID int64, filePath, status, errorMessage string) {
 	query := `
 		INSERT INTO imported_photos (import_id, file_path, status, error_message, imported_at)
 		VALUES (?, ?, ?, ?, ?)
@@ -148,25 +134,17 @@ func RecordImportedPhoto(importID int64, filePath, status, errorMessage string) 
 		time.Now(),
 	)
 	if err != nil {
-		err = fmt.Errorf("error recording imported photo: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error recording imported photo", "error", err)
 	}
-
-	return nil
 }
 
-func IncrementImportErrors(importID int64) error {
+func IncrementImportErrors(importID int64) {
 	query := `UPDATE import_sessions SET error_count = error_count + 1 WHERE import_id = ?`
 
 	_, err := sqlite.DB.Exec(query, importID)
 	if err != nil {
-		err = fmt.Errorf("error incrementing import errors: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error incrementing import errors", "error", err)
 	}
-
-	return nil
 }
 
 func GetImportSessions(limit int) ([]ImportSession, error) {
@@ -183,7 +161,6 @@ func GetImportSessions(limit int) ([]ImportSession, error) {
 	rows, err := sqlite.DB.Query(query, limit)
 	if err != nil {
 		err = fmt.Errorf("error querying import sessions: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()

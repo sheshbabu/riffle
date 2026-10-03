@@ -18,7 +18,7 @@ function DuplicateFile({ file, importPath }) {
       <img
         src={photoUrl}
         alt={file.path}
-        className="duplicate-file-media clickable"
+        className="duplicate-file-media is-clickable"
         onClick={() => window.open(photoUrl, '_blank')}
       />
     );

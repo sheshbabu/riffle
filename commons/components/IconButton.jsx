@@ -4,7 +4,7 @@ export default function IconButton({ children, variant = 'default', onClick, dis
   const classes = [
     'icon-button',
     variant,
-    active ? 'active' : '',
+    active ? 'is-active' : '',
     className
   ].filter(Boolean).join(' ');
 

@@ -51,7 +51,7 @@
       border-color: var(--green-500);
     }
 
-    &.active {
+    &.is-active {
       background-color: var(--green-600);
       border-color: var(--green-600);
       color: white;
@@ -86,7 +86,7 @@
       border-color: var(--red-500);
     }
 
-    &.active {
+    &.is-active {
       background-color: var(--red-600);
       border-color: var(--red-600);
       color: white;
@@ -120,7 +120,7 @@
       border-color: var(--yellow-400);
     }
 
-    &.active {
+    &.is-active {
       color: var(--yellow-500);
 
       svg {

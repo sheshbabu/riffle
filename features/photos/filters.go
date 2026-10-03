@@ -2,7 +2,6 @@ package photos
 
 import (
 	"fmt"
-	"log/slog"
 	"riffle/commons/sqlite"
 	"strings"
 )
@@ -206,7 +205,6 @@ func getDistinctStrings(column string) ([]string, error) {
 	rows, err := sqlite.DB.Query(query)
 	if err != nil {
 		err = fmt.Errorf("error querying distinct %s: %w", column, err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -238,7 +236,6 @@ func getDistinctYears() ([]int, error) {
 	rows, err := sqlite.DB.Query(query)
 	if err != nil {
 		err = fmt.Errorf("error querying distinct years: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()

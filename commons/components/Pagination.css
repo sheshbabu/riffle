@@ -41,7 +41,7 @@
       transition: transform var(--transition-fast) ease-out;
     }
 
-    &.disabled {
+    &.is-disabled {
       cursor: not-allowed;
 
       svg.lucide {

@@ -175,7 +175,7 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
         <img
           src={photoUrl}
           alt=""
-          className={`lightbox-image zoomable ${isFullImageLoaded ? 'is-loaded' : ''}`}
+          className={`lightbox-image is-zoomable ${isFullImageLoaded ? 'is-loaded' : ''}`}
           onClick={handleImageClick}
           onLoad={() => setIsFullImageLoaded(true)}
         />
@@ -317,7 +317,7 @@ export default function Lightbox({ photos, selectedIndex, onClose, onCurate }) {
           <CloseIcon />
         </div>
       </div>
-      <ModalContainer className={isZoomed === true ? 'lightbox zoomed' : 'lightbox'}>
+      <ModalContainer className={isZoomed === true ? 'lightbox is-zoomed' : 'lightbox'}>
         <div
           className="lightbox-image-container"
           style={{ aspectRatio: !isVideo && currentPhoto.width && currentPhoto.height ? `${currentPhoto.width} / ${currentPhoto.height}` : undefined }}

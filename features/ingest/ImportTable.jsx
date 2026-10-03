@@ -11,7 +11,7 @@ export default function ImportTable({ sessions, onSessionClick }) {
 
   const rows = sessions.map(session => (
     <ImportTableRow
-      key={session.import_id}
+      key={session.importId}
       session={session}
       onClick={() => onSessionClick(session)}
     />
@@ -37,16 +37,16 @@ export default function ImportTable({ sessions, onSessionClick }) {
 }
 
 function ImportTableRow({ session, onClick }) {
-  const formattedDateTime = formatDateTime(session.started_at);
-  const durationText = formatDuration(session.duration_seconds);
+  const formattedDateTime = formatDateTime(session.startedAt);
+  const durationText = formatDuration(session.durationSeconds);
 
-  const alreadyImportedCount = session.already_imported > 0 ? session.already_imported : '—';
-  const duplicateGroupsCount = session.duplicate_groups > 0 ? session.duplicate_groups : '—';
-  const errorCount = session.error_count > 0 ? session.error_count : '—';
+  const alreadyImportedCount = session.alreadyImported > 0 ? session.alreadyImported : '—';
+  const duplicateGroupsCount = session.duplicateGroups > 0 ? session.duplicateGroups : '—';
+  const errorCount = session.errorCount > 0 ? session.errorCount : '—';
   const duration = durationText || '—';
 
   let errorClass = '';
-  if (session.error_count > 0) {
+  if (session.errorCount > 0) {
     errorClass = 'table-error';
   }
 
@@ -54,9 +54,9 @@ function ImportTableRow({ session, onClick }) {
     <TableRow onClick={onClick}>
       <TableCell>{formattedDateTime}</TableCell>
       <TableCell>
-        <Badge variant="neutral">{session.import_mode}</Badge>
+        <Badge variant="neutral">{session.importMode}</Badge>
       </TableCell>
-      <TableCell>{session.moved_to_library}/{session.total_scanned}</TableCell>
+      <TableCell>{session.movedToLibrary}/{session.totalScanned}</TableCell>
       <TableCell>{alreadyImportedCount}</TableCell>
       <TableCell>{duplicateGroupsCount}</TableCell>
       <TableCell className={errorClass}>{errorCount}</TableCell>

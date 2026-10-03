@@ -3,8 +3,8 @@ package tags
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"riffle/commons/sqlite"
+	"riffle/commons/utils"
 	"strings"
 )
 
@@ -26,7 +26,6 @@ func GetAllTags() ([]Tag, error) {
 	rows, err := sqlite.DB.Query(query)
 	if err != nil {
 		err = fmt.Errorf("failed to query tags: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -36,7 +35,6 @@ func GetAllTags() ([]Tag, error) {
 		var tag Tag
 		if err := rows.Scan(&tag.TagID, &tag.Name, &tag.PhotoCount); err != nil {
 			err = fmt.Errorf("failed to scan tag row: %w", err)
-			slog.Error(err.Error())
 			return nil, err
 		}
 		tags = append(tags, tag)
@@ -44,7 +42,6 @@ func GetAllTags() ([]Tag, error) {
 
 	if err := rows.Err(); err != nil {
 		err = fmt.Errorf("error iterating tag rows: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 
@@ -70,7 +67,6 @@ func SearchTags(query string) ([]Tag, error) {
 	rows, err := sqlite.DB.Query(searchQuery, likePattern, prefixPattern)
 	if err != nil {
 		err = fmt.Errorf("failed to search tags: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -80,7 +76,6 @@ func SearchTags(query string) ([]Tag, error) {
 		var tag Tag
 		if err := rows.Scan(&tag.TagID, &tag.Name, &tag.PhotoCount); err != nil {
 			err = fmt.Errorf("failed to scan tag row: %w", err)
-			slog.Error(err.Error())
 			return nil, err
 		}
 		tags = append(tags, tag)
@@ -88,7 +83,6 @@ func SearchTags(query string) ([]Tag, error) {
 
 	if err := rows.Err(); err != nil {
 		err = fmt.Errorf("error iterating tag rows: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 
@@ -104,14 +98,12 @@ func CreateTag(name string) (*Tag, error) {
 	result, err := sqlite.DB.Exec("INSERT INTO tags (name) VALUES (?)", name)
 	if err != nil {
 		err = fmt.Errorf("failed to create tag: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 
 	tagID, err := result.LastInsertId()
 	if err != nil {
 		err = fmt.Errorf("failed to get last insert id: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 
@@ -131,19 +123,17 @@ func UpdateTag(tagID int, name string) error {
 	result, err := sqlite.DB.Exec("UPDATE tags SET name = ? WHERE tag_id = ?", name, tagID)
 	if err != nil {
 		err = fmt.Errorf("failed to update tag: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		err = fmt.Errorf("failed to get rows affected: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
 	if rowsAffected == 0 {
-		return errors.New("tag not found")
+		return fmt.Errorf("tag %d: %w", tagID, utils.ErrNotFound)
 	}
 
 	return nil
@@ -153,38 +143,33 @@ func DeleteTag(tagID int) error {
 	tx, err := sqlite.DB.Begin()
 	if err != nil {
 		err = fmt.Errorf("failed to begin transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer tx.Rollback()
 
 	if _, err := tx.Exec("DELETE FROM photo_tags WHERE tag_id = ?", tagID); err != nil {
 		err = fmt.Errorf("failed to delete photo tags: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
 	result, err := tx.Exec("DELETE FROM tags WHERE tag_id = ?", tagID)
 	if err != nil {
 		err = fmt.Errorf("failed to delete tag: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		err = fmt.Errorf("failed to get rows affected: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
 	if rowsAffected == 0 {
-		return errors.New("tag not found")
+		return fmt.Errorf("tag %d: %w", tagID, utils.ErrNotFound)
 	}
 
 	if err := tx.Commit(); err != nil {
 		err = fmt.Errorf("failed to commit transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
@@ -203,7 +188,6 @@ func GetPhotoTags(filePath string) ([]Tag, error) {
 	rows, err := sqlite.DB.Query(query, filePath)
 	if err != nil {
 		err = fmt.Errorf("failed to query photo tags: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -213,7 +197,6 @@ func GetPhotoTags(filePath string) ([]Tag, error) {
 		var tag Tag
 		if err := rows.Scan(&tag.TagID, &tag.Name); err != nil {
 			err = fmt.Errorf("failed to scan tag row: %w", err)
-			slog.Error(err.Error())
 			return nil, err
 		}
 		tags = append(tags, tag)
@@ -221,7 +204,6 @@ func GetPhotoTags(filePath string) ([]Tag, error) {
 
 	if err := rows.Err(); err != nil {
 		err = fmt.Errorf("error iterating tag rows: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 
@@ -236,7 +218,6 @@ func AddTagsToPhotos(tagIDs []int, filePaths []string) error {
 	tx, err := sqlite.DB.Begin()
 	if err != nil {
 		err = fmt.Errorf("failed to begin transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer tx.Rollback()
@@ -244,7 +225,6 @@ func AddTagsToPhotos(tagIDs []int, filePaths []string) error {
 	stmt, err := tx.Prepare("INSERT OR IGNORE INTO photo_tags (file_path, tag_id) VALUES (?, ?)")
 	if err != nil {
 		err = fmt.Errorf("failed to prepare statement: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer stmt.Close()
@@ -253,7 +233,6 @@ func AddTagsToPhotos(tagIDs []int, filePaths []string) error {
 		for _, tagID := range tagIDs {
 			if _, err := stmt.Exec(filePath, tagID); err != nil {
 				err = fmt.Errorf("failed to insert photo tag: %w", err)
-				slog.Error(err.Error())
 				return err
 			}
 		}
@@ -261,7 +240,6 @@ func AddTagsToPhotos(tagIDs []int, filePaths []string) error {
 
 	if err := tx.Commit(); err != nil {
 		err = fmt.Errorf("failed to commit transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
@@ -276,7 +254,6 @@ func RemoveTagFromPhotos(tagID int, filePaths []string) error {
 	tx, err := sqlite.DB.Begin()
 	if err != nil {
 		err = fmt.Errorf("failed to begin transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer tx.Rollback()
@@ -284,7 +261,6 @@ func RemoveTagFromPhotos(tagID int, filePaths []string) error {
 	stmt, err := tx.Prepare("DELETE FROM photo_tags WHERE tag_id = ? AND file_path = ?")
 	if err != nil {
 		err = fmt.Errorf("failed to prepare statement: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer stmt.Close()
@@ -292,14 +268,12 @@ func RemoveTagFromPhotos(tagID int, filePaths []string) error {
 	for _, filePath := range filePaths {
 		if _, err := stmt.Exec(tagID, filePath); err != nil {
 			err = fmt.Errorf("failed to delete photo tag: %w", err)
-			slog.Error(err.Error())
 			return err
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
 		err = fmt.Errorf("failed to commit transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 

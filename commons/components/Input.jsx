@@ -10,7 +10,7 @@ export default function Input({ id, label, type = "text", placeholder, value, hi
         id={id}
         name={id}
         placeholder={placeholder}
-        className={error ? "error" : ""}
+        className={error ? "has-error" : ""}
         disabled={isDisabled}
         value={value || ""}
         onChange={onChange}
@@ -25,7 +25,7 @@ export default function Input({ id, label, type = "text", placeholder, value, hi
         id={id}
         name={id}
         placeholder={placeholder}
-        className={error ? "error" : ""}
+        className={error ? "has-error" : ""}
         disabled={isDisabled}
         value={value || ""}
         onChange={onChange}
@@ -34,18 +34,33 @@ export default function Input({ id, label, type = "text", placeholder, value, hi
     );
   }
 
+  let labelElement = null;
+  if (label) {
+    labelElement = (
+      <>
+        <label htmlFor={id}>{label}</label>
+        <br />
+      </>
+    );
+  }
+
+  let hintElement = null;
+  if (hint) {
+    hintElement = <div className="input-hint">{hint}</div>;
+  }
+
+  let errorElement = null;
+  if (error) {
+    errorElement = <div className="input-error">{error}</div>;
+  }
+
   return (
     <div className="input-container">
-      {label && (
-        <>
-          <label htmlFor={id}>{label}</label>
-          <br />
-        </>
-      )}
-      {hint && <div className="input-hint">{hint}</div>}
+      {labelElement}
+      {hintElement}
       {inputElement}
       <br />
-      {error && <div className="input-error">{error}</div>}
+      {errorElement}
     </div>
   );
 }

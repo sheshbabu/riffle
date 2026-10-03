@@ -1,4 +1,9 @@
 export default function SettingsInput({ id, label, description, type = "number", min, max, step, value, onChange }) {
+  let descriptionElement = null;
+  if (description) {
+    descriptionElement = <p className="settings-field-description">{description}</p>;
+  }
+
   return (
     <div className="settings-field">
       <label htmlFor={id}>{label}</label>
@@ -12,7 +17,7 @@ export default function SettingsInput({ id, label, description, type = "number",
         onChange={onChange}
         className="settings-input"
       />
-      {description && <p className="settings-field-description">{description}</p>}
+      {descriptionElement}
     </div>
   );
 }

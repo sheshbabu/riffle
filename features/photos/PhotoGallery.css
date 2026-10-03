@@ -72,12 +72,12 @@
     opacity: 0.9;
   }
 
-  &.selected {
+  &.is-selected {
     border: 3px solid var(--blue-600);
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
   }
 
-  &.fading {
+  &.is-fading {
     pointer-events: none;
   }
 }

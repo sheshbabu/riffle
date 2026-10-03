@@ -17,7 +17,7 @@ func HandleRebuildBurstData(w http.ResponseWriter, r *http.Request) {
 	if err := progress.StartOperation(progress.OperationBurstRebuild); err != nil {
 		currentOp := progress.Get()
 		slog.Warn("cannot start burst rebuild, operation already in progress", "current_operation", currentOp.Operation)
-		utils.SendErrorResponse(w, http.StatusConflict, "OPERATION_IN_PROGRESS", fmt.Sprintf("Cannot start burst rebuild: %s operation is already in progress", currentOp.Operation))
+		utils.SendErrorResponse(w, http.StatusConflict, "OPERATION_IN_PROGRESS", fmt.Sprintf("Cannot start burst rebuild: %s operation is already in progress", currentOp.Operation), nil)
 		return
 	}
 

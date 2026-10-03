@@ -321,7 +321,7 @@ func processFile(photo *PhotoFile) {
 	}
 	photo.Hash = sha256Hash
 
-	burstDetectionEnabled, _ := settings.GetBurstDetectionEnabled()
+	burstDetectionEnabled := settings.GetBurstDetectionEnabled()
 	if burstDetectionEnabled && media.IsImageFile(photo.Path) {
 		dhash, err := hash.ComputeDhash(photo.Path)
 		if err != nil {

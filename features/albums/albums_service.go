@@ -2,7 +2,6 @@ package albums
 
 import (
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"riffle/commons/utils"
 	"strconv"
@@ -21,106 +20,95 @@ type AddPhotosRequest struct {
 func HandleGetAlbums(w http.ResponseWriter, r *http.Request) {
 	albums, err := GetAllAlbums()
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "GET_ALBUMS_ERROR", "Failed to get albums")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "GET_ALBUMS_ERROR", "Failed to get albums", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(albums)
+	utils.SendJSONResponse(w, http.StatusOK, albums)
 }
 
 func HandleGetAlbum(w http.ResponseWriter, r *http.Request) {
 	albumIDStr := r.PathValue("id")
 	albumID, err := strconv.Atoi(albumIDStr)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_ALBUM_ID", "Invalid album ID")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_ALBUM_ID", "Invalid album ID", nil)
 		return
 	}
 
 	album, err := GetAlbumByID(albumID)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusNotFound, "ALBUM_NOT_FOUND", "Album not found")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "GET_ALBUM_ERROR", "Failed to get album", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(album)
+	utils.SendJSONResponse(w, http.StatusOK, album)
 }
 
 func HandleCreateAlbum(w http.ResponseWriter, r *http.Request) {
 	var req CreateAlbumRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body", nil)
 		return
 	}
 
 	if req.Name == "" {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_NAME", "Album name is required")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_NAME", "Album name is required", nil)
 		return
 	}
 
 	album, err := CreateAlbum(req.Name, req.Description)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "CREATE_ALBUM_ERROR", "Failed to create album")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "CREATE_ALBUM_ERROR", "Failed to create album", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(album)
+	utils.SendJSONResponse(w, http.StatusCreated, album)
 }
 
 func HandleAddPhotosToAlbums(w http.ResponseWriter, r *http.Request) {
 	var req AddPhotosRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body", nil)
 		return
 	}
 
 	if len(req.AlbumIDs) == 0 || len(req.FilePaths) == 0 {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_DATA", "Album IDs and file paths are required")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_DATA", "Album IDs and file paths are required", nil)
 		return
 	}
 
 	for _, albumID := range req.AlbumIDs {
 		if err := AddPhotosToAlbum(albumID, req.FilePaths); err != nil {
-			slog.Error("failed to add photos to album", "albumId", albumID, "error", err)
-			utils.SendErrorResponse(w, http.StatusInternalServerError, "ADD_PHOTOS_ERROR", "Failed to add photos to album")
+			utils.SendErrorResponse(w, http.StatusInternalServerError, "ADD_PHOTOS_ERROR", "Failed to add photos to album", err)
 			return
 		}
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	utils.SendJSONResponse(w, http.StatusOK, map[string]bool{"success": true})
 }
 
 func HandleGetAlbumPhotos(w http.ResponseWriter, r *http.Request) {
 	albumIDStr := r.PathValue("id")
 	albumID, err := strconv.Atoi(albumIDStr)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_ALBUM_ID", "Invalid album ID")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_ALBUM_ID", "Invalid album ID", nil)
 		return
 	}
 
 	photos, err := GetAlbumPhotosWithMetadata(albumID)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "GET_ALBUM_PHOTOS_ERROR", "Failed to get album photos")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "GET_ALBUM_PHOTOS_ERROR", "Failed to get album photos", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(photos)
+	utils.SendJSONResponse(w, http.StatusOK, photos)
 }
 
 func HandleRemovePhotosFromAlbum(w http.ResponseWriter, r *http.Request) {
 	albumIDStr := r.PathValue("id")
 	albumID, err := strconv.Atoi(albumIDStr)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_ALBUM_ID", "Invalid album ID")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_ALBUM_ID", "Invalid album ID", nil)
 		return
 	}
 
@@ -128,57 +116,51 @@ func HandleRemovePhotosFromAlbum(w http.ResponseWriter, r *http.Request) {
 		FilePaths []string `json:"filePaths"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body", nil)
 		return
 	}
 
 	if len(req.FilePaths) == 0 {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_DATA", "File paths are required")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_DATA", "File paths are required", nil)
 		return
 	}
 
 	if err := RemovePhotosFromAlbum(albumID, req.FilePaths); err != nil {
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "REMOVE_PHOTOS_ERROR", "Failed to remove photos from album")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "REMOVE_PHOTOS_ERROR", "Failed to remove photos from album", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	utils.SendJSONResponse(w, http.StatusOK, map[string]bool{"success": true})
 }
 
 func HandleDeleteAlbum(w http.ResponseWriter, r *http.Request) {
 	albumIDStr := r.PathValue("id")
 	albumID, err := strconv.Atoi(albumIDStr)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_ALBUM_ID", "Invalid album ID")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_ALBUM_ID", "Invalid album ID", nil)
 		return
 	}
 
 	if err := DeleteAlbum(albumID); err != nil {
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "DELETE_ALBUM_ERROR", "Failed to delete album")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "DELETE_ALBUM_ERROR", "Failed to delete album", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	utils.SendJSONResponse(w, http.StatusOK, map[string]bool{"success": true})
 }
 
 func HandleGetPhotoAlbums(w http.ResponseWriter, r *http.Request) {
 	filePath := r.URL.Query().Get("path")
 	if filePath == "" {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_FILE_PATH", "File path is required")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_FILE_PATH", "File path is required", nil)
 		return
 	}
 
 	albumIDs, err := GetPhotoAlbums(filePath)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "GET_PHOTO_ALBUMS_ERROR", "Failed to get photo albums")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "GET_PHOTO_ALBUMS_ERROR", "Failed to get photo albums", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(albumIDs)
+	utils.SendJSONResponse(w, http.StatusOK, albumIDs)
 }

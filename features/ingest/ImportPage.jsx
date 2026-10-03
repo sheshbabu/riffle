@@ -118,7 +118,7 @@ export default function ImportPage() {
         <ImportSessionDetail
           session={selectedSession}
           hasCompleted={true}
-          importMode={selectedSession.import_mode}
+          importMode={selectedSession.importMode}
           onClose={handleCloseModal}
         />
       );

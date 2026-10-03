@@ -11,7 +11,7 @@ export default function ExportTable({ sessions, onSessionClick }) {
 
   const rows = sessions.map(session => (
     <ExportTableRow
-      key={session.export_id}
+      key={session.exportId}
       session={session}
       onClick={() => onSessionClick(session)}
     />
@@ -35,19 +35,19 @@ export default function ExportTable({ sessions, onSessionClick }) {
 }
 
 function ExportTableRow({ session, onClick }) {
-  const formattedDateTime = formatDateTime(session.started_at);
-  const durationText = formatDuration(session.duration_seconds);
+  const formattedDateTime = formatDateTime(session.startedAt);
+  const durationText = formatDuration(session.durationSeconds);
 
-  const errorCount = session.error_count > 0 ? session.error_count : '—';
+  const errorCount = session.errorCount > 0 ? session.errorCount : '—';
   const duration = durationText || '—';
 
-  let criteriaText = `Rating ≥ ${session.min_rating}`;
-  if (session.curation_status) {
-    criteriaText += session.curation_status === 'pick' ? ', Picked only' : ', All photos';
+  let criteriaText = `Rating ≥ ${session.minRating}`;
+  if (session.curationStatus) {
+    criteriaText += session.curationStatus === 'pick' ? ', Picked only' : ', All photos';
   }
 
   let errorClass = '';
-  if (session.error_count > 0) {
+  if (session.errorCount > 0) {
     errorClass = 'table-error';
   }
 
@@ -57,7 +57,7 @@ function ExportTableRow({ session, onClick }) {
       <TableCell>
         <Badge variant="neutral">{criteriaText}</Badge>
       </TableCell>
-      <TableCell>{session.exported_photos}/{session.total_photos}</TableCell>
+      <TableCell>{session.exportedPhotos}/{session.totalPhotos}</TableCell>
       <TableCell className={errorClass}>{errorCount}</TableCell>
       <TableCell>{duration}</TableCell>
       <TableCell>

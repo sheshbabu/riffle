@@ -3,7 +3,7 @@ import './Button.css';
 
 export default function Button({ children, variant = '', type = 'button', isDisabled = false, isLoading = false, onClick, className = '', ...props }) {
   const disabled = isDisabled || isLoading;
-  const buttonClasses = ["button", variant, className, disabled ? 'disabled' : ''].filter(Boolean).join(" ");
+  const buttonClasses = ["button", variant, className, disabled ? 'is-disabled' : ''].filter(Boolean).join(" ");
 
   function handleClick(e) {
     if (disabled) {
@@ -27,7 +27,7 @@ export default function Button({ children, variant = '', type = 'button', isDisa
 
   if (variant === 'ghost') {
     return (
-      <div className={`ghost-button ${className} ${disabled ? 'disabled' : ''}`} onClick={handleClick} disabled={disabled} {...props}>
+      <div className={`ghost-button ${className} ${disabled ? 'is-disabled' : ''}`} onClick={handleClick} disabled={disabled} {...props}>
         {content}
       </div>
     );

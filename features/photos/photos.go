@@ -17,13 +17,13 @@ import (
 func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 	encodedPath := r.URL.Query().Get("path")
 	if encodedPath == "" {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATH", "Path parameter required")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATH", "Path parameter required", nil)
 		return
 	}
 
 	decodedPath, err := base64.URLEncoding.DecodeString(encodedPath)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_PATH", "Invalid path encoding")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_PATH", "Invalid path encoding", nil)
 		return
 	}
 
@@ -32,15 +32,15 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 	fileInfo, err := os.Stat(filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			utils.SendErrorResponse(w, http.StatusNotFound, "NOT_FOUND", "File not found")
+			utils.SendErrorResponse(w, http.StatusNotFound, "NOT_FOUND", "File not found", nil)
 			return
 		}
-		utils.SendErrorResponse(w, http.StatusForbidden, "ACCESS_DENIED", "Cannot access file")
+		utils.SendErrorResponse(w, http.StatusForbidden, "ACCESS_DENIED", "Cannot access file", err)
 		return
 	}
 
 	if fileInfo.IsDir() {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "IS_DIRECTORY", "Path is a directory")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "IS_DIRECTORY", "Path is a directory", nil)
 		return
 	}
 
@@ -49,8 +49,7 @@ func HandleServePhoto(w http.ResponseWriter, r *http.Request) {
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		slog.Error("failed to open file", "path", filePath, "error", err)
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to read file")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "READ_ERROR", "Failed to read file", err)
 		return
 	}
 	defer file.Close()
@@ -162,8 +161,7 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 
 	photos, groups, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithDayGroups(limit, offset, true, false, filters)
 	if err != nil {
-		slog.Error("failed to get photos with groups", "error", err)
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos", err)
 		return
 	}
 
@@ -178,9 +176,7 @@ func HandleGetPhotos(w http.ResponseWriter, r *http.Request) {
 		PageEndRecord:   pageEndRecord,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	utils.SendJSONResponse(w, http.StatusOK, response)
 }
 
 func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
@@ -197,8 +193,7 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 
 	photos, groups, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithDayGroups(limit, offset, false, false, filters)
 	if err != nil {
-		slog.Error("failed to get uncurated photos with groups", "error", err)
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos", err)
 		return
 	}
 
@@ -213,9 +208,7 @@ func HandleGetUncuratedPhotos(w http.ResponseWriter, r *http.Request) {
 		PageEndRecord:   pageEndRecord,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	utils.SendJSONResponse(w, http.StatusOK, response)
 }
 
 func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
@@ -232,8 +225,7 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 
 	photos, groups, totalRecords, pageStartRecord, pageEndRecord, err := GetPhotosWithDayGroups(limit, offset, false, true, filters)
 	if err != nil {
-		slog.Error("failed to get trashed photos with groups", "error", err)
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch photos", err)
 		return
 	}
 
@@ -248,9 +240,7 @@ func HandleGetTrashedPhotos(w http.ResponseWriter, r *http.Request) {
 		PageEndRecord:   pageEndRecord,
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	utils.SendJSONResponse(w, http.StatusOK, response)
 }
 
 func HandleGetFilterOptions(w http.ResponseWriter, r *http.Request) {
@@ -260,14 +250,11 @@ func HandleGetFilterOptions(w http.ResponseWriter, r *http.Request) {
 
 	options, err := GetFilterOptions()
 	if err != nil {
-		slog.Error("failed to get filter options", "error", err)
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch filter options")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch filter options", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(options)
+	utils.SendJSONResponse(w, http.StatusOK, options)
 }
 
 type CurateRequest struct {
@@ -280,32 +267,29 @@ type CurateRequest struct {
 func HandleCuratePhoto(w http.ResponseWriter, r *http.Request) {
 	var req CurateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_BODY", "Invalid request body")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_BODY", "Invalid request body", nil)
 		return
 	}
 
 	if req.FilePath == "" {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATH", "File path is required")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATH", "File path is required", nil)
 		return
 	}
 
 	if req.Rating < 0 || req.Rating > 5 {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_RATING", "Rating must be between 0 and 5")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_RATING", "Rating must be between 0 and 5", nil)
 		return
 	}
 
 	err := UpdatePhotoCuration(req.FilePath, req.IsCurated, req.IsTrashed, req.Rating)
 	if err != nil {
-		slog.Error("failed to curate photo", "error", err)
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "CURATE_ERROR", "Failed to update photo")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "CURATE_ERROR", "Failed to update photo", err)
 		return
 	}
 
 	cache.InvalidateOnPhotoCuration()
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	utils.SendJSONResponse(w, http.StatusOK, map[string]string{"status": "success"})
 }
 
 type DeletePhotosRequest struct {
@@ -315,12 +299,12 @@ type DeletePhotosRequest struct {
 func HandleDeletePhotos(w http.ResponseWriter, r *http.Request) {
 	var req DeletePhotosRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_BODY", "Invalid request body")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_BODY", "Invalid request body", nil)
 		return
 	}
 
 	if len(req.FilePaths) == 0 {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATHS", "File paths are required")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_PATHS", "File paths are required", nil)
 		return
 	}
 
@@ -335,15 +319,14 @@ func HandleDeletePhotos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(photosToDelete) == 0 {
-		utils.SendErrorResponse(w, http.StatusNotFound, "NO_PHOTOS_FOUND", "No photos found to delete")
+		utils.SendErrorResponse(w, http.StatusNotFound, "NO_PHOTOS_FOUND", "No photos found to delete", nil)
 		return
 	}
 
 	for _, photo := range photosToDelete {
 		if err := os.Remove(photo.FilePath); err != nil {
 			if !os.IsNotExist(err) {
-				slog.Error("failed to delete library file", "filePath", photo.FilePath, "error", err)
-				utils.SendErrorResponse(w, http.StatusInternalServerError, "DELETE_FILE_ERROR", "Failed to delete file from disk")
+				utils.SendErrorResponse(w, http.StatusInternalServerError, "DELETE_FILE_ERROR", "Failed to delete file from disk", err)
 				return
 			}
 		}
@@ -358,17 +341,14 @@ func HandleDeletePhotos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := DeletePhotos(req.FilePaths); err != nil {
-		slog.Error("failed to delete photos from database", "error", err)
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "DELETE_DB_ERROR", "Failed to delete photos from database")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "DELETE_DB_ERROR", "Failed to delete photos from database", err)
 		return
 	}
 
 	cache.InvalidateOnPhotoCuration()
 
 	slog.Info("permanently deleted photos", "count", len(photosToDelete))
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]any{
+	utils.SendJSONResponse(w, http.StatusOK, map[string]any{
 		"status":  "success",
 		"deleted": len(photosToDelete),
 	})

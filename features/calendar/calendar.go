@@ -1,7 +1,6 @@
 package calendar
 
 import (
-	"log/slog"
 	"net/http"
 	"riffle/commons/cache"
 	"riffle/commons/utils"
@@ -18,8 +17,7 @@ func HandleGetCalendarMonths(w http.ResponseWriter, r *http.Request) {
 
 	months, err := GetCalendarMonths()
 	if err != nil {
-		slog.Error("failed to get calendar months", "error", err)
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch calendar months")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "FETCH_ERROR", "Failed to fetch calendar months", err)
 		return
 	}
 

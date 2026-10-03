@@ -16,37 +16,37 @@ type ExportSessionRequest struct {
 }
 
 type ExportSessionsResponse struct {
-	ExportID        int64   `json:"export_id"`
-	ExportPath      string  `json:"export_path"`
-	MinRating       int     `json:"min_rating"`
-	CurationStatus  *string `json:"curation_status,omitempty"`
-	StartedAt       string  `json:"started_at"`
-	CompletedAt     *string `json:"completed_at,omitempty"`
-	DurationSeconds *int64  `json:"duration_seconds,omitempty"`
-	TotalPhotos     int     `json:"total_photos"`
-	ExportedPhotos  int     `json:"exported_photos"`
-	ErrorCount      int     `json:"error_count"`
-	ErrorMessage    *string `json:"error_message,omitempty"`
+	ExportID        int64   `json:"exportId"`
+	ExportPath      string  `json:"exportPath"`
+	MinRating       int     `json:"minRating"`
+	CurationStatus  *string `json:"curationStatus,omitempty"`
+	StartedAt       string  `json:"startedAt"`
+	CompletedAt     *string `json:"completedAt,omitempty"`
+	DurationSeconds *int64  `json:"durationSeconds,omitempty"`
+	TotalPhotos     int     `json:"totalPhotos"`
+	ExportedPhotos  int     `json:"exportedPhotos"`
+	ErrorCount      int     `json:"errorCount"`
+	ErrorMessage    *string `json:"errorMessage,omitempty"`
 	Status          string  `json:"status"`
-	CreatedAt       string  `json:"created_at"`
+	CreatedAt       string  `json:"createdAt"`
 }
 
 func HandleCreateExportSession(w http.ResponseWriter, r *http.Request) {
 	exportPath := os.Getenv("EXPORT_PATH")
 	if exportPath == "" {
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "EXPORT_PATH_NOT_SET", "Export path not configured")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "EXPORT_PATH_NOT_SET", "Export path not configured", nil)
 		return
 	}
 
 	if err := progress.StartOperation(progress.OperationExport); err != nil {
 		currentOp := progress.Get()
 		slog.Warn("cannot start export, operation already in progress", "current_operation", currentOp.Operation)
-		utils.SendErrorResponse(w, http.StatusConflict, "OPERATION_IN_PROGRESS", fmt.Sprintf("Cannot start export: %s operation is already in progress", currentOp.Operation))
+		utils.SendErrorResponse(w, http.StatusConflict, "OPERATION_IN_PROGRESS", fmt.Sprintf("Cannot start export: %s operation is already in progress", currentOp.Operation), nil)
 		return
 	}
 
-	minRating, _ := settings.GetExportMinRating()
-	curationStatus, _ := settings.GetExportCurationStatus()
+	minRating := settings.GetExportMinRating()
+	curationStatus := settings.GetExportCurationStatus()
 
 	criteria := ExportCriteria{
 		MinRating:      minRating,
@@ -65,7 +65,7 @@ func HandleExportProgress(w http.ResponseWriter, r *http.Request) {
 func HandleGetExportSessions(w http.ResponseWriter, r *http.Request) {
 	sessions, err := GetExportSessions(50)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "QUERY_ERROR", "Failed to retrieve export sessions")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "QUERY_ERROR", "Failed to retrieve export sessions", err)
 		return
 	}
 

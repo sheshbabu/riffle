@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log/slog"
 	"riffle/commons/sqlite"
 )
 
@@ -52,7 +51,6 @@ func reverseGeocodeWithEpsilon(latitude, longitude, epsilon float64) (*Location,
 	}
 
 	if err != nil {
-		slog.Error("error in reverse geocoding", "error", err)
 		return nil, fmt.Errorf("error in reverse geocoding: %w", err)
 	}
 

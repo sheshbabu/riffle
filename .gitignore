@@ -29,3 +29,6 @@ go.work.sum
 
 # Local import folder
 /import
+
+# Notes
+/notes/todo.md

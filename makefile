@@ -11,3 +11,4 @@ watch:
 
 test:
 	go test -v ./...
+	node --test 'commons/**/*.test.js' 'features/**/*.test.js'

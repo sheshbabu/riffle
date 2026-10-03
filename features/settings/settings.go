@@ -33,122 +33,94 @@ const (
 	ExportOrgOrganized ExportOrganizationMode = "organized"
 )
 
-func GetImportMode() (ImportMode, error) {
-	value, err := GetSetting("import_mode")
-	if err != nil {
-		return ImportModeMove, err
-	}
-	return ImportMode(value), nil
+func GetImportMode() ImportMode {
+	return ImportMode(getStringSetting("import_mode", string(ImportModeMove)))
 }
 
-func GetExportMinRating() (int, error) {
-	value, err := GetSetting("export_min_rating")
-	if err != nil {
-		return 0, err
-	}
-	rating, err := strconv.Atoi(value)
-	if err != nil {
-		return 0, fmt.Errorf("invalid export_min_rating value: %w", err)
-	}
-	return rating, nil
+func GetExportMinRating() int {
+	return getIntSetting("export_min_rating", 0)
 }
 
-func GetExportCurationStatus() (ExportCurationStatus, error) {
-	value, err := GetSetting("export_curation_status")
-	if err != nil {
-		return ExportCurationAll, err
-	}
-	return ExportCurationStatus(value), nil
+func GetExportCurationStatus() ExportCurationStatus {
+	return ExportCurationStatus(getStringSetting("export_curation_status", string(ExportCurationAll)))
 }
 
-func GetExportOrganizationMode() (ExportOrganizationMode, error) {
-	value, err := GetSetting("export_organization_mode")
-	if err != nil {
-		return ExportOrgOrganized, err
-	}
-	return ExportOrganizationMode(value), nil
+func GetExportOrganizationMode() ExportOrganizationMode {
+	return ExportOrganizationMode(getStringSetting("export_organization_mode", string(ExportOrgOrganized)))
 }
 
-func GetExportDeduplicationEnabled() (bool, error) {
-	value, err := GetSetting("export_deduplication_enabled")
-	if err != nil {
-		return true, err
-	}
-	return value == "true", nil
+func GetExportDeduplicationEnabled() bool {
+	return getBoolSetting("export_deduplication_enabled", true)
 }
 
-func GetExportCleanupEnabled() (bool, error) {
-	value, err := GetSetting("export_cleanup_enabled")
-	if err != nil {
-		return false, err
-	}
-	return value == "true", nil
+func GetExportCleanupEnabled() bool {
+	return getBoolSetting("export_cleanup_enabled", false)
 }
 
-func GetBurstDetectionEnabled() (bool, error) {
-	value, err := GetSetting("burst_detection_enabled")
-	if err != nil {
-		return false, err
-	}
-	return value == "true", nil
+func GetBurstDetectionEnabled() bool {
+	return getBoolSetting("burst_detection_enabled", false)
 }
 
-func GetBurstTimeThreshold() (int, error) {
-	value, err := GetSetting("burst_time_threshold")
-	if err != nil {
-		return 3, err
-	}
-	threshold, err := strconv.Atoi(value)
-	if err != nil {
-		return 3, fmt.Errorf("invalid burst_time_threshold value: %w", err)
-	}
-	return threshold, nil
+func GetBurstTimeThreshold() int {
+	return getIntSetting("burst_time_threshold", 3)
 }
 
-func GetBurstDhashThreshold() (int, error) {
-	value, err := GetSetting("burst_dhash_threshold")
+func GetBurstDhashThreshold() int {
+	return getIntSetting("burst_dhash_threshold", 4)
+}
+
+func getStringSetting(key string, defaultValue string) string {
+	value, err := GetSetting(key)
 	if err != nil {
-		return 4, err
+		slog.Error("failed to read setting, using default", "key", key, "default", defaultValue, "error", err)
+		return defaultValue
 	}
-	threshold, err := strconv.Atoi(value)
+	return value
+}
+
+func getBoolSetting(key string, defaultValue bool) bool {
+	return getStringSetting(key, strconv.FormatBool(defaultValue)) == "true"
+}
+
+func getIntSetting(key string, defaultValue int) int {
+	value := getStringSetting(key, strconv.Itoa(defaultValue))
+	number, err := strconv.Atoi(value)
 	if err != nil {
-		return 4, fmt.Errorf("invalid burst_dhash_threshold value: %w", err)
+		slog.Error("invalid setting value, using default", "key", key, "value", value, "default", defaultValue)
+		return defaultValue
 	}
-	return threshold, nil
+	return number
 }
 
 func HandleGetSettings(w http.ResponseWriter, r *http.Request) {
 	settings, err := GetAllSettings()
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "GET_SETTINGS_ERROR", "Failed to get settings")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "GET_SETTINGS_ERROR", "Failed to get settings", err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(settings); err != nil {
-		slog.Error("error encoding settings response", "error", err)
-	}
+	utils.SendJSONResponse(w, http.StatusOK, settings)
 }
 
 func HandleUpdateSetting(w http.ResponseWriter, r *http.Request) {
 	var req UpdateSettingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body", nil)
 		return
 	}
 
 	if req.Key == "" {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_KEY", "Setting key is required")
+		utils.SendErrorResponse(w, http.StatusBadRequest, "MISSING_KEY", "Setting key is required", nil)
 		return
 	}
 
 	if err := validate(req.Key, req.Value); err != nil {
-		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_VALUE", err.Error())
+		utils.SendErrorResponse(w, http.StatusBadRequest, "INVALID_VALUE", err.Error(), nil)
 		return
 	}
 
 	if err := UpsertSetting(req.Key, req.Value); err != nil {
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "UPDATE_SETTING_ERROR", "Failed to update setting")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "UPDATE_SETTING_ERROR", "Failed to update setting", err)
 		return
 	}
 

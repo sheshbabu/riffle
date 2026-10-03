@@ -38,18 +38,18 @@ export default function ExportSessionDetail({ session, hasCompleted = true, onCl
       );
     }
   } else if (session) {
-    const formattedDateTime = formatDateTime(session.started_at);
+    const formattedDateTime = formatDateTime(session.startedAt);
 
     let durationText = '';
-    if (session.duration_seconds) {
-      const minutes = Math.floor(session.duration_seconds / 60);
-      const seconds = session.duration_seconds % 60;
+    if (session.durationSeconds) {
+      const minutes = Math.floor(session.durationSeconds / 60);
+      const seconds = session.durationSeconds % 60;
       durationText = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
     }
 
-    let criteriaText = `Rating ≥ ${session.min_rating}`;
-    if (session.curation_status) {
-      criteriaText += session.curation_status === 'pick' ? ', Picked only' : ', All photos';
+    let criteriaText = `Rating ≥ ${session.minRating}`;
+    if (session.curationStatus) {
+      criteriaText += session.curationStatus === 'pick' ? ', Picked only' : ', All photos';
     }
 
     let durationEl = null;
@@ -58,19 +58,19 @@ export default function ExportSessionDetail({ session, hasCompleted = true, onCl
     }
 
     let errorsEl = null;
-    if (session.error_count > 0) {
+    if (session.errorCount > 0) {
       errorsEl = (
         <DescriptionItem label="Errors">
-          <span className="session-detail-error">{session.error_count}</span>
+          <span className="session-detail-error">{session.errorCount}</span>
         </DescriptionItem>
       );
     }
 
     let errorMessageEl = null;
-    if (session.error_message) {
+    if (session.errorMessage) {
       errorMessageEl = (
         <DescriptionItem label="Error">
-          <span className="session-detail-error">{session.error_message}</span>
+          <span className="session-detail-error">{session.errorMessage}</span>
         </DescriptionItem>
       );
     }
@@ -78,13 +78,13 @@ export default function ExportSessionDetail({ session, hasCompleted = true, onCl
     modalBody = (
       <DescriptionList className="session-detail-container">
         <DescriptionItem label="Date" value={formattedDateTime} />
-        <DescriptionItem label="Destination Folder" value={session.export_path} />
+        <DescriptionItem label="Destination Folder" value={session.exportPath} />
         <DescriptionItem label="Criteria" value={criteriaText} />
         {durationEl}
         <DescriptionItem label="Status">
           <StatusBadge status={session.status} />
         </DescriptionItem>
-        <DescriptionItem label="Exported Photos" value={`${session.exported_photos}/${session.total_photos}`} />
+        <DescriptionItem label="Exported Photos" value={`${session.exportedPhotos}/${session.totalPhotos}`} />
         {errorsEl}
         {errorMessageEl}
       </DescriptionList>

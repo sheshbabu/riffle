@@ -18,22 +18,22 @@ type ImportSessionResponse struct {
 }
 
 type ImportSessionsResponse struct {
-	ImportID          int64   `json:"import_id"`
-	ImportPath        string  `json:"import_path"`
-	ImportMode        string  `json:"import_mode"`
-	StartedAt         string  `json:"started_at"`
-	CompletedAt       *string `json:"completed_at,omitempty"`
-	DurationSeconds   *int64  `json:"duration_seconds,omitempty"`
-	TotalScanned      int     `json:"total_scanned"`
-	AlreadyImported   int     `json:"already_imported"`
-	UniqueFiles       int     `json:"unique_files"`
-	DuplicateGroups   int     `json:"duplicate_groups"`
-	DuplicatesRemoved int     `json:"duplicates_removed"`
-	MovedToLibrary    int     `json:"moved_to_library"`
-	ErrorCount        int     `json:"error_count"`
-	ErrorMessage      *string `json:"error_message,omitempty"`
+	ImportID          int64   `json:"importId"`
+	ImportPath        string  `json:"importPath"`
+	ImportMode        string  `json:"importMode"`
+	StartedAt         string  `json:"startedAt"`
+	CompletedAt       *string `json:"completedAt,omitempty"`
+	DurationSeconds   *int64  `json:"durationSeconds,omitempty"`
+	TotalScanned      int     `json:"totalScanned"`
+	AlreadyImported   int     `json:"alreadyImported"`
+	UniqueFiles       int     `json:"uniqueFiles"`
+	DuplicateGroups   int     `json:"duplicateGroups"`
+	DuplicatesRemoved int     `json:"duplicatesRemoved"`
+	MovedToLibrary    int     `json:"movedToLibrary"`
+	ErrorCount        int     `json:"errorCount"`
+	ErrorMessage      *string `json:"errorMessage,omitempty"`
 	Status            string  `json:"status"`
-	CreatedAt         string  `json:"created_at"`
+	CreatedAt         string  `json:"createdAt"`
 }
 
 func HandleImportProgress(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +43,7 @@ func HandleImportProgress(w http.ResponseWriter, r *http.Request) {
 func HandleGetImportSessions(w http.ResponseWriter, r *http.Request) {
 	sessions, err := GetImportSessions(50)
 	if err != nil {
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "QUERY_ERROR", "Failed to retrieve import sessions")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "QUERY_ERROR", "Failed to retrieve import sessions", err)
 		return
 	}
 
@@ -93,12 +93,12 @@ func HandleCreateImportSession(w http.ResponseWriter, r *http.Request) {
 	libraryPath := os.Getenv("LIBRARY_PATH")
 	thumbnailsPath := os.Getenv("THUMBNAILS_PATH")
 
-	importMode, _ := settings.GetImportMode()
+	importMode := settings.GetImportMode()
 
 	if err := progress.StartOperation(progress.OperationImport); err != nil {
 		currentOp := progress.Get()
 		slog.Warn("cannot start import, operation already in progress", "current_operation", currentOp.Operation)
-		utils.SendErrorResponse(w, http.StatusConflict, "OPERATION_IN_PROGRESS", fmt.Sprintf("Cannot start import: %s operation is already in progress", currentOp.Operation))
+		utils.SendErrorResponse(w, http.StatusConflict, "OPERATION_IN_PROGRESS", fmt.Sprintf("Cannot start import: %s operation is already in progress", currentOp.Operation), nil)
 		return
 	}
 
@@ -106,9 +106,8 @@ func HandleCreateImportSession(w http.ResponseWriter, r *http.Request) {
 
 	sessionID, err := CreateImportSession(importPath, string(importMode))
 	if err != nil {
-		slog.Error("failed to create import session", "error", err)
 		progress.CompleteOperation()
-		utils.SendErrorResponse(w, http.StatusInternalServerError, "SESSION_CREATE_ERROR", "Failed to create import session")
+		utils.SendErrorResponse(w, http.StatusInternalServerError, "SESSION_CREATE_ERROR", "Failed to create import session", err)
 		return
 	}
 	SetCurrentImportSessionID(sessionID)

@@ -10,7 +10,7 @@ Plain CSS with custom properties for theming. **Read `assets/index.css` first**,
 - Child classes and elements nested directly without `&`: `.child-class`, `svg`
 - Nest all child/descendant selectors under their parent instead of declaring them flat at the top level. Only declare a new top-level selector for a class that is a genuinely separate component, not a child of an existing one
 - Nest at most 4 levels deep; extract a sub-component past that
-- State classes use `is-`/`has-` prefixes: `&.is-open`, `&.is-selected`, `&.has-preview`
+- State classes use `is-`/`has-` prefixes: `&.is-open`, `&.is-selected`, `&.has-preview`. Variants (`&.primary`, `&.danger`, `&.error`), layout modes (`&.right-aligned`) and identities (`&.pick`, `&.rejected`) aren't states and stay unprefixed
 - A component styles its inside; the parent positions it. No `margin` on a root class, use `gap` on the parent
 - Namespace `@keyframes` with the component prefix: `toast-slide-up`, not `fade-in`
 - Conditional classes using template literals

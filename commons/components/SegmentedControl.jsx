@@ -3,7 +3,7 @@ import './SegmentedControl.css';
 export default function SegmentedControl({ options, value, onChange, isDisabled = false }) {
   const optionElements = options.map(option => {
     const isSelected = option.value === value;
-    let className = isSelected ? 'segment selected' : 'segment';
+    let className = isSelected ? 'segment is-selected' : 'segment';
     if (isDisabled) {
       className += ' is-disabled';
     }

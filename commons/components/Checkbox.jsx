@@ -10,7 +10,12 @@ export default function Checkbox({ checked, onChange, disabled, className, label
     }
   }
 
-  const checkboxClassName = `checkbox ${disabled ? 'checkbox--disabled' : ''} ${className || ''}`.trim();
+  const checkboxClassName = `checkbox ${disabled ? 'is-disabled' : ''} ${className || ''}`.trim();
+
+  let labelElement = null;
+  if (labelText) {
+    labelElement = <span className="checkbox-label">{labelText}</span>;
+  }
 
   return (
     <label className={checkboxClassName}>
@@ -24,7 +29,7 @@ export default function Checkbox({ checked, onChange, disabled, className, label
       <span className="checkbox-icon">
         {checked ? <SquareCheckIcon /> : <SquareIcon />}
       </span>
-      {labelText && <span className="checkbox-label">{labelText}</span>}
+      {labelElement}
     </label>
   );
 }

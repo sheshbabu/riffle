@@ -22,10 +22,10 @@ export default function Pagination({ pageStartRecord, pageEndRecord, totalRecord
     <div className="pagination-container">
       <div className="pagination">
         <span className="pagination-text">{pageStartRecord} - {pageEndRecord} of {totalRecords}</span>
-        <a href="#" className={!hasPrev ? 'disabled' : ''} onClick={handlePrevClick}  >
+        <a href="#" className={!hasPrev ? 'is-disabled' : ''} onClick={handlePrevClick}  >
           <PrevIcon />
         </a>
-        <a href="#" className={!hasNext ? 'disabled' : ''} onClick={handleNextClick}  >
+        <a href="#" className={!hasNext ? 'is-disabled' : ''} onClick={handleNextClick}  >
           <NextIcon />
         </a>
       </div>

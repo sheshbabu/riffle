@@ -3,7 +3,6 @@ package media
 import (
 	"bytes"
 	"fmt"
-	"log/slog"
 	"os/exec"
 )
 
@@ -26,8 +25,7 @@ func GenerateVideoThumbnail(filePath string, maxWidth, maxHeight int) ([]byte, s
 
 	err := cmd.Run()
 	if err != nil {
-		slog.Error("ffmpeg failed to generate video thumbnail", "file", filePath, "error", err, "stderr", stderr.String())
-		return nil, "", fmt.Errorf("failed to generate video thumbnail: %w", err)
+		return nil, "", fmt.Errorf("failed to generate video thumbnail for %s: %w: %s", filePath, err, stderr.String())
 	}
 
 	thumbnailData := stdout.Bytes()

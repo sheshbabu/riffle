@@ -105,7 +105,7 @@
 }
 
 .tag-suggestion-item:hover,
-.tag-suggestion-item.selected {
+.tag-suggestion-item.is-selected {
   background-color: var(--neutral-100);
 }
 

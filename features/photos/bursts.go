@@ -21,13 +21,13 @@ func DetectBursts(photos []Photo) []Burst {
 		return []Burst{}
 	}
 
-	burstDetectionEnabled, _ := settings.GetBurstDetectionEnabled()
+	burstDetectionEnabled := settings.GetBurstDetectionEnabled()
 	if !burstDetectionEnabled {
 		return []Burst{}
 	}
 
-	timeThreshold, _ := settings.GetBurstTimeThreshold()
-	dhashThreshold, _ := settings.GetBurstDhashThreshold()
+	timeThreshold := settings.GetBurstTimeThreshold()
+	dhashThreshold := settings.GetBurstDhashThreshold()
 
 	var bursts []Burst
 	visited := make([]bool, len(photos))

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"riffle/commons/sqlite"
+	"riffle/commons/utils"
 	"time"
 )
 
@@ -42,7 +43,6 @@ func GetAllAlbums() ([]Album, error) {
 	rows, err := sqlite.DB.Query(query)
 	if err != nil {
 		err = fmt.Errorf("failed to get albums: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -102,10 +102,9 @@ func GetAlbumByID(albumID int) (*Album, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("album not found")
+			return nil, fmt.Errorf("album %d: %w", albumID, utils.ErrNotFound)
 		}
 		err = fmt.Errorf("failed to get album: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 
@@ -123,14 +122,12 @@ func CreateAlbum(name, description string) (*Album, error) {
 	result, err := sqlite.DB.Exec(query, name, description)
 	if err != nil {
 		err = fmt.Errorf("failed to create album: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 
 	albumID, err := result.LastInsertId()
 	if err != nil {
 		err = fmt.Errorf("failed to get album id: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 
@@ -141,7 +138,6 @@ func AddPhotosToAlbum(albumID int, filePaths []string) error {
 	tx, err := sqlite.DB.Begin()
 	if err != nil {
 		err = fmt.Errorf("failed to begin transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer tx.Rollback()
@@ -156,7 +152,6 @@ func AddPhotosToAlbum(albumID int, filePaths []string) error {
 	stmt, err := tx.Prepare(query)
 	if err != nil {
 		err = fmt.Errorf("failed to prepare statement: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer stmt.Close()
@@ -165,7 +160,6 @@ func AddPhotosToAlbum(albumID int, filePaths []string) error {
 		_, err = stmt.Exec(albumID, filePath)
 		if err != nil {
 			err = fmt.Errorf("failed to add photo to album: %w", err)
-			slog.Error(err.Error())
 			return err
 		}
 	}
@@ -182,13 +176,11 @@ func AddPhotosToAlbum(albumID int, filePaths []string) error {
 	_, err = tx.Exec(updateQuery, albumID)
 	if err != nil {
 		err = fmt.Errorf("failed to update album timestamp: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
 	if err = tx.Commit(); err != nil {
 		err = fmt.Errorf("failed to commit transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
@@ -199,7 +191,6 @@ func RemovePhotosFromAlbum(albumID int, filePaths []string) error {
 	tx, err := sqlite.DB.Begin()
 	if err != nil {
 		err = fmt.Errorf("failed to begin transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer tx.Rollback()
@@ -214,7 +205,6 @@ func RemovePhotosFromAlbum(albumID int, filePaths []string) error {
 	stmt, err := tx.Prepare(query)
 	if err != nil {
 		err = fmt.Errorf("failed to prepare statement: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer stmt.Close()
@@ -223,7 +213,6 @@ func RemovePhotosFromAlbum(albumID int, filePaths []string) error {
 		_, err = stmt.Exec(albumID, filePath)
 		if err != nil {
 			err = fmt.Errorf("failed to remove photo from album: %w", err)
-			slog.Error(err.Error())
 			return err
 		}
 	}
@@ -240,13 +229,11 @@ func RemovePhotosFromAlbum(albumID int, filePaths []string) error {
 	_, err = tx.Exec(updateQuery, albumID)
 	if err != nil {
 		err = fmt.Errorf("failed to update album timestamp: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
 	if err = tx.Commit(); err != nil {
 		err = fmt.Errorf("failed to commit transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
@@ -265,7 +252,6 @@ func GetPhotoAlbums(filePath string) ([]int, error) {
 	rows, err := sqlite.DB.Query(query, filePath)
 	if err != nil {
 		err = fmt.Errorf("failed to get photo albums: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -297,7 +283,6 @@ func GetAlbumPhotoPaths(albumID int) ([]string, error) {
 	rows, err := sqlite.DB.Query(query, albumID)
 	if err != nil {
 		err = fmt.Errorf("failed to get album photos: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -347,7 +332,6 @@ func GetAlbumPhotosWithMetadata(albumID int) ([]map[string]interface{}, error) {
 	rows, err := sqlite.DB.Query(query, albumID)
 	if err != nil {
 		err = fmt.Errorf("failed to get album photos with metadata: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -417,7 +401,6 @@ func DeleteAlbum(albumID int) error {
 	tx, err := sqlite.DB.Begin()
 	if err != nil {
 		err = fmt.Errorf("failed to begin transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 	defer tx.Rollback()
@@ -432,7 +415,6 @@ func DeleteAlbum(albumID int) error {
 	_, err = tx.Exec(deletePhotosQuery, albumID)
 	if err != nil {
 		err = fmt.Errorf("failed to delete album photos: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 
@@ -443,16 +425,24 @@ func DeleteAlbum(albumID int) error {
 			album_id = ?
 	`
 
-	_, err = tx.Exec(deleteAlbumQuery, albumID)
+	result, err := tx.Exec(deleteAlbumQuery, albumID)
 	if err != nil {
 		err = fmt.Errorf("failed to delete album: %w", err)
-		slog.Error(err.Error())
 		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		err = fmt.Errorf("failed to get rows affected: %w", err)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("album %d: %w", albumID, utils.ErrNotFound)
 	}
 
 	if err = tx.Commit(); err != nil {
 		err = fmt.Errorf("failed to commit transaction: %w", err)
-		slog.Error(err.Error())
 		return err
 	}
 

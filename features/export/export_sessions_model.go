@@ -40,73 +40,55 @@ func CreateExportSession(exportPath string, criteria ExportCriteria) (int64, err
 	)
 	if err != nil {
 		err = fmt.Errorf("error creating export session: %w", err)
-		slog.Error(err.Error())
 		return 0, err
 	}
 
 	exportID, err := result.LastInsertId()
 	if err != nil {
 		err = fmt.Errorf("error getting export session ID: %w", err)
-		slog.Error(err.Error())
 		return 0, err
 	}
 
 	return exportID, nil
 }
 
-func UpdateExportSessionStatus(exportID int64, status string) error {
+func UpdateExportSessionStatus(exportID int64, status string) {
 	query := `UPDATE export_sessions SET status = ? WHERE export_id = ?`
 
 	_, err := sqlite.DB.Exec(query, status, exportID)
 	if err != nil {
-		err = fmt.Errorf("error updating export session status: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error updating export session status", "error", err)
 	}
-
-	return nil
 }
 
-func UpdateExportSessionStats(exportID int64, totalPhotos int) error {
+func UpdateExportSessionStats(exportID int64, totalPhotos int) {
 	query := `UPDATE export_sessions SET total_photos = ? WHERE export_id = ?`
 
 	_, err := sqlite.DB.Exec(query, totalPhotos, exportID)
 	if err != nil {
-		err = fmt.Errorf("error updating export session stats: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error updating export session stats", "error", err)
 	}
-
-	return nil
 }
 
-func IncrementExportedPhotos(exportID int64) error {
+func IncrementExportedPhotos(exportID int64) {
 	query := `UPDATE export_sessions SET exported_photos = exported_photos + 1 WHERE export_id = ?`
 
 	_, err := sqlite.DB.Exec(query, exportID)
 	if err != nil {
-		err = fmt.Errorf("error incrementing exported photos: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error incrementing exported photos", "error", err)
 	}
-
-	return nil
 }
 
-func IncrementExportErrors(exportID int64) error {
+func IncrementExportErrors(exportID int64) {
 	query := `UPDATE export_sessions SET error_count = error_count + 1 WHERE export_id = ?`
 
 	_, err := sqlite.DB.Exec(query, exportID)
 	if err != nil {
-		err = fmt.Errorf("error incrementing export errors: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error incrementing export errors", "error", err)
 	}
-
-	return nil
 }
 
-func CompleteExportSession(exportID int64, startedAt time.Time, result *ExportResult, errorMsg string) error {
+func CompleteExportSession(exportID int64, startedAt time.Time, result *ExportResult, errorMsg string) {
 	completedAt := time.Now()
 	duration := int(completedAt.Sub(startedAt).Seconds())
 	status := "completed"
@@ -133,15 +115,11 @@ func CompleteExportSession(exportID int64, startedAt time.Time, result *ExportRe
 		exportID,
 	)
 	if err != nil {
-		err = fmt.Errorf("error completing export session: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error completing export session", "error", err)
 	}
-
-	return nil
 }
 
-func RecordExportedPhoto(exportID int64, filePath, status, errorMessage string) error {
+func RecordExportedPhoto(exportID int64, filePath, status, errorMessage string) {
 	query := `
 		INSERT INTO exported_photos (export_id, file_path, status, error_message, exported_at)
 		VALUES (?, ?, ?, ?, ?)
@@ -156,25 +134,17 @@ func RecordExportedPhoto(exportID int64, filePath, status, errorMessage string) 
 		time.Now(),
 	)
 	if err != nil {
-		err = fmt.Errorf("error recording exported photo: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error recording exported photo", "error", err)
 	}
-
-	return nil
 }
 
-func UpdateExportSessionSkippedCount(exportID int64, skippedCount int) error {
+func UpdateExportSessionSkippedCount(exportID int64, skippedCount int) {
 	query := `UPDATE export_sessions SET skipped_photos = ? WHERE export_id = ?`
 
 	_, err := sqlite.DB.Exec(query, skippedCount, exportID)
 	if err != nil {
-		err = fmt.Errorf("error updating export session skipped count: %w", err)
-		slog.Error(err.Error())
-		return err
+		slog.Error("error updating export session skipped count", "error", err)
 	}
-
-	return nil
 }
 
 func WasPhotoExported(filePath string) (bool, error) {
@@ -193,7 +163,6 @@ func WasPhotoExported(filePath string) (bool, error) {
 	err := sqlite.DB.QueryRow(query, filePath).Scan(&exists)
 	if err != nil {
 		err = fmt.Errorf("error checking if photo was exported: %w", err)
-		slog.Error(err.Error())
 		return false, err
 	}
 
@@ -213,7 +182,6 @@ func GetExportSessions(limit int) ([]ExportSession, error) {
 	rows, err := sqlite.DB.Query(query, limit)
 	if err != nil {
 		err = fmt.Errorf("error querying export sessions: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()

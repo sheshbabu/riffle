@@ -28,7 +28,7 @@
   margin-bottom: var(--spacing-2);
   box-shadow: var(--shadow-4);
 
-  &.clickable {
+  &.is-clickable {
     cursor: pointer;
   }
 }

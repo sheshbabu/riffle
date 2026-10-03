@@ -11,7 +11,7 @@ Photos stored in `riffle.db` (SQLite) with EXIF metadata. Migrations are sequent
 - Use global `sqlite.DB` instance
 - Always use parameterized queries with `?` placeholders
 - Defer `rows.Close()` for multi-row queries
-- Use transactions for multi-step operations with defer rollback pattern
+- Use transactions for multi-step operations with defer rollback pattern (except `commons/sqlite/migrate.go`, which is startup-only and rolls back manually)
 - Model files (`*_model.go`) contain only database operations (Create*, Get*, Delete*)
 - Keep utility/helper functions in feature files, not in model files
-- Error pattern: `fmt.Errorf("error message: %w", err)` + `slog.Error(err.Error())`
+- Error pattern: return `fmt.Errorf("error message: %w", err)` without logging; see `backend.md` for where errors get logged

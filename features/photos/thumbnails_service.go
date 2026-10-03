@@ -22,7 +22,6 @@ func RebuildThumbnails(libraryPath, thumbnailsPath string) error {
 	allPhotos, err := GetAllPhotosForThumbnails()
 	if err != nil {
 		err = fmt.Errorf("failed to get photos from database: %w", err)
-		slog.Error(err.Error())
 		progress.Update(progress.StatusError, 0, 0, err.Error())
 		return err
 	}
@@ -84,7 +83,6 @@ func GetAllPhotosForThumbnails() ([]PhotoForThumbnail, error) {
 	rows, err := sqlite.DB.Query(query)
 	if err != nil {
 		err = fmt.Errorf("error getting all photos for thumbnails: %w", err)
-		slog.Error(err.Error())
 		return nil, err
 	}
 	defer rows.Close()
