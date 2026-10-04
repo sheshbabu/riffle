@@ -13,51 +13,58 @@
 
 .tag-badge {
   display: inline-flex;
-  align-items: center;
-  padding: 6px var(--spacing-2);
+  align-items: stretch;
   margin-right: var(--spacing-1);
   margin-bottom: var(--spacing-1);
   border-radius: var(--radius-1);
-  font-weight: 500;
   color: var(--neutral-400);
   background-color: var(--neutral-100);
+  font: var(--sm);
+  font-weight: 500;
   transition-property: color, background-color;
   transition-duration: var(--transition-normal);
-  cursor: pointer;
-  text-decoration: none;
   user-select: none;
-  font: var(--sm);
-
-  svg.lucide {
-    height: 14px;
-    width: 14px;
-    margin-left: var(--spacing-1);
-  }
-}
-
-.tag-badge-name {
-  line-height: 1;
-}
-
-.tag-badge-remove {
-  background: none;
-  border: none;
-  color: var(--bg-primary);
-  cursor: pointer;
-  font: var(--h6);
-  line-height: 1;
-  padding: 0;
-  margin: 0;
-  width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.8;
-  transition: opacity var(--transition-fast);
 
   &:hover {
-    opacity: 1;
+    color: var(--neutral-500);
+    background-color: var(--neutral-200);
+  }
+
+  .tag-badge-label {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-1) var(--spacing-2);
+  }
+
+  .tag-badge-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    border-radius: 0 var(--radius-1) var(--radius-1) 0;
+    cursor: pointer;
+    transition: background-color var(--transition-normal);
+
+    svg {
+      width: 16px;
+      height: 16px;
+
+      line,
+      circle,
+      rect,
+      path {
+        stroke: currentColor;
+      }
+    }
+
+    &:hover {
+      background-color: var(--neutral-300);
+    }
+
+    &:active {
+      transform: scale(0.97);
+      transition: transform var(--transition-fast) ease-out;
+    }
   }
 }
 

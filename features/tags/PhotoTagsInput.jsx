@@ -1,5 +1,5 @@
 import ApiClient from '../../commons/http/ApiClient.js';
-import { CircleMinus } from "../../commons/components/Icon.jsx"
+import { CloseIcon } from "../../commons/components/Icon.jsx";
 import './PhotoTagsInput.css';
 
 const { useState, useEffect, useRef } = React;
@@ -112,8 +112,10 @@ export default function PhotoTagsInput({ tags, onAddTag, onRemoveTag }) {
   const tagBadges = tags.map(tag => {
     return (
       <div key={tag.tagId} className="tag-badge">
-        <span className="tag-badge-name">{tag.name}</span>
-        <span onClick={() => onRemoveTag(tag)}><CircleMinus /></span>
+        <span className="tag-badge-label">{tag.name}</span>
+        <span className="tag-badge-remove" onClick={() => onRemoveTag(tag)}>
+          <CloseIcon />
+        </span>
       </div>
     );
   });
