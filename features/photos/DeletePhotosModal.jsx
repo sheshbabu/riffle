@@ -15,10 +15,10 @@ export default function DeletePhotosModal({ count, onClose, onConfirm, isDeletin
           </p>
         </ModalContent>
         <ModalFooter isRightAligned={true}>
-          <Button variant="secondary" onClick={onClose} disabled={isDeleting}>
+          <Button variant="secondary" onClick={onClose} isDisabled={isDeleting}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={onConfirm} disabled={isDeleting}>
+          <Button variant="danger" onClick={onConfirm} isDisabled={isDeleting}>
             {isDeleting ? 'Deleting...' : 'Remove from Disk'}
           </Button>
         </ModalFooter>

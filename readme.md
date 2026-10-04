@@ -42,7 +42,7 @@ Import → Curate → Library → Export
 * Visual progress tracking
 * Undo with fade-out animations
 
-**Trash** (Virtual Safety Net)
+**Rejected** (Virtual Safety Net)
 * Review rejected photos before final deletion
 * No immediate file deletion
 * Easy recovery of mistakenly rejected photos

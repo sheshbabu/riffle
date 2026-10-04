@@ -89,7 +89,7 @@ export default function TagDetailModal({ tag, onClose, onUpdate, onDelete }) {
           <Button
             variant="danger"
             onClick={handleDelete}
-            disabled={isUpdating || isDeleting}
+            isDisabled={isUpdating || isDeleting}
           >
             {isDeleting ? 'Deleting...' : 'Delete Tag'}
           </Button>
@@ -97,14 +97,14 @@ export default function TagDetailModal({ tag, onClose, onUpdate, onDelete }) {
             <Button
               variant="secondary"
               onClick={onClose}
-              disabled={isUpdating || isDeleting}
+              isDisabled={isUpdating || isDeleting}
             >
               Cancel
             </Button>
             <Button
               variant="primary"
               onClick={handleUpdate}
-              disabled={isUpdating || isDeleting}
+              isDisabled={isUpdating || isDeleting}
             >
               {isUpdating ? 'Updating...' : 'Update'}
             </Button>

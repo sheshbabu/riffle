@@ -126,7 +126,7 @@ export default function AddToAlbumModal({ selectedPhotos, onClose }) {
             <Button onClick={onClose} variant="secondary">
               Cancel
             </Button>
-            <Button onClick={handleAddToAlbums} disabled={isLoading || selectedAlbumIds.length === 0} variant="primary">
+            <Button onClick={handleAddToAlbums} isDisabled={isLoading || selectedAlbumIds.length === 0} variant="primary">
               Add to {pluralize(selectedAlbumIds.length, 'album')}
             </Button>
           </ModalFooter>

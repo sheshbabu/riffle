@@ -31,11 +31,11 @@
 - Group headers showing date, photo count, and total size
 - Filters by date range, rating, camera, and location
 
-### 4. Trash (Safety Net)
-- Virtual trash (files remain in library folder)
+### 4. Rejected (Safety Net)
+- Rejected photos stay in the library folder
 - Shows photos with `is_trashed=true`
-- "Empty Trash" button (no-op for now)
-- Future: Physical deletion or move to OS trash
+- "Restore" (or P) picks the photo back into the Library
+- "Remove from Disk" permanently deletes the file
 
 ### 5. Albums
 - User-defined collections to organize and group photos

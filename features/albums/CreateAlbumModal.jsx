@@ -71,7 +71,7 @@ export default function CreateAlbumModal({ onClose, onAlbumCreated }) {
           <Button onClick={onClose} variant="secondary">
             Cancel
           </Button>
-          <Button onClick={handleCreateAlbum} disabled={isLoading} variant="primary">
+          <Button onClick={handleCreateAlbum} isDisabled={isLoading} variant="primary">
             Create Album
           </Button>
         </ModalFooter>

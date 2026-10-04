@@ -210,7 +210,7 @@ export default function BurstPane() {
         title="Rebuild Burst Data"
         description="For burst detection to work on existing photos, you need to compute perceptual hashes for all images in your library. This is a one-time operation that will process all image files."
       >
-        <Button onClick={handleRebuildBurstData} disabled={isProcessing}>
+        <Button onClick={handleRebuildBurstData} isDisabled={isProcessing}>
           {isProcessing ? 'Rebuilding...' : 'Rebuild Burst Data'}
         </Button>
         {progressContent}

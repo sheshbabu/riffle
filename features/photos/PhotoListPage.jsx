@@ -39,7 +39,7 @@ const PAGE_CONFIG = {
     },
     initialSelectedIndex: 0,
   },
-  trash: {
+  rejected: {
     fetchPhotos: (offset, filters) => ApiClient.getTrashedPhotos(offset, filters),
     emptyState: {
       icon: TrashEmptyIcon,
@@ -638,10 +638,10 @@ export default function PhotoListPage({ mode = 'library' }) {
     });
 
 
-    const isTrashMode = mode === 'trash';
+    const isRejectedMode = mode === 'rejected';
 
     let addToAlbumButton = null;
-    if (!isCurateMode && !isTrashMode) {
+    if (!isCurateMode && !isRejectedMode) {
       addToAlbumButton = (
         <IconButton onClick={() => setIsAlbumModalOpen(true)} title="Add to Album">
           <FolderIcon />
@@ -651,7 +651,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     }
 
     let manageTagsButton = null;
-    if (!isTrashMode && hasSelection) {
+    if (!isRejectedMode && hasSelection) {
       manageTagsButton = (
         <IconButton onClick={() => setIsTagsModalOpen(true)} title="Manage Tags">
           <TagIcon />
@@ -671,7 +671,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     }
 
     let curationButtons = null;
-    if (!isTrashMode) {
+    if (!isRejectedMode) {
       curationButtons = (
         <>
           {compareButton}
@@ -694,8 +694,15 @@ export default function PhotoListPage({ mode = 'library' }) {
       );
     }
 
+    let restoreButton = null;
     let deleteButton = null;
-    if (isTrashMode) {
+    if (isRejectedMode) {
+      restoreButton = (
+        <IconButton onClick={handlePickClick} title="Restore (P)" disabled={isCurating}>
+          <PickIcon />
+          <span>Restore</span>
+        </IconButton>
+      );
       deleteButton = (
         <IconButton onClick={() => setIsDeleteModalOpen(true)} title="Remove from Disk" variant="reject">
           <TrashIcon />
@@ -707,6 +714,7 @@ export default function PhotoListPage({ mode = 'library' }) {
     actionButtons = (
       <div className="library-actions">
         {curationButtons}
+        {restoreButton}
         {addToAlbumButton}
         {manageTagsButton}
         {deleteButton}

@@ -29,7 +29,7 @@ function App() {
             <Route path="/calendar" component={CalendarPage} />
             <Route path="/stats" component={StatsPage} />
             <Route path="/export" component={ExportPage} />
-            <Route path="/trash" component={TrashPage} />
+            <Route path="/rejected" component={RejectedPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route path="/settings/import" component={SettingsPage} />
             <Route path="/settings/library" component={SettingsPage} />
@@ -50,8 +50,8 @@ function CuratePage() {
   return <PhotoListPage mode="curate" />;
 }
 
-function TrashPage() {
-  return <PhotoListPage mode="trash" />;
+function RejectedPage() {
+  return <PhotoListPage mode="rejected" />;
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

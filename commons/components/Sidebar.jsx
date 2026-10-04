@@ -40,9 +40,9 @@ export default function Sidebar() {
           <ExportIcon />
           Export
         </Link>
-        <Link className="sidebar-button" activeClassName="is-active" to="/trash">
+        <Link className="sidebar-button" activeClassName="is-active" to="/rejected">
           <TrashIcon />
-          Trash
+          Rejected
         </Link>
         <Link className="sidebar-button" activeClassName="is-active" to="/settings">
           <SettingsIcon />

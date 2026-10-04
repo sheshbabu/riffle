@@ -2,7 +2,7 @@
   min-width: 400px;
 
   .tag-detail-danger-zone {
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--neutral-200);
 
     .tag-detail-warning {
       font: var(--sm);
